@@ -57,7 +57,7 @@ AlumniApp/
 
 ### **1. Clone the Repository**  
 ```sh
-git clone https://github.com/yourusername/alumni-app.git
+git clone https://github.com/geekAyush123/AlumNITD.git
 cd alumni-app
 ```
 
