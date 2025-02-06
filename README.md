@@ -1,97 +1,104 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-# Getting Started
+---
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+# **AlumNITD**  
 
-## Step 1: Start Metro
+A **React Native** application designed for the **NIT Delhi Alumni** network, enabling alumni and students to connect, interact, and share experiences.  
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## 🚀 **Features**  
+- **User Authentication** (Signup/Login with JWT & Firebase Auth)  
+- **Profile Management** (Alumni & Student profiles)  
+- **Feed Section** (Posts, comments, and reactions)  
+- **Direct Messaging** (Chat between alumni and students)  
+- **Event Management** (Alumni meetups, webinars, and job fairs)  
+- **Job & Internship Listings**  
+- **Mentorship Program** (Connect students with alumni mentors)  
+- **Push Notifications** (Using Firebase Cloud Messaging)  
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## 🛠️ **Tech Stack**  
 
-```sh
-# Using npm
-npm start
+### **Frontend**  
+- **React Native** (For cross-platform mobile development)  
+- **Redux Toolkit** (For state management)  
+- **React Navigation** (For seamless app navigation)  
+- **TailwindCSS / Styled Components** (For styling UI)  
 
-# OR using Yarn
-yarn start
+### **Backend**  
+- **Node.js with Express.js** (For API development)  
+- **MongoDB with Mongoose** (For storing user data and posts)  
+- **Firebase Authentication** (For secure user authentication)  
+- **Cloudinary** (For image & document storage)  
+- **Socket.io** (For real-time chat and notifications)  
+
+### **Other Integrations**  
+- **Google OAuth & LinkedIn OAuth** (For easy login)  
+- **Push Notifications** (With Firebase Cloud Messaging)  
+- **Stripe/ Razorpay** (For donations or alumni event payments)  
+
+## 📂 **Folder Structure**  
+```
+AlumniApp/
+│-- android/                     # Android-specific files
+│-- ios/                         # iOS-specific files
+│-- src/
+│   ├── components/              # Reusable UI components
+│   ├── screens/                 # Screens for navigation
+│   ├── navigation/              # React Navigation setup
+│   ├── redux/                   # Redux Toolkit setup
+│   ├── utils/                   # Helper functions
+│   ├── services/                # API calls & Firebase integration
+│-- assets/                      # Images, fonts, icons
+│-- App.js                       # Main entry point
+│-- package.json                 # Dependencies & scripts
+│-- .env                         # Environment variables
 ```
 
-## Step 2: Build and run your app
+## 🔧 **Installation**  
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
+### **1. Clone the Repository**  
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+git clone https://github.com/yourusername/alumni-app.git
+cd alumni-app
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
+### **2. Install Dependencies**  
 ```sh
-bundle install
+npm install  # or yarn install
 ```
 
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
+### **3. Configure Environment Variables**  
+Create a `.env` file and add:  
+```env
+REACT_APP_FIREBASE_API_KEY=your_firebase_api_key
+REACT_APP_BACKEND_URL=http://your-backend-url.com
+REACT_APP_GOOGLE_OAUTH_CLIENT_ID=your_google_client_id
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
+### **4. Start the Development Server**  
 ```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+npx react-native start
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### **5. Run the App on Emulator or Device**  
+For Android:  
+```sh
+npx react-native run-android
+```
+For iOS:  
+```sh
+npx react-native run-ios
+```
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
 
-## Step 3: Modify your app
 
-Now that you have successfully run the app, let's make changes!
+## 📜 **License**  
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.  
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## 🤝 **Contributing**  
+We welcome contributions! Feel free to open a PR or create an issue.  
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+---
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+**Developed by Aryaman,Ayush ,Alfred | NIT Delhi**  
 
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+---
