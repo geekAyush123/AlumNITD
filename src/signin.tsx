@@ -63,7 +63,10 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       </Button>
       <Text style={styles.registerText}>
         Don't have an account?{" "}
-        <Text style={styles.registerLink} onPress={() => navigation.navigate("SignUp")}>
+        <Text
+          style={styles.registerLink}
+          onPress={() => navigation.navigate("SignUp")} // Navigate to SignUp screen
+        >
           Sign Up
         </Text>
       </Text>

@@ -1,58 +1,41 @@
 import React from 'react';
-import {View, StatusBar, UIManager, Platform} from 'react-native';
-import LoginScreen from 'react-native-login-screen';
-import TextInput from 'react-native-text-input-interactive';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { DefaultTheme, Provider as PaperProvider } from 'react-native-paper';
+import Login from './Login'; // Import your Login screen
+import SignInScreen from './Signin'; // Import your SignIn screen
+import Signup from './Signup'; // Import your Signup screen
 
-if (
-  Platform.OS === 'android' &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+// Create a stack navigator
+const Stack = createStackNavigator();
 
-const App = () => {
-  const [username, setUsername] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [repassword, setRepassword] = React.useState('');
+// Define the theme for the paper components (optional, for consistency)
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#6200ee', // Example color
+    accent: '#03dac4',  // Example accent color
+  },
+};
 
-  const renderSignupLoginScreen = () => (
-    <LoginScreen
-      logoImageSource={require('D:\\AlumNITD\\src\\assets\\logo_alum.jpg')}
-      onLoginPress={() => {}}
-      onSignupPress={() => {}}
-      onEmailChange={setUsername}
-      loginButtonText={'Create an account'}
-      disableSignup
-      textInputChildren={
-        <View style={{marginTop: 16}}>
-          <TextInput
-            placeholder="Re-Password"
-            secureTextEntry
-            onChangeText={setRepassword}
-          />
-        </View>
-      }
-      onPasswordChange={setPassword}
-    />
-  );
-
-  const renderLoginScreen = () => (
-    <LoginScreen
-      logoImageSource={require('./assets/logo_alum.jpg')}
-      onLoginPress={() => {}}
-      onSignupPress={() => {}}
-      onEmailChange={setUsername}
-      onPasswordChange={setPassword}
-      enablePasswordValidation
-    />
-  );
-
+const App: React.FC = () => {
   return (
-    <View style={{flex: 1}}>
-      <StatusBar barStyle="light-content" />
-      {/*{renderSignupLoginScreen()}*/}
-      {renderLoginScreen()}
-    </View>
+    <PaperProvider theme={theme}> {/* Wrap the app with PaperProvider */}
+      <NavigationContainer> {/* Navigation container to manage navigation state */}
+        <Stack.Navigator
+          initialRouteName="Login" // The screen that will show initially
+          screenOptions={{
+            headerShown: false, // Hide the header for a clean design
+          }}
+        >
+          {/* Define all screens */}
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="SignIn" component={SignInScreen} />
+          <Stack.Screen name="SignUp" component={Signup} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </PaperProvider>
   );
 };
 
