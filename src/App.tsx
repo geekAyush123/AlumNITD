@@ -2,9 +2,9 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { DefaultTheme, Provider as PaperProvider } from 'react-native-paper';
-import Login from './Login'; // Import your Login screen
-import SignInScreen from './Signin'; // Import your SignIn screen
-import Signup from './Signup'; // Import your Signup screen
+import Login from './login'; // Import your Login screen
+import SignInScreen from './signin'; // Import your SignIn screen
+import Signup from './signup'; // Import your Signup screen
 
 // Create a stack navigator
 const Stack = createStackNavigator();

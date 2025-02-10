@@ -1,5 +1,5 @@
 {
-  "name": "Awesome01",
+  "name": "ALUMNITD",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -12,15 +12,21 @@
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@react-native-async-storage/async-storage": "^1.24.0",
+    "@react-native-firebase/app": "^21.7.2",
     "@react-native-firebase/auth": "^21.7.2",
+    "@react-native-firebase/firestore": "^21.7.2",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/stack": "^7.1.1",
     "formik": "^2.4.6",
     "react": "^18.3.1",
     "react-hook-form": "^7.54.2",
     "react-native": "^0.77.0",
+    "react-native-gesture-handler": "^2.23.0",
     "react-native-login-screen": "^5.0.0",
     "react-native-paper": "^5.13.1",
+    "react-native-reanimated": "^3.16.7",
+    "react-native-safe-area-context": "^5.2.0",
+    "react-native-screens": "^4.6.0",
     "react-native-text-input-interactive": "^0.1.5",
     "react-native-vector-icons": "^10.2.0",
     "yup": "^1.6.1",
