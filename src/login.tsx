@@ -1,21 +1,38 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import auth from "@react-native-firebase/auth";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-// Define validation schema with Zod
+// Define navigation type
+type RootStackParamList = {
+  Home: undefined;
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
+// Validation Schema using Zod
 const loginSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters long' })
+  email: z.string()
+    .email({ message: 'Invalid email address' })
+    .refine((email) => email.endsWith("@nitdelhi.ac.in"), {
+      message: "Email must be from nitdelhi.ac.in domain"
+    }),
+  password: z.string()
+    .min(6, { message: 'Password must be at least 6 characters long' })
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const navigation = useNavigation<NavigationProp>();
+
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema)
   });
@@ -23,28 +40,26 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
-      // Mock API call (replace with actual authentication logic)
-      const response = await fetch('https://your-api.com/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      // Firebase Authentication
+      await auth().signInWithEmailAndPassword(data.email, data.password);
 
-      if (!response.ok) throw new Error('Login failed');
-      const result = await response.json();
-      
-      // Store JWT token
-      await AsyncStorage.setItem('token', result.token);
-      console.log('Login successful');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+      // Store user email/token locally
+      await AsyncStorage.setItem("userToken", data.email);
+
+      // Success Alert
+      Alert.alert("Success", "You are logged in!");
+
+      // Navigate to Home Screen
+      navigation.navigate("Home");
+    } catch (error: any) {
+      Alert.alert("Login Failed", error.message);
     }
+    setLoading(false);
   };
 
   return (
     <View style={styles.container}>
+      {/* Email Input */}
       <Controller
         control={control}
         name="email"
@@ -64,6 +79,7 @@ const Login: React.FC = () => {
       />
       {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
 
+      {/* Password Input */}
       <Controller
         control={control}
         name="password"
@@ -82,6 +98,7 @@ const Login: React.FC = () => {
       />
       {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
 
+      {/* Login Button */}
       <Button mode="contained" onPress={handleSubmit(onSubmit)} loading={loading} style={styles.button}>
         Login
       </Button>
@@ -89,22 +106,24 @@ const Login: React.FC = () => {
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20
+    padding: 20,
+    backgroundColor: '#f8f9fa',
   },
   input: {
-    marginBottom: 10
+    marginBottom: 10,
   },
   button: {
-    marginTop: 10
+    marginTop: 10,
   },
   errorText: {
     color: 'red',
     fontSize: 12,
-    marginBottom: 10
+    marginBottom: 10,
   }
 });
 
