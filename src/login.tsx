@@ -4,7 +4,7 @@ import { TextInput, Button } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import EncryptedStorage from 'react-native-encrypted-storage';
 import auth from "@react-native-firebase/auth";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,14 +13,13 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 type RootStackParamList = {
   Home: undefined;
 };
-
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 // Validation Schema using Zod
 const loginSchema = z.object({
   email: z.string()
     .email({ message: 'Invalid email address' })
-    .refine((email) => email.endsWith("@nitdelhi.ac.in"), {
+    .refine((email) => email.toLowerCase().endsWith("@nitdelhi.ac.in"), {
       message: "Email must be from nitdelhi.ac.in domain"
     }),
   password: z.string()
@@ -34,25 +33,26 @@ const Login: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema)
+    resolver: zodResolver(loginSchema),
+    mode: "onChange",  // Validate in real-time
+    shouldUnregister: false
   });
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
-      // Firebase Authentication
       await auth().signInWithEmailAndPassword(data.email, data.password);
 
-      // Store user email/token locally
-      await AsyncStorage.setItem("userToken", data.email);
+      // Securely store user email
+      await EncryptedStorage.setItem("userToken", JSON.stringify({ email: data.email }));
 
-      // Success Alert
       Alert.alert("Success", "You are logged in!");
-
-      // Navigate to Home Screen
       navigation.navigate("Home");
     } catch (error: any) {
-      Alert.alert("Login Failed", error.message);
+      let errorMsg = "An error occurred. Please try again.";
+      if (error.code === 'auth/user-not-found') errorMsg = "User not found. Please check your email.";
+      if (error.code === 'auth/wrong-password') errorMsg = "Incorrect password. Please try again.";
+      Alert.alert("Login Failed", errorMsg);
     }
     setLoading(false);
   };
