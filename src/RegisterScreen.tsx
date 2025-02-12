@@ -39,7 +39,7 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       await auth().createUserWithEmailAndPassword(email, password);
       Alert.alert("Success", "Account created successfully!");
       navigation.navigate("LoginScreen");
-    } catch (error) {
+    } catch (error: unknown) { // Explicitly typing `error` as `unknown`
       if (error instanceof Error) {
         Alert.alert("Error", error.message);
       } else {
@@ -48,7 +48,6 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-    
   };
 
   return (
@@ -129,8 +128,8 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-  <Text style={styles.loginText}>Already have an account? Login Here</Text>
-</TouchableOpacity>
+        <Text style={styles.loginText}>Already have an account? Login Here</Text>
+      </TouchableOpacity>
     </View>
   );
 };
