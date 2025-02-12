@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from "react-native";
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -6,6 +6,13 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Configure Google Sign-In
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: "556028993106-5jf05j3rcs5c40e8v3gpi8p82385tu6e.apps.googleusercontent.com.apps.googleusercontent.com", // Replace with your Web Client ID from Firebase Console
+    });
+  }, []);
 
   // Handle Email/Password Login
   const handleLogin = async () => {
@@ -19,23 +26,31 @@ const LoginScreen: React.FC = () => {
   };
 
   // Google Sign-In
-  const googleLogin = async () => {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const idToken = userInfo.idToken; // Ensure `idToken` is accessed correctly
-      
+  // Google Sign-In
+const googleLogin = async () => {
+  try {
+    await GoogleSignin.hasPlayServices();
+    const response = await GoogleSignin.signIn();
+
+    if (response.type === 'success') {
+      const { idToken } = response.data;
+
       if (!idToken) {
-        throw new Error("Google Sign-In failed. No ID token received.");
+        throw new Error('Google Sign-In failed. No ID token received.');
       }
-  
+
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       await auth().signInWithCredential(googleCredential);
-    } catch (error) {
-      Alert.alert("Google Sign-In Error", String(error));
+
+      Alert.alert('Success', 'Logged in with Google!');
+    } else {
+      Alert.alert('Google Sign-In Cancelled', 'User cancelled the sign-in process.');
     }
-  };
-  
+  } catch (error) {
+    Alert.alert('Google Sign-In Error', String(error));
+  }
+};
+
 
   return (
     <View style={styles.container}>
@@ -75,7 +90,6 @@ const LoginScreen: React.FC = () => {
       </TouchableOpacity>
 
       {/* Social Logins */}
-      <Text style={styles.orText}>Or, login with</Text>
 
       <TouchableOpacity style={[styles.socialButton, { backgroundColor: "#fff" }]} onPress={googleLogin}>
         <Image source={require("./assets/google.png")} style={styles.icon} />
@@ -107,7 +121,7 @@ const styles = StyleSheet.create({
   orText: { marginVertical: 10 },
   socialButton: { flexDirection: "row", alignItems: "center", padding: 12, borderRadius: 8, marginBottom: 10, width: "100%" },
   icon: { width: 24, height: 24, marginRight: 10 },
-  socialText: { color: "#fff", fontSize: 16 },
+  socialText: { color: "#000", fontSize: 16 },
   registerText: { marginTop: 10 },
   registerLink: { color: "#4A00E0", fontWeight: "bold" },
   contactText: { fontSize: 12, color: "#555", marginTop: 20, textAlign: "center" },
