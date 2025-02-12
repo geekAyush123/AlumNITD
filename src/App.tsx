@@ -1,24 +1,22 @@
 import React from "react";
-import {
-     View,
-     Text,
-     Button,
-     StyleSheet
-}   from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import LoginScreen from "./LoginScreen"; // Import the Login Screen
 
-const styles = StyleSheet.create({
-    text: {
-        fontSize: 20,
-        color: 'black'
-    }
-})
+const Stack = createStackNavigator();
 
-function App(){
-    return(
-        <View>
-            <Text style={styles.text}>Hello, world!</Text>
-        </View>
-    )
+function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }} // Hide the default header
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
 
-export default App
+export default App;
