@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } fro
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
-const LoginScreen: React.FC = () => {
+const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -96,9 +96,12 @@ const googleLogin = async () => {
         <Text style={styles.socialText}>Continue with Google</Text>
       </TouchableOpacity>
 
-      {/* Register */}
+      {/* Register Link (Updated) */}
       <Text style={styles.registerText}>
-        Don’t have an account? <Text style={styles.registerLink} onPress={() => Alert.alert("Register", "Feature Coming Soon!")}>Register Now</Text>
+        Don’t have an account?{" "}
+        <Text style={styles.registerLink} onPress={() => navigation.navigate("Register")}>
+          Register Now
+        </Text>
       </Text>
 
       {/* Contact */}
