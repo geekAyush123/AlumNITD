@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "556028993106",
+    "project_id": "alumnitd-5d90f",
+    "storage_bucket": "alumnitd-5d90f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556028993106:android:f1c6f1e439808bd3f9098b",
+        "android_client_info": {
+          "package_name": "com.awesome2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClEA3qKx_BBs2wfNOlFvSN3Ipu1e5FFGs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
