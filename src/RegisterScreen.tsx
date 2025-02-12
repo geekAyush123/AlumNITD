@@ -48,7 +48,7 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Register</Text>
+      <Text style={styles.header}>Back</Text>
 
       <Text style={styles.label}>Full Name</Text>
       <TextInput
