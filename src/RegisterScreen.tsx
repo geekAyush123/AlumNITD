@@ -10,6 +10,9 @@ import {
 import RNPickerSelect from "react-native-picker-select";
 import auth from "@react-native-firebase/auth";
 
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Platform } from "react-native"; // Import Platform for conditional rendering
+
 const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -18,6 +21,17 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [role, setRole] = useState("");
   const [graduationYear, setGraduationYear] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [showPicker, setShowPicker] = useState(false);
+const [selectedDate, setSelectedDate] = useState(new Date());
+
+const handleDateChange = (event: any, date?: Date) => {
+  setShowPicker(false);
+  if (date) {
+    setSelectedDate(date);
+    setGraduationYear(date.getFullYear().toString()); // Store only the year
+  }
+};
 
   // Handle Registration
   const handleRegister = async () => {
@@ -107,22 +121,23 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </View>
 
       <Text style={styles.label}>Graduation Year</Text>
-      <View style={styles.dropdownContainer}>
-        <RNPickerSelect
-          onValueChange={setGraduationYear}
-          items={[
-            { label: "2023", value: "2023" },
-            { label: "2024", value: "2024" },
-            { label: "2025", value: "2025" },
-            { label: "2026", value: "2026" },
-          ]}
-          placeholder={{ label: "Select year", value: "" }}
-          style={{
-            inputIOS: { color: "black" }, // iOS styling
-            inputAndroid: { color: "black" }, // Android styling
-          }}
+      <TouchableOpacity
+        style={styles.input}
+        onPress={() => setShowPicker(true)}
+      >
+        <Text style={{ color: "#000" }}>
+          {graduationYear ? graduationYear : "Select Graduation Year"}
+        </Text>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={handleDateChange}
         />
-      </View>
+      )}
 
       <TouchableOpacity
         style={styles.registerButton}
