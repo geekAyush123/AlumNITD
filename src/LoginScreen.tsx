@@ -97,11 +97,13 @@ const googleLogin = async () => {
       </TouchableOpacity>
 
       {/* Register Link (Updated) */}
+
+      
       <Text style={styles.registerText}>
         Don’t have an account?{" "}
-        <Text style={styles.registerLink} onPress={() => navigation.navigate("Register")}>
-          Register Now
-        </Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.registerText}>Register Now</Text>
+        </TouchableOpacity>
       </Text>
 
       {/* Contact */}
