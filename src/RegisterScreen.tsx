@@ -99,6 +99,10 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             { label: "TNP Member", value: "TNP Member" },
           ]}
           placeholder={{ label: "Select role", value: "" }}
+          style={{
+            inputIOS: { color: "black" }, 
+            inputAndroid: { color: "black" }, 
+          }}
         />
       </View>
 
