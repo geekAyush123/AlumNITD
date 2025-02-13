@@ -113,6 +113,10 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             { label: "2026", value: "2026" },
           ]}
           placeholder={{ label: "Select year", value: "" }}
+          style={{
+            inputIOS: { color: "black" }, // iOS styling
+            inputAndroid: { color: "black" }, // Android styling
+          }}
         />
       </View>
 
