@@ -137,10 +137,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
   label: { fontSize: 16, marginBottom: 5, fontWeight: "600" },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 15 },
-  dropdownContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 10, marginBottom: 15 },
+  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 15 ,color: "#000"},
+  dropdownContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 10, marginBottom: 15,color: "#000" },
   registerButton: { backgroundColor: "#4A00E0", padding: 15, borderRadius: 8, alignItems: "center" },
-  registerText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  registerText: { color: "#000", fontSize: 18, fontWeight: "bold" },
   loginText: { fontSize: 16, textAlign: "center", color: "#4A00E0", marginTop: 15 },
 });
 
