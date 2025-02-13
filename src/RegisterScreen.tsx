@@ -85,7 +85,6 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Confirm your password"
-        secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
