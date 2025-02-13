@@ -18,7 +18,7 @@ function App() {
         <Stack.Screen
           name="Register"
           component={RegisterScreen}
-          options={{ headerShown: true, title: "Register" }} 
+          options={{ headerShown: true, title: "Back" }} 
         />
       </Stack.Navigator>
     </NavigationContainer>
