@@ -10,7 +10,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   // Configure Google Sign-In
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: "556028993106-5jf05j3rcs5c40e8v3gpi8p82385tu6e.apps.googleusercontent.com.apps.googleusercontent.com", // Replace with your Web Client ID from Firebase Console
+      webClientId: "556028993106-5jf05j3rcs5c40e8v3gpi8p82385tu6e.apps.googleusercontent.com", // Replace with your Web Client ID from Firebase Console
     });
   }, []);
 
@@ -27,29 +27,43 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // Google Sign-In
   // Google Sign-In
-const googleLogin = async () => {
-  try {
-    await GoogleSignin.hasPlayServices();
-    const response = await GoogleSignin.signIn();
-
-    if (response.type === 'success') {
-      const { idToken } = response.data;
-
-      if (!idToken) {
-        throw new Error('Google Sign-In failed. No ID token received.');
+  const googleLogin = async () => {
+    try {
+      // Check if Google Play Services is available
+      await GoogleSignin.hasPlayServices();
+  
+      // Sign in with Google
+      const response = await GoogleSignin.signIn();
+  
+      if (response.type === 'success') {
+        const { idToken } = response.data;
+  
+        if (!idToken) {
+          throw new Error('Google Sign-In failed. No ID token received.');
+        }
+  
+        // Create a Google credential with the ID token
+        const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+  
+        // Check if the user already exists in Firebase
+        const userCredential = await auth().signInWithCredential(googleCredential);
+        const user = userCredential.user;
+  
+        if (user) {
+          // User exists, log them in
+          Alert.alert('Success', 'Logged in with Google!');
+        } else {
+          // User does not exist, sign them out and show an error
+          await auth().signOut();
+          Alert.alert('Error', 'No such user found. Please register first.');
+        }
+      } else {
+        Alert.alert('Google Sign-In Cancelled', 'User cancelled the sign-in process.');
       }
-
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      await auth().signInWithCredential(googleCredential);
-
-      Alert.alert('Success', 'Logged in with Google!');
-    } else {
-      Alert.alert('Google Sign-In Cancelled', 'User cancelled the sign-in process.');
+    } catch (error) {
+      Alert.alert('Google Sign-In Error', String(error));
     }
-  } catch (error) {
-    Alert.alert('Google Sign-In Error', String(error));
-  }
-};
+  };
 
 
   return (

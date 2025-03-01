@@ -7,12 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:556028993106:android:f1c6f1e439808bd3f9098b",
+        "mobilesdk_app_id": "1:556028993106:android:02557e337da56d53f9098b",
         "android_client_info": {
           "package_name": "com.alumnitd"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "556028993106-8uaga1v06vgnhdmuf85godc96cjrh6qs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alumnitd",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "556028993106-5jf05j3rcs5c40e8v3gpi8p82385tu6e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyClEA3qKx_BBs2wfNOlFvSN3Ipu1e5FFGs"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "556028993106-5jf05j3rcs5c40e8v3gpi8p82385tu6e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
