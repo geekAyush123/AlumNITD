@@ -1,4 +1,4 @@
-package com.awesome2
+package com.alumnitd;
 
 import android.app.Application
 import com.facebook.react.PackageList
