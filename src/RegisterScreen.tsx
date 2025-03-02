@@ -1,3 +1,4 @@
+// RegisterScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -9,9 +10,9 @@ import {
 } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
 import auth from "@react-native-firebase/auth";
-
+import firestore from "@react-native-firebase/firestore"; // Import Firestore
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Platform } from "react-native"; // Import Platform for conditional rendering
+import { Platform } from "react-native";
 
 const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -21,17 +22,16 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [role, setRole] = useState("");
   const [graduationYear, setGraduationYear] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [showPicker, setShowPicker] = useState(false);
-const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-const handleDateChange = (event: any, date?: Date) => {
-  setShowPicker(false);
-  if (date) {
-    setSelectedDate(date);
-    setGraduationYear(date.getFullYear().toString()); // Store only the year
-  }
-};
+  const handleDateChange = (event: any, date?: Date) => {
+    setShowPicker(false);
+    if (date) {
+      setSelectedDate(date);
+      setGraduationYear(date.getFullYear().toString());
+    }
+  };
 
   // Handle Registration
   const handleRegister = async () => {
@@ -50,10 +50,23 @@ const handleDateChange = (event: any, date?: Date) => {
 
     setLoading(true);
     try {
-      await auth().createUserWithEmailAndPassword(email, password);
+      // Create user in Firebase Auth
+      const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+
+      // Get user UID
+      const userId = userCredential.user.uid;
+
+      // Store user data in Firestore
+      await firestore().collection("users").doc(userId).set({
+        fullName,
+        email,
+        role,
+        graduationYear,
+      });
+
       Alert.alert("Success", "Account created successfully!");
-      navigation.navigate("LoginScreen");
-    } catch (error: unknown) { // Explicitly typing `error` as `unknown`
+      navigation.navigate("Login");
+    } catch (error: unknown) {
       if (error instanceof Error) {
         Alert.alert("Error", error.message);
       } else {
@@ -67,7 +80,6 @@ const handleDateChange = (event: any, date?: Date) => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Register</Text>
-
       <Text style={styles.label}>Full Name</Text>
       <TextInput
         style={styles.input}
@@ -75,7 +87,6 @@ const handleDateChange = (event: any, date?: Date) => {
         value={fullName}
         onChangeText={setFullName}
       />
-
       <Text style={styles.label}>College Email</Text>
       <TextInput
         style={styles.input}
@@ -85,7 +96,6 @@ const handleDateChange = (event: any, date?: Date) => {
         onChangeText={setEmail}
         autoCapitalize="none"
       />
-
       <Text style={styles.label}>Password</Text>
       <TextInput
         style={styles.input}
@@ -94,7 +104,6 @@ const handleDateChange = (event: any, date?: Date) => {
         value={password}
         onChangeText={setPassword}
       />
-
       <Text style={styles.label}>Confirm Password</Text>
       <TextInput
         style={styles.input}
@@ -102,7 +111,6 @@ const handleDateChange = (event: any, date?: Date) => {
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
-
       <Text style={styles.label}>Role Selection</Text>
       <View style={styles.dropdownContainer}>
         <RNPickerSelect
@@ -114,12 +122,11 @@ const handleDateChange = (event: any, date?: Date) => {
           ]}
           placeholder={{ label: "Select role", value: "" }}
           style={{
-            inputIOS: { color: "black" }, 
-            inputAndroid: { color: "black" }, 
+            inputIOS: { color: "black" },
+            inputAndroid: { color: "black" },
           }}
         />
       </View>
-
       <Text style={styles.label}>Graduation Year</Text>
       <TouchableOpacity
         style={styles.input}
@@ -129,7 +136,6 @@ const handleDateChange = (event: any, date?: Date) => {
           {graduationYear ? graduationYear : "Select Graduation Year"}
         </Text>
       </TouchableOpacity>
-
       {showPicker && (
         <DateTimePicker
           value={selectedDate}
@@ -138,7 +144,6 @@ const handleDateChange = (event: any, date?: Date) => {
           onChange={handleDateChange}
         />
       )}
-
       <TouchableOpacity
         style={styles.registerButton}
         onPress={handleRegister}
@@ -148,7 +153,6 @@ const handleDateChange = (event: any, date?: Date) => {
           {loading ? "Registering..." : "Register"}
         </Text>
       </TouchableOpacity>
-
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={styles.loginText}>Already have an account? Login Here</Text>
       </TouchableOpacity>
@@ -160,11 +164,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
   header: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
   label: { fontSize: 16, marginBottom: 5, fontWeight: "600" },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 15 ,color: "#000"},
-  dropdownContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 10, marginBottom: 15,color: "#000" },
+  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 15, color: "#000" },
+  dropdownContainer: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 10, marginBottom: 15, color: "#000" },
   registerButton: { backgroundColor: "#4A00E0", padding: 15, borderRadius: 8, alignItems: "center" },
-  registerText: {color: "#fff", fontSize: 18, fontWeight: "bold" },
-  loginText: { fontSize: 16, textAlign: "center", color: "#4A00E0", marginTop: 15 },
+  registerText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  loginText: { fontSize: 14, color: "#4A00E0", textAlign: "center", marginTop: 10 },
 });
 
 export default RegisterScreen;

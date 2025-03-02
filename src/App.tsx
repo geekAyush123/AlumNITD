@@ -3,6 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./LoginScreen";
 import RegisterScreen from "./RegisterScreen";
+import HomePage from "./HomePage";
 
 const Stack = createStackNavigator();
 
@@ -20,6 +21,7 @@ function App() {
           component={RegisterScreen}
           options={{ headerShown: true, title: "Back" }} 
         />
+        <Stack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -23,6 +23,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       const err = error as Error;
       Alert.alert("Error", err.message);
     }
+    navigation.navigate('Home'); 
   };
 
   // Google Sign-In
@@ -63,6 +64,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     } catch (error) {
       Alert.alert('Google Sign-In Error', String(error));
     }
+    navigation.navigate('Home'); 
   };
 
 

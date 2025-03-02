@@ -71,3 +71,4 @@ dependencies {
     // Facebook SDK (Use a stable version)
     implementation 'com.facebook.android:facebook-android-sdk:16.0.0'
 }
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
