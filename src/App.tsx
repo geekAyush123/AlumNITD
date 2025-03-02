@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./LoginScreen";
 import RegisterScreen from "./RegisterScreen";
 import HomePage from "./HomePage";
-
+import ProfileScreen  from "./Profile";
 const Stack = createStackNavigator();
 
 function App() {
@@ -22,6 +22,7 @@ function App() {
           options={{ headerShown: true, title: "Back" }} 
         />
         <Stack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

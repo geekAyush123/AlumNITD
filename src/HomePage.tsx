@@ -7,103 +7,71 @@ import firestore from '@react-native-firebase/firestore';
 import { NavigationProp } from '@react-navigation/native';
 
 interface HomePageProps {
-  navigation: NavigationProp<any>; // You can specify a more specific type if you have defined your navigation structure
+  navigation: NavigationProp<any>;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
-  const [displayName, setDisplayName] = useState<string>("User"); // Default value
+  const [displayName, setDisplayName] = useState<string>('User');
+  const [menuVisible, setMenuVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
       const user = auth().currentUser;
       if (user) {
-        const userDoc = await firestore().collection("users").doc(user.uid).get();
+        const userDoc = await firestore().collection('users').doc(user.uid).get();
         if (userDoc.exists) {
-          const userData = userDoc.data();
-          setDisplayName(userData?.fullName || "User"); // Set name from Firestore
+          setDisplayName(userDoc.data()?.fullName || 'User');
         }
       }
     };
-
     fetchUserData();
   }, []);
 
   const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "OK",
-        onPress: () => {
-          auth()
-            .signOut()
-            .then(() => {
-              navigation.navigate("Login"); // Navigate to the Login screen
-            })
-            .catch(error => {
-              console.error("Sign out error:", error);
-            });
-        },
-      },
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'OK', onPress: () => auth().signOut().then(() => navigation.navigate('Login')) },
     ]);
   };
 
   return (
-    <LinearGradient colors={["#A89CFF", "#C8A2C8"]} style={styles.container}>
+    <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <Icon name="list" size={30} color="black" />
+          <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
+            <Icon name="menu" size={30} color="black" />
+          </TouchableOpacity>
           <Text style={styles.logo}>AlumNITD</Text>
           <TouchableOpacity onPress={handleSignOut}>
-            <Icon name="log-out-outline" size={30} color="black" /> {/* Sign out button */}
+            <Icon name="log-out-outline" size={30} color="black" />
           </TouchableOpacity>
         </View>
-        
-        <Text style={styles.userText}><Text style={styles.bold}>Hi, </Text><Text>{displayName}</Text></Text>
-        
+
+        {menuVisible && (
+          <View style={styles.menu}>
+            <MenuItem icon="person-circle" text="Profile Settings" onPress={() => navigation.navigate('Profile')} />
+            <MenuItem icon="mail" text="Messages" onPress={() => {}} />
+            <MenuItem icon="cash-outline" text="Donations" onPress={() => {}} />
+            <MenuItem icon="chatbubble-ellipses-outline" text="Discussion" onPress={() => {}} />
+          </View>
+        )}
+
+        <Text style={styles.userText}><Text style={styles.bold}>Hi, </Text>{displayName}</Text>
         <Text style={styles.welcomeText}>Welcome to AlumNITD - Your Alumni Network</Text>
-        
+
         <View style={styles.cardContainer}>
-          <FeatureCard 
-            title="Explore Job Opportunities" 
-            image={require('./assets/Job.png')}
-            text="Join our community to access exclusive job listings and resources tailored for alumni."
-          />
-          
-          <FeatureCard 
-            title="Connect with Nearby Alumni" 
-            image={require('./assets/alumni.png')} 
-            text="See the alumni locations and connect with your peers in your area."
-          />
-          
-          <FeatureCard 
-            title="Upcoming Events" 
-            image={require('./assets/events.png')} 
-            text="Stay updated with the latest events and networking opportunities."
-          />
+          <FeatureCard title="Explore Job Opportunities" image={require('./assets/Job.png')} text="Join our community for exclusive job listings." />
+          <FeatureCard title="Connect with Nearby Alumni" image={require('./assets/alumni.png')} text="See alumni locations and connect with peers." />
+          <FeatureCard title="Upcoming Events" image={require('./assets/events.png')} text="Stay updated with events and networking opportunities." />
         </View>
-        
-        <Text style={styles.quickLinksTitle}>Quick Links</Text>
-        <View style={styles.quickLinksContainer}>
-          <QuickLink icon="person-circle" text="Profile" />
-          <QuickLink icon="mail" text="Messages" />
-          <QuickLink icon="cash-outline" text="Donations" />
-          <QuickLink icon="chatbubble-ellipses-outline" text="Discussion" />
-        </View>
-        
-        <Text style={styles.contactText}>Contact Us: <Text style={styles.bold}>support@alumnitd.com</Text> | <Text style={styles.bold}>+91 XXXXXXXXXX</Text></Text>
-        <Text style={styles.footerText}>Privacy Policy | Terms and Conditions | About Us</Text>
       </ScrollView>
     </LinearGradient>
   );
 };
 
-// Define the type for FeatureCard props
 interface FeatureCardProps {
   title: string;
-  image: any; 
+  image: any;
   text: string;
 }
 
@@ -115,16 +83,16 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ title, image, text }) => (
   </View>
 );
 
-// Define the type for QuickLink props
-interface QuickLinkProps {
+interface MenuItemProps {
   icon: string;
-  text: string; // Add text prop to specify the label
+  text: string;
+  onPress: () => void;
 }
 
-const QuickLink: React.FC<QuickLinkProps> = ({ icon, text }) => (
-  <TouchableOpacity style={styles.quickLink}>
-    <Icon name={icon} size={30} color="black" />
-    <Text style={styles.quickLinkText}>{text}</Text> {/* Use the passed text */}
+const MenuItem: React.FC<MenuItemProps> = ({ icon, text, onPress }) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <Icon name={icon} size={25} color="black" />
+    <Text style={styles.menuText}>{text}</Text>
   </TouchableOpacity>
 );
 
@@ -141,12 +109,9 @@ const styles = StyleSheet.create({
   cardImage: { width: 80, height: 80, marginBottom: 10 },
   cardTitle: { fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
   cardDescription: { fontSize: 14, textAlign: 'center', color: 'gray' },
-  quickLinksTitle: { fontSize: 18, fontWeight: 'bold', marginTop: 20, marginBottom: 10 },
-  quickLinksContainer: { flexDirection: 'row', justifyContent: 'space-around', width: '80%' },
-  quickLink: { alignItems: 'center' },
-  quickLinkText: { fontSize: 12, marginTop: 5 },
-  contactText: { marginTop: 20, fontSize: 14 },
-  footerText: { fontSize: 12, color: 'gray', marginTop: 5, textAlign: 'center' },
+  menu: { backgroundColor: 'white', padding: 10, borderRadius: 8, width: '80%', marginVertical: 10 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 10 },
+  menuText: { fontSize: 16, marginLeft: 10 },
 });
 
 export default HomePage;

@@ -64,7 +64,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     } catch (error) {
       Alert.alert('Google Sign-In Error', String(error));
     }
-    navigation.navigate('Home'); 
+     navigation.navigate('Home'); 
   };
 
 

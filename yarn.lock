@@ -2072,6 +2072,11 @@
   resolved "https://registry.npmjs.org/@react-native-firebase/firestore/-/firestore-21.7.2.tgz"
   integrity sha512-1Jz4JlEGQKs3O+BDm/pZUpvL7wwWJYABoE9TjdRNO+mRT1MMPrY9rkctxzYHpIRNIIY3v37PDjwrGaOQlc8CdA==
 
+"@react-native-firebase/storage@^21.11.0":
+  version "21.11.0"
+  resolved "https://registry.npmjs.org/@react-native-firebase/storage/-/storage-21.11.0.tgz"
+  integrity sha512-jh1kqtdo5vd3NyUfImIp6cXTdXBG4elBWmFVRb9pia1ktmb8h4lGFjyjC/PTD5Jmgdu/EfjueCHxWSnB3+qaPA==
+
 "@react-native-google-signin/google-signin@^13.1.0":
   version "13.1.0"
   resolved "https://registry.npmjs.org/@react-native-google-signin/google-signin/-/google-signin-13.1.0.tgz"
@@ -2281,10 +2286,20 @@
     use-latest-callback "^0.2.1"
     use-sync-external-store "^1.2.2"
 
-"@react-navigation/elements@^2.2.5":
-  version "2.2.5"
-  resolved "https://registry.npmjs.org/@react-navigation/elements/-/elements-2.2.5.tgz"
-  integrity sha512-sDhE+W14P7MNWLMxXg1MEVXwkLUpMZJGflE6nQNzLmolJQIHgcia0Mrm8uRa3bQovhxYu1UzEojLZ+caoZt7Fg==
+"@react-navigation/drawer@^7.1.2":
+  version "7.1.2"
+  resolved "https://registry.npmjs.org/@react-navigation/drawer/-/drawer-7.1.2.tgz"
+  integrity sha512-EIlS5PPzVQ9WJ4xQZytAUTXiVbZcUYfPFlkaAWZHIl7O/suoJIpu52yXwjbjG0XhNu6Vup23W35HJWHxpgKQEQ==
+  dependencies:
+    "@react-navigation/elements" "^2.2.6"
+    color "^4.2.3"
+    react-native-drawer-layout "^4.1.1"
+    use-latest-callback "^0.2.1"
+
+"@react-navigation/elements@^2.2.5", "@react-navigation/elements@^2.2.6":
+  version "2.2.6"
+  resolved "https://registry.npmjs.org/@react-navigation/elements/-/elements-2.2.6.tgz"
+  integrity sha512-UPeaCcEDSDRaxjG+qEHbur6jmNW/f9QNCyPsUt6NMgPEdbB5Z8K8oSx2swIaiCnvUbs/K5G3MuWkqQxGj8QXXA==
   dependencies:
     color "^4.2.3"
 
@@ -6482,6 +6497,13 @@ react-is@^18.3.1:
   resolved "https://registry.npmjs.org/react-is/-/react-is-18.3.1.tgz"
   integrity sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==
 
+react-native-drawer-layout@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.npmjs.org/react-native-drawer-layout/-/react-native-drawer-layout-4.1.1.tgz"
+  integrity sha512-ob6O3ph7PZ3A2FpdlsSxHuMpHDXREZPR8A6S3q0dSxV7i6d+8Z6CPCTbegfN2QZyizSow9NLrKyXP93tlqZ3dA==
+  dependencies:
+    use-latest-callback "^0.2.1"
+
 react-native-encrypted-storage@^4.0.3:
   version "4.0.3"
   resolved "https://registry.npmjs.org/react-native-encrypted-storage/-/react-native-encrypted-storage-4.0.3.tgz"
@@ -6500,6 +6522,11 @@ react-native-gesture-handler@^2.23.0:
     "@egjs/hammerjs" "^2.0.17"
     hoist-non-react-statics "^3.3.0"
     invariant "^2.2.4"
+
+react-native-image-picker@^8.2.0:
+  version "8.2.0"
+  resolved "https://registry.npmjs.org/react-native-image-picker/-/react-native-image-picker-8.2.0.tgz"
+  integrity sha512-jIGllQJuJIn0YKss/JEeb0Kos1HSsnIpU+i3bYxR27sOxSyDZQyP9dKR22olssQPlfH+rGNR/Jc6xKRkhm48vw==
 
 react-native-linear-gradient@^2.8.3:
   version "2.8.3"
