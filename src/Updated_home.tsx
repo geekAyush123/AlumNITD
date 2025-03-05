@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert, TextInput, Picker } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert, TextInput } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import React, { useEffect, useState } from 'react';
@@ -70,7 +70,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <Picker selectedValue={selectedBatch} style={styles.picker} onValueChange={setSelectedBatch}>
+          {/* <Picker selectedValue={selectedBatch} style={styles.picker} onValueChange={setSelectedBatch}>
             <Picker.Item label="Select Batch" value="" />
             <Picker.Item label="2024" value="2024" />
             <Picker.Item label="2023" value="2023" />
@@ -81,14 +81,14 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
             <Picker.Item label="CSE" value="CSE" />
             <Picker.Item label="ECE" value="ECE" />
             <Picker.Item label="ME" value="ME" />
-          </Picker>
+          </Picker> */}
         </View>
 
-        <View style={styles.cardContainer}>
+        {/* <View style={styles.cardContainer}>
           <FeatureCard title="Explore Job Opportunities" image={require('./assets/Job.png')} text="Join our community for exclusive job listings." />
           <FeatureCard title="Connect with Nearby Alumni" image={require('./assets/alumni.png')} text="See alumni locations and connect with peers." />
           <FeatureCard title="Upcoming Events" image={require('./assets/events.png')} text="Stay updated with events and networking opportunities." />
-        </View>
+        </View> */}
       </ScrollView>
     </LinearGradient>
   );
