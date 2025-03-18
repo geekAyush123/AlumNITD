@@ -6,6 +6,7 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { NavigationProp } from '@react-navigation/native';
 import AlumniSearchScreen from './AlumniSearchScreen';
+import ProfileScreen from './ProfilePage';
 interface HomePageProps {
   navigation: NavigationProp<any>;
 }
@@ -55,7 +56,8 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
 
         {menuVisible && (
           <View style={styles.menu}>
-            <MenuItem icon="person-circle" text="Profile Settings" onPress={() => navigation.navigate('Profile')} />
+            <MenuItem icon="person-circle" text="Profile" onPress={() => navigation.navigate('ProfilePage')} />
+            <MenuItem icon="settings" text="Profile Settings" onPress={() => navigation.navigate('Profile')} />
             <MenuItem icon="mail" text="Messages" onPress={() => {}} />
             <MenuItem icon="cash-outline" text="Donations" onPress={() => {}} />
             <MenuItem icon="chatbubble-ellipses-outline" text="Discussion" onPress={() => {}} />

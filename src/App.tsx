@@ -1,4 +1,4 @@
-import "react-native-gesture-handler"; // ✅ Important for React Navigation
+import "react-native-gesture-handler"; 
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -7,6 +7,7 @@ import RegisterScreen from "./RegisterScreen";
 import HomePage from "./HomePage";
 import ProfileScreen from "./Profile";
 import AlumniSearchScreen from "./AlumniSearchScreen";
+import ProfilePage from "./ProfilePage";
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,7 @@ function App() {
           options={{ headerShown: true, title: "Back" }} 
         />
         <Stack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
+        <Stack.Screen name="ProfilePage" component={ProfilePage} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="AlumniSearch" component={AlumniSearchScreen} options={{ title: "Search Alumni" }} /> 
       </Stack.Navigator>

@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Switch,
   ScrollView,
   Alert,
   Image,
@@ -13,7 +12,6 @@ import {
 } from "react-native";
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
-import storage from "@react-native-firebase/storage";
 import * as ImagePicker from "react-native-image-picker";
 
 const CLOUDINARY_UPLOAD_PRESET = "Profile";
@@ -28,6 +26,16 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [bio, setBio] = useState("");
   const [profilePic, setProfilePic] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [institution, setInstitution] = useState("");
+  const [degree, setDegree] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
+  const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [company, setCompany] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [skills, setSkills] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -42,6 +50,16 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setLocation(userData?.location || "");
           setBio(userData?.bio || "");
           setProfilePic(userData?.profilePic || "");
+          setInstitution(userData?.institution || "");
+          setDegree(userData?.degree || "");
+          setGraduationYear(userData?.graduationYear || "");
+          setFieldOfStudy(userData?.fieldOfStudy || "");
+          setCompany(userData?.company || "");
+          setJobTitle(userData?.jobTitle || "");
+          setStartDate(userData?.startDate || "");
+          setEndDate(userData?.endDate || "");
+          setJobDescription(userData?.jobDescription || "");
+          setSkills(userData?.skills || "");
         }
       }
     };
@@ -59,6 +77,16 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           location,
           bio,
           profilePic,
+          institution,
+          degree,
+          graduationYear,
+          fieldOfStudy,
+          company,
+          jobTitle,
+          startDate,
+          endDate,
+          jobDescription,
+          skills,
         });
         Alert.alert("Success", "Profile updated successfully");
       } catch (error) {
@@ -92,9 +120,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           name: `${user.uid}.jpg`,
         } as any);
   
-        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET); // Using unsigned preset
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
   
-        // 🔹 Upload to Cloudinary
         const res = await fetch(CLOUDINARY_URL, {
           method: "POST",
           body: formData,
@@ -120,9 +147,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setUploading(false);
   };
   
-  
-
-
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Profile Settings</Text>
@@ -151,6 +175,34 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Text style={styles.label}>Bio/About Me</Text>
         <TextInput style={styles.input} value={bio} onChangeText={setBio} multiline />
       </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Education</Text>
+        <Text style={styles.label}>Institution Name</Text>
+        <TextInput style={styles.input} value={institution} onChangeText={setInstitution} />
+        <Text style={styles.label}>Degree/Program</Text>
+        <TextInput style={styles.input} value={degree} onChangeText={setDegree} />
+        <Text style={styles.label}>Graduation Year</Text>
+        <TextInput style={styles.input} value={graduationYear} onChangeText={setGraduationYear} />
+        <Text style={styles.label}>Field of Study</Text>
+        <TextInput style={styles.input} value={fieldOfStudy} onChangeText={setFieldOfStudy} />
+      </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Work Experience</Text>
+        <Text style={styles.label}>Company Name</Text>
+        <TextInput style={styles.input} value={company} onChangeText={setCompany} />
+        <Text style={styles.label}>Job Title</Text>
+        <TextInput style={styles.input} value={jobTitle} onChangeText={setJobTitle} />
+        <Text style={styles.label}>Start Date</Text>
+        <TextInput style={styles.input} value={startDate} onChangeText={setStartDate} />
+        <Text style={styles.label}>End Date</Text>
+        <TextInput style={styles.input} value={endDate} onChangeText={setEndDate} />
+        <Text style={styles.label}>Description</Text>
+        <TextInput style={styles.input} value={jobDescription} onChangeText={setJobDescription} multiline />
+      </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Skills</Text>
+        <TextInput style={styles.input} value={skills} onChangeText={setSkills} multiline />
+      </View>
       <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
@@ -165,6 +217,7 @@ const styles = StyleSheet.create({
   profilePicture: { width: 120, height: 120, borderRadius: 60, backgroundColor: "#ddd" },
   uploadText: { color: "#6200ea", marginTop: 8, fontSize: 14 },
   section: { backgroundColor: "white", padding: 15, borderRadius: 8, marginBottom: 15, elevation: 3 },
+  sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#333" },
   label: { fontSize: 16, marginBottom: 5, color: "#555" },
   input: { borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 5, marginBottom: 10, backgroundColor: "#fff" },
   button: { backgroundColor: "#6200ea", padding: 15, borderRadius: 5, alignItems: "center", marginVertical: 20 },
