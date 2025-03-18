@@ -1,1 +1,16 @@
-pwejfew oehgoer oeiehfohew ew
+do the home page
+do the register page
+beutify the login page
+create the main app file
+do the profile page
+headings, inputbox, search bar
+
+
+An alumni app serves as a bridge between past and present students, fostering a strong and connected community.
+It provides a platform where alumni can reconnect with former classmates,
+mentor current students, and explore career opportunities through job and internship postings.
+Features such as a searchable alumni directory, event updates, discussion forums, and location-based
+networking help users stay engaged. Additionally, the app facilitates direct communication
+through messaging and video calls, making it easier for alumni to contribute to their alma mater.
+By strengthening professional and social connections, an alumni app enhances networking,
+collaboration, and the overall sense of belonging within the institution’s extended community.

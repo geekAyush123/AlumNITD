@@ -1,4 +1,3 @@
-// RegisterScreen.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -11,8 +10,6 @@ import {
 import RNPickerSelect from "react-native-picker-select";
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore"; // Import Firestore
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Platform } from "react-native";
 
 const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -77,9 +74,13 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
+  const years = Array.from({ length: 87 }, (_, i) => (2100 - i).toString());
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Register</Text>
+
+      {/* Full Name Input */}
       <Text style={styles.label}>Full Name</Text>
       <TextInput
         style={styles.input}
@@ -87,6 +88,8 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         value={fullName}
         onChangeText={setFullName}
       />
+
+      {/* Email Input */}
       <Text style={styles.label}>College Email</Text>
       <TextInput
         style={styles.input}
@@ -96,6 +99,8 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         onChangeText={setEmail}
         autoCapitalize="none"
       />
+
+      {/* Password Input */}
       <Text style={styles.label}>Password</Text>
       <TextInput
         style={styles.input}
@@ -104,6 +109,8 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         value={password}
         onChangeText={setPassword}
       />
+
+      {/* Confirm Password Input */}
       <Text style={styles.label}>Confirm Password</Text>
       <TextInput
         style={styles.input}
@@ -111,6 +118,8 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
+
+      {/* Role Selection */}
       <Text style={styles.label}>Role Selection</Text>
       <View style={styles.dropdownContainer}>
         <RNPickerSelect
@@ -127,23 +136,20 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           }}
         />
       </View>
+
+      {/* Graduation Year Picker */}
       <Text style={styles.label}>Graduation Year</Text>
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowPicker(true)}
-      >
-        <Text style={{ color: "#000" }}>
-          {graduationYear ? graduationYear : "Select Graduation Year"}
-        </Text>
-      </TouchableOpacity>
-      {showPicker && (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={handleDateChange}
-        />
-      )}
+      <RNPickerSelect
+        onValueChange={(value) => setGraduationYear(value)}
+        items={years.map((year) => ({ label: year, value: year }))}
+        placeholder={{ label: "Select Year", value: "" }}
+        style={{
+          inputIOS: { color: "black" },
+          inputAndroid: { color: "black" },
+        }}
+      />
+
+      {/* Register Button */}
       <TouchableOpacity
         style={styles.registerButton}
         onPress={handleRegister}
@@ -153,6 +159,8 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           {loading ? "Registering..." : "Register"}
         </Text>
       </TouchableOpacity>
+
+      {/* Navigate to Login Screen */}
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={styles.loginText}>Already have an account? Login Here</Text>
       </TouchableOpacity>
@@ -169,6 +177,7 @@ const styles = StyleSheet.create({
   registerButton: { backgroundColor: "#4A00E0", padding: 15, borderRadius: 8, alignItems: "center" },
   registerText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
   loginText: { fontSize: 14, color: "#4A00E0", textAlign: "center", marginTop: 10 },
+  selectedYear: { marginTop: 10, fontSize: 16, fontWeight: "600" },
 });
 
 export default RegisterScreen;
