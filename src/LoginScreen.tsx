@@ -38,7 +38,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     try {
       await auth().signInWithEmailAndPassword(email, password);
-      Alert.alert("Success", "Logged in successfully!");
       navigation.navigate("Home");
     } catch (error) {
       const err = error as FirebaseAuthTypes.NativeFirebaseAuthError;
@@ -57,7 +56,6 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         const googleCredential = auth.GoogleAuthProvider.credential(response.idToken);
         await auth().signInWithCredential(googleCredential);
 
-        Alert.alert("Success", "Logged in with Google!");
         navigation.navigate("Home");
       }
     } catch (error: any) {
