@@ -56,8 +56,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
 
         {menuVisible && (
           <View style={styles.menu}>
-            <MenuItem icon="person-circle" text="Profile" onPress={() => navigation.navigate('ProfilePage')} />
-            <MenuItem icon="settings" text="Profile Settings" onPress={() => navigation.navigate('Profile')} />
+            <MenuItem icon="person-circle" text="Profile" onPress={() => navigation.navigate('Profile')} />
             <MenuItem icon="mail" text="Messages" onPress={() => {}} />
             <MenuItem icon="cash-outline" text="Donations" onPress={() => {}} />
             <MenuItem icon="chatbubble-ellipses-outline" text="Discussion" onPress={() => {}} />
