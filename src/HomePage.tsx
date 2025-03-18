@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { NavigationProp } from '@react-navigation/native';
-
+import AlumniSearchScreen from './AlumniSearchScreen';
 interface HomePageProps {
   navigation: NavigationProp<any>;
 }
@@ -42,9 +42,15 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
             <Icon name="menu" size={30} color="black" />
           </TouchableOpacity>
           <Text style={styles.logo}>AlumNITD</Text>
-          <TouchableOpacity onPress={handleSignOut}>
-            <Icon name="log-out-outline" size={30} color="black" />
-          </TouchableOpacity>
+          <View style={styles.headerIcons}>
+          <TouchableOpacity onPress={() => navigation.navigate('AlumniSearch')}>
+  <Icon name="search" size={30} color="black" style={styles.iconSpacing} />
+</TouchableOpacity>
+
+            <TouchableOpacity onPress={handleSignOut}>
+              <Icon name="log-out-outline" size={30} color="black" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {menuVisible && (
@@ -100,6 +106,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContainer: { alignItems: 'center', paddingBottom: 20 },
   header: { flexDirection: 'row', width: '90%', justifyContent: 'space-between', alignItems: 'center', marginTop: 50 },
+  headerIcons: { flexDirection: 'row', alignItems: 'center' },
+  iconSpacing: { marginRight: 15 },
   logo: { fontSize: 22, fontWeight: 'bold' },
   userText: { fontSize: 18 },
   bold: { fontWeight: 'bold' },
