@@ -74,7 +74,7 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
-  const years = Array.from({ length: 100 }, (_, i) => (2100 - i).toString());
+  const years = Array.from({ length: 87 }, (_, i) => (2100 - i).toString());
 
   return (
     <View style={styles.container}>
