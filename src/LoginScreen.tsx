@@ -1,12 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { 
+  View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Image, Keyboard, TouchableWithoutFeedback 
+} from "react-native";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
+import { useFocusEffect } from "@react-navigation/native";
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Reset state when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      setEmail("");
+      setPassword("");
+      setErrorMessage(null);
+    }, [])
+  );
 
   // Configure Google Sign-In
   useEffect(() => {
@@ -17,7 +29,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // Handle Email/Password Login
   const handleLogin = async () => {
-    setErrorMessage(null); // Reset error message
+    setErrorMessage(null);
 
     if (!email || !password) {
       setErrorMessage("Please enter both email and password.");
@@ -41,86 +53,86 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
 
-      if (response) {
-        const { idToken } = response;
-
-        if (!idToken) {
-          throw new Error("Google Sign-In failed. No ID token received.");
-        }
-
-        const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+      if (response?.idToken) {
+        const googleCredential = auth.GoogleAuthProvider.credential(response.idToken);
         await auth().signInWithCredential(googleCredential);
 
         Alert.alert("Success", "Logged in with Google!");
         navigation.navigate("Home");
-      } else {
-        Alert.alert("Google Sign-In Cancelled", "User cancelled the sign-in process.");
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // 🔥 Ignore back button press – No action, no alert
+        console.log("Google Sign-In cancelled by user");
+        return;
+      }
+
       console.error("Google Sign-In Error:", error);
-      Alert.alert("Error", (error as Error).message || "Failed to sign in with Google.");
+      Alert.alert("Error", error.message || "Failed to sign in with Google.");
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>AlumNITD</Text>
-      <Text style={styles.subtitle}>Welcome Back,</Text>
-      <Text style={styles.description}>
-        Please log in to continue and make the most of our Alumni platform.
-      </Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text style={styles.title}>AlumNITD</Text>
+        <Text style={styles.subtitle}>Welcome Back,</Text>
+        <Text style={styles.description}>
+          Please log in to continue and make the most of our Alumni platform.
+        </Text>
 
-      {/* Email Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="College Email (@nitdelhi.ac.in)"
-        onChangeText={setEmail}
-        value={email}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        {/* Email Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="College Email (@nitdelhi.ac.in)"
+          onChangeText={setEmail}
+          value={email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      {/* Password Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        onChangeText={setPassword}
-        value={password}
-        secureTextEntry
-      />
+        {/* Password Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          onChangeText={setPassword}
+          value={password}
+          secureTextEntry
+        />
 
-      {/* Error Message (if any) */}
-      {errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
+        {/* Error Message */}
+        {errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
 
-      {/* Forgot Password */}
-      <TouchableOpacity onPress={() => Alert.alert("Reset Password", "Feature Coming Soon!")}>
-        <Text style={styles.forgotPassword}>Forgot Password?</Text>
-      </TouchableOpacity>
-
-      {/* Login Button */}
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
-
-      {/* Social Logins */}
-      <TouchableOpacity style={[styles.socialButton, { backgroundColor: "#fff" }]} onPress={googleLogin}>
-        <Image source={require("./assets/google.png")} style={styles.icon} />
-        <Text style={styles.socialText}>Continue with Google</Text>
-      </TouchableOpacity>
-
-      {/* Register Link */}
-      <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>Don’t have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-          <Text style={styles.registerLink}>Register Now</Text>
+        {/* Forgot Password */}
+        <TouchableOpacity onPress={() => Alert.alert("Reset Password", "Feature Coming Soon!")}>
+          <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Contact */}
-      <Text style={styles.contactText}>
-        Contact us: support@alumnitd.com | +91-XXX-XXXX-XXXX
-      </Text>
-    </View>
+        {/* Login Button */}
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Continue</Text>
+        </TouchableOpacity>
+
+        {/* Social Logins */}
+        <TouchableOpacity style={[styles.socialButton, { backgroundColor: "#fff" }]} onPress={googleLogin}>
+          <Image source={require("./assets/google.png")} style={styles.icon} />
+          <Text style={styles.socialText}>Continue with Google</Text>
+        </TouchableOpacity>
+
+        {/* Register Link */}
+        <View style={styles.registerContainer}>
+          <Text style={styles.registerText}>Don’t have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+            <Text style={styles.registerLink}>Register Now</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Contact */}
+        <Text style={styles.contactText}>
+          Contact us: support@alumnitd.com | +91-XXX-XXXX-XXXX
+        </Text>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -156,7 +168,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   errorMessage: {
-    color: "#E53E3E", // Red color for error message
+    color: "#E53E3E",
     fontSize: 14,
     marginBottom: 10,
     alignSelf: "flex-start",
