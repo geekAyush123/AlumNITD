@@ -7,6 +7,7 @@ import firestore from '@react-native-firebase/firestore';
 import { NavigationProp } from '@react-navigation/native';
 import AlumniSearchScreen from './AlumniSearchScreen';
 import ProfileScreen from './ProfilePage';
+import AlumniMapScreen from './AlumniMapScreen';
 interface HomePageProps {
   navigation: NavigationProp<any>;
 }
@@ -44,10 +45,9 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
           </TouchableOpacity>
           <Text style={styles.logo}>AlumNITD</Text>
           <View style={styles.headerIcons}>
-          <TouchableOpacity onPress={() => navigation.navigate('AlumniSearch')}>
-  <Icon name="search" size={30} color="black" style={styles.iconSpacing} />
-</TouchableOpacity>
-
+            <TouchableOpacity onPress={() => navigation.navigate('AlumniSearch')}>
+              <Icon name="search" size={30} color="black" style={styles.iconSpacing} />
+            </TouchableOpacity>
             <TouchableOpacity onPress={handleSignOut}>
               <Icon name="log-out-outline" size={30} color="black" />
             </TouchableOpacity>
@@ -68,7 +68,9 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
 
         <View style={styles.cardContainer}>
           <FeatureCard title="Explore Job Opportunities" image={require('./assets/Job.png')} text="Join our community for exclusive job listings." />
-          <FeatureCard title="Connect with Nearby Alumni" image={require('./assets/alumni.png')} text="See alumni locations and connect with peers." />
+          <TouchableOpacity onPress={() => navigation.navigate('AlumniMapScreen')}>
+            <FeatureCard title="Connect with Nearby Alumni" image={require('./assets/alumni.png')} text="See alumni locations and connect with peers." />
+          </TouchableOpacity>
           <FeatureCard title="Upcoming Events" image={require('./assets/events.png')} text="Stay updated with events and networking opportunities." />
         </View>
       </ScrollView>
