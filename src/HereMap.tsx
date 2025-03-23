@@ -7,10 +7,19 @@ import axios from "axios";
 
 const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  map: {
+    flex: 1,
+  },
+});
+
 const HereMap: React.FC = () => {
   const [currentLongitude, setCurrentLongitude] = useState<number | null>(null);
   const [currentLatitude, setCurrentLatitude] = useState<number | null>(null);
-  const [alumniLocations, setAlumniLocations] = useState<any[]>([]);
+  const [alumniData, setAlumniData] = useState<any[]>([]);
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -61,23 +70,31 @@ const HereMap: React.FC = () => {
     requestLocationPermission();
   }, []);
 
-  // Fetch alumni locations from Firestore and reverse geocode them
+  // Fetch alumni data from Firestore and reverse geocode their locations
   useEffect(() => {
-    const fetchAlumniLocations = async () => {
+    const fetchAlumniData = async () => {
       try {
         const alumniSnapshot = await firestore().collection("users").get();
-        const addresses = alumniSnapshot.docs.map((doc) => doc.data().location); // Array of addresses
+        const alumni = await Promise.all(
+          alumniSnapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            const address = data.location; // Human-readable address
 
-        // Reverse geocode each address to get latitude and longitude
-        const locations = await Promise.all(
-          addresses.map(async (address) => {
+            // Reverse geocode the address to get coordinates
             try {
               const response = await axios.get(
                 `https://api.maptiler.com/geocoding/${encodeURIComponent(address)}.json?key=${MAPTILER_API_KEY}`
               );
               if (response.data && response.data.features && response.data.features.length > 0) {
                 const [longitude, latitude] = response.data.features[0].center;
-                return { longitude, latitude };
+                return {
+                  id: doc.id,
+                  name: data.fullName,
+                  profilePic: data.profilePic || "https://via.placeholder.com/50", // Default profile picture
+                  email: data.email,
+                  longitude,
+                  latitude,
+                };
               }
             } catch (error) {
               console.error("Reverse geocoding error:", error);
@@ -86,14 +103,14 @@ const HereMap: React.FC = () => {
           })
         );
 
-        // Filter out null values and set alumni locations
-        setAlumniLocations(locations.filter((loc) => loc !== null));
+        // Filter out null values and set alumni data
+        setAlumniData(alumni.filter((alum) => alum !== null));
       } catch (error) {
-        console.error("Error fetching alumni locations:", error);
+        console.error("Error fetching alumni data:", error);
       }
     };
 
-    fetchAlumniLocations();
+    fetchAlumniData();
   }, []);
 
   const coords =
@@ -111,6 +128,24 @@ const HereMap: React.FC = () => {
       <style>
         html, body { margin: 0; height: 100%; overflow: hidden; }
         #map { width: 100%; height: 100%; }
+        .mapboxgl-popup-content {
+          padding: 10px;
+          text-align: center;
+        }
+        .profile-pic {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          margin-bottom: 10px;
+        }
+        .connect-button {
+          background-color: #4A00E0;
+          color: white;
+          padding: 5px 10px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        }
       </style>
     </head>
     <body>
@@ -133,15 +168,32 @@ const HereMap: React.FC = () => {
             .setLngLat(${JSON.stringify(coords)}) 
             .addTo(map);
 
-          // Add alumni locations (blue)
-          var alumniLocations = ${JSON.stringify(alumniLocations)};
-          alumniLocations.forEach(function (location) {
-            if (location && location.longitude && location.latitude) {
+          // Add alumni markers with popups
+          var alumniData = ${JSON.stringify(alumniData)};
+          alumniData.forEach(function (alum) {
+            if (alum && alum.longitude && alum.latitude) {
+              var popup = new maplibregl.Popup({ offset: 25 })
+                .setHTML(\`
+                  <div>
+                    <img src="\${alum.profilePic}" class="profile-pic" alt="\${alum.name}" />
+                    <h4>\${alum.name}</h4>
+                    <p>\${alum.email}</p>
+                    <button class="connect-button" onclick="handleConnect('\${alum.id}')">Connect</button>
+                  </div>
+                \`);
+
               var alumniMarker = new maplibregl.Marker({ color: "blue" })
-                .setLngLat([location.longitude, location.latitude])
+                .setLngLat([alum.longitude, alum.latitude])
+                .setPopup(popup)
                 .addTo(map);
             }
           });
+
+          // Handle connect button click
+          window.handleConnect = function (alumniId) {
+            alert("Connect request sent to alumni with ID: " + alumniId);
+            // You can implement your connect logic here
+          };
 
           console.log("Map & Markers initialized.");
         });
@@ -165,14 +217,5 @@ const HereMap: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-});
 
 export default HereMap;
