@@ -1,174 +1,49 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Switch,
-  ScrollView,
-  Alert,
-  Image,
-  ActivityIndicator,
-} from "react-native";
-import auth from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
-import * as ImagePicker from "react-native-image-picker";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, PermissionsAndroid, Platform } from "react-native";
+import Geolocation from "@react-native-community/geolocation";
+import { WebView } from "react-native-webview";
 
-const CLOUDINARY_UPLOAD_PRESET = "Profile";
-const CLOUDINARY_CLOUD_NAME = "dqdhnkdzo";
-const CLOUDINARY_URL="cloudinary://874566475182871:VybhvygdSiAkTdUlitCWDJ2swl4@dqdhnkdzo";
+const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 
-type PrivacySettingsType = {
-  profileVisibility: boolean;
-  emailNotifications: boolean;
-  showGraduationYear: boolean;
-  showWorkExperience: boolean;
-};
-
-const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [location, setLocation] = useState("");
-  const [bio, setBio] = useState("");
-  const [profilePic, setProfilePic] = useState("");
-  const [uploading, setUploading] = useState(false);
-
-  const [privacySettings, setPrivacySettings] = useState<PrivacySettingsType>({
-    profileVisibility: true,
-    emailNotifications: true,
-    showGraduationYear: true,
-    showWorkExperience: true,
-  });
+const HereMap: React.FC = () => {
+  const [currentLongitude, setCurrentLongitude] = useState<number | null>(null);
+  const [currentLatitude, setCurrentLatitude] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const user = auth().currentUser;
-      if (user) {
-        setEmail(user.email || "");
-        const userDoc = await firestore().collection("users").doc(user.uid).get();
-        if (userDoc.exists) {
-          const userData = userDoc.data();
-          setFullName(userData?.fullName || "");
-          setPhone(userData?.phone || "");
-          setLocation(userData?.location || "");
-          setBio(userData?.bio || "");
-          setProfilePic(userData?.profilePic || "");
+    const requestLocationPermission = async () => {
+      try {
+        if (Platform.OS === "android") {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+              title: "Location Access Required",
+              message: "This App needs to access your location",
+              buttonPositive: "OK",
+            }
+          );
 
-          setPrivacySettings({
-            profileVisibility: userData?.privacySettings?.profileVisibility ?? true,
-            emailNotifications: userData?.privacySettings?.emailNotifications ?? true,
-            showGraduationYear: userData?.privacySettings?.showGraduationYear ?? true,
-            showWorkExperience: userData?.privacySettings?.showWorkExperience ?? true,
-          });
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            subscribeLocation();
+          }
+        } else {
+          subscribeLocation();
         }
+      } catch (err) {
+        console.warn(err);
       }
     };
 
-    fetchUserData();
+    const subscribeLocation = () => {
+      Geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCurrentLongitude(longitude);
+          setCurrentLatitude(latitude);
+        },
+        (error) => console.warn("Error getting location:", error),
+        { enableHighAccuracy: true, distanceFilter: 5 }
+      );
+    };
+
+    requestLocationPermission();
   }, []);
-
-  const handleUpdateProfile = async () => {
-    const user = auth().currentUser;
-    if (user) {
-      try {
-        await firestore().collection("users").doc(user.uid).update({
-          fullName,
-          phone,
-          location,
-          bio,
-          profilePic,
-          privacySettings,
-        });
-        Alert.alert("Success", "Profile updated successfully");
-      } catch (error) {
-        Alert.alert("Error", "Failed to update profile");
-      }
-    }
-  };
-
-  const handleChooseImage = async () => {
-    ImagePicker.launchImageLibrary({ mediaType: "photo", quality: 0.8 }, async (response) => {
-      if (!response.didCancel && response.assets) {
-        const imageUri = response.assets[0].uri;
-        if (imageUri) {
-          await uploadImageToCloudinary(imageUri);
-        }
-      }
-    });
-  };
-
-  const uploadImageToCloudinary = async (imageUri: string) => {
-    setUploading(true);
-    const user = auth().currentUser;
-  
-    if (user) {
-      try {
-        // Fetch image and convert to blob
-        const response = await fetch(imageUri);
-        const blob = await response.blob(); // Convert response to blob
-  
-        let formData = new FormData();
-        formData.append("file", blob, "profile.jpg"); // Use blob instead of object
-        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  
-        const uploadResponse = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-  
-        const data = await uploadResponse.json();
-        if (data.secure_url) {
-          setProfilePic(data.secure_url);
-          await firestore().collection("users").doc(user.uid).update({
-            profilePic: data.secure_url,
-          });
-          Alert.alert("Success", "Profile picture updated!");
-        } else {
-          Alert.alert("Error", "Failed to upload image");
-        }
-      } catch (error) {
-        Alert.alert("Error", "Failed to upload image");
-      }
-    }
-    setUploading(false);
-  };
-  
-  return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Profile Settings</Text>
-      <View style={styles.profilePictureContainer}>
-        {uploading ? (
-          <ActivityIndicator size="large" color="#6200ea" />
-        ) : (
-          <TouchableOpacity onPress={handleChooseImage}>
-            <Image
-              source={profilePic ? { uri: profilePic } : require("./assets/default_pic.png")}
-              style={styles.profilePicture}
-            />
-            <Text style={styles.uploadText}>Change Profile Picture</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-      <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
-        <Text style={styles.buttonText}>Save Changes</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
-  title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#333" },
-  profilePictureContainer: { alignItems: "center", marginBottom: 20 },
-  profilePicture: { width: 120, height: 120, borderRadius: 60, backgroundColor: "#ddd" },
-  uploadText: { color: "#6200ea", marginTop: 8, fontSize: 14 },
-  button: { backgroundColor: "#6200ea", padding: 15, borderRadius: 5, alignItems: "center", marginVertical: 20 },
-  buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
-});
-
-export default ProfileScreen;
