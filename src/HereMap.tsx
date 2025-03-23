@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, PermissionsAndroid, Platform } from "react-native";
+import { View, StyleSheet, PermissionsAndroid, Platform } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 import { WebView } from "react-native-webview";
+import firestore from "@react-native-firebase/firestore";
+import axios from "axios";
 
 const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 
 const HereMap: React.FC = () => {
   const [currentLongitude, setCurrentLongitude] = useState<number | null>(null);
   const [currentLatitude, setCurrentLatitude] = useState<number | null>(null);
+  const [alumniLocations, setAlumniLocations] = useState<any[]>([]);
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -58,6 +61,41 @@ const HereMap: React.FC = () => {
     requestLocationPermission();
   }, []);
 
+  // Fetch alumni locations from Firestore and reverse geocode them
+  useEffect(() => {
+    const fetchAlumniLocations = async () => {
+      try {
+        const alumniSnapshot = await firestore().collection("users").get();
+        const addresses = alumniSnapshot.docs.map((doc) => doc.data().location); // Array of addresses
+
+        // Reverse geocode each address to get latitude and longitude
+        const locations = await Promise.all(
+          addresses.map(async (address) => {
+            try {
+              const response = await axios.get(
+                `https://api.maptiler.com/geocoding/${encodeURIComponent(address)}.json?key=${MAPTILER_API_KEY}`
+              );
+              if (response.data && response.data.features && response.data.features.length > 0) {
+                const [longitude, latitude] = response.data.features[0].center;
+                return { longitude, latitude };
+              }
+            } catch (error) {
+              console.error("Reverse geocoding error:", error);
+            }
+            return null;
+          })
+        );
+
+        // Filter out null values and set alumni locations
+        setAlumniLocations(locations.filter((loc) => loc !== null));
+      } catch (error) {
+        console.error("Error fetching alumni locations:", error);
+      }
+    };
+
+    fetchAlumniLocations();
+  }, []);
+
   const coords =
     currentLatitude !== null && currentLongitude !== null
       ? [currentLongitude, currentLatitude]
@@ -90,11 +128,22 @@ const HereMap: React.FC = () => {
 
           map.addControl(new maplibregl.NavigationControl());
 
-          var marker = new maplibregl.Marker({ color: "red" })
+          // Add current user's location marker (red)
+          var currentUserMarker = new maplibregl.Marker({ color: "red" })
             .setLngLat(${JSON.stringify(coords)}) 
             .addTo(map);
 
-          console.log("Map & Marker initialized.");
+          // Add alumni locations (blue)
+          var alumniLocations = ${JSON.stringify(alumniLocations)};
+          alumniLocations.forEach(function (location) {
+            if (location && location.longitude && location.latitude) {
+              var alumniMarker = new maplibregl.Marker({ color: "blue" })
+                .setLngLat([location.longitude, location.latitude])
+                .addTo(map);
+            }
+          });
+
+          console.log("Map & Markers initialized.");
         });
       </script>
     </body>
