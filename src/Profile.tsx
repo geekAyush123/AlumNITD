@@ -9,14 +9,19 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import * as ImagePicker from "react-native-image-picker";
+import Geolocation from "@react-native-community/geolocation";
+import Icon from "react-native-vector-icons/MaterialIcons"; // Import the icon library
+import axios from "axios"; // For making API requests
 
 const CLOUDINARY_UPLOAD_PRESET = "Profile";
 const CLOUDINARY_CLOUD_NAME = "dqdhnkdzo";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqdhnkdzo/image/upload";
+const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG"; // Replace with your MapTiler API key
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -36,6 +41,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [endDate, setEndDate] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [skills, setSkills] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -67,6 +74,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     fetchUserData();
   }, []);
 
+  // Handle updating profile
   const handleUpdateProfile = async () => {
     const user = auth().currentUser;
     if (user) {
@@ -95,6 +103,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
+  // Handle choosing an image
   const handleChooseImage = async () => {
     ImagePicker.launchImageLibrary({ mediaType: "photo", quality: 0.8 }, async (response) => {
       if (!response.didCancel && response.assets) {
@@ -106,34 +115,32 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     });
   };
 
+  // Upload image to Cloudinary
   const uploadImage = async (imageUri: string) => {
     setUploading(true);
     const user = auth().currentUser;
-  
+
     if (user) {
       try {
         const formData = new FormData();
-  
         formData.append("file", {
           uri: imageUri,
           type: "image/jpeg",
           name: `${user.uid}.jpg`,
         } as any);
-  
         formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  
+
         const res = await fetch(CLOUDINARY_URL, {
           method: "POST",
           body: formData,
         });
-  
+
         const data = await res.json();
         if (data.secure_url) {
           setProfilePic(data.secure_url);
           await firestore().collection("users").doc(user.uid).update({
             profilePic: data.secure_url,
           });
-  
           Alert.alert("Success", "Profile picture updated!");
         } else {
           Alert.alert("Error", "Failed to upload image");
@@ -143,10 +150,67 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         Alert.alert("Error", "Failed to upload image");
       }
     }
-  
+
     setUploading(false);
   };
-  
+
+  // Fetch location suggestions from MapTiler Geocoding API
+  const fetchSuggestions = async (query: string) => {
+    if (!query) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `https://api.maptiler.com/geocoding/${query}.json?key=${MAPTILER_API_KEY}`
+      );
+      setSuggestions(response.data.features);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+    }
+  };
+
+  // Handle location selection
+  const handleLocationSelect = (item: any) => {
+    setLocation(item.place_name);
+    setSearchQuery(item.place_name);
+    setSuggestions([]);
+  };
+
+  // Reverse geocode coordinates to get human-readable address
+  const reverseGeocode = async (latitude: number, longitude: number) => {
+    try {
+      const response = await axios.get(
+        `https://api.maptiler.com/geocoding/${longitude},${latitude}.json?key=${MAPTILER_API_KEY}`
+      );
+      if (response.data && response.data.features && response.data.features.length > 0) {
+        const address = response.data.features[0].place_name; // Full address
+        setLocation(address);
+        setSearchQuery(address);
+      } else {
+        Alert.alert("Error", "No address found for the given coordinates.");
+      }
+    } catch (error) {
+      console.error("Reverse Geocoding Error:", error);
+      Alert.alert("Error", "Failed to fetch address. Please try again.");
+    }
+  };
+
+  // Fetch current location using GPS and reverse geocode it
+  const updateLocation = () => {
+    Geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        reverseGeocode(latitude, longitude); // Reverse geocode the coordinates
+      },
+      (error) => {
+        Alert.alert("Error", "Failed to fetch location. Please ensure GPS is enabled.");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Profile Settings</Text>
@@ -171,10 +235,41 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Text style={styles.label}>Phone Number</Text>
         <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
         <Text style={styles.label}>Location</Text>
-        <TextInput style={styles.input} value={location} onChangeText={setLocation} />
+        <View style={styles.locationContainer}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            value={searchQuery}
+            onChangeText={(text) => {
+              setSearchQuery(text);
+              fetchSuggestions(text);
+            }}
+            placeholder="Enter your location"
+          />
+          <TouchableOpacity onPress={updateLocation} style={styles.gpsButton}>
+            <Icon name="gps-fixed" size={24} color="#6200ea" />
+          </TouchableOpacity>
+        </View>
+        {/* Display Suggestions */}
+        {suggestions.length > 0 && (
+          <FlatList
+            data={suggestions}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.suggestionItem}
+                onPress={() => handleLocationSelect(item)}
+              >
+                <Text>{item.place_name}</Text>
+              </TouchableOpacity>
+            )}
+            style={styles.suggestionsList}
+          />
+        )}
         <Text style={styles.label}>Bio/About Me</Text>
         <TextInput style={styles.input} value={bio} onChangeText={setBio} multiline />
       </View>
+
+      {/* Education Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Education</Text>
         <Text style={styles.label}>Institution Name</Text>
@@ -186,6 +281,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Text style={styles.label}>Field of Study</Text>
         <TextInput style={styles.input} value={fieldOfStudy} onChangeText={setFieldOfStudy} />
       </View>
+
+      {/* Work Experience Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Work Experience</Text>
         <Text style={styles.label}>Company Name</Text>
@@ -199,10 +296,14 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Text style={styles.label}>Description</Text>
         <TextInput style={styles.input} value={jobDescription} onChangeText={setJobDescription} multiline />
       </View>
+
+      {/* Skills Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Skills</Text>
         <TextInput style={styles.input} value={skills} onChangeText={setSkills} multiline />
       </View>
+
+      {/* Save Changes Button */}
       <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
@@ -220,6 +321,10 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#333" },
   label: { fontSize: 16, marginBottom: 5, color: "#555" },
   input: { borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 5, marginBottom: 10, backgroundColor: "#fff" },
+  locationContainer: { flexDirection: "row", alignItems: "center" },
+  gpsButton: { marginLeft: 10, padding: 10 },
+  suggestionsList: { width: "100%", maxHeight: 150, backgroundColor: "#fff", borderRadius: 8, borderWidth: 1, borderColor: "#ccc", marginTop: 5 },
+  suggestionItem: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
   button: { backgroundColor: "#6200ea", padding: 15, borderRadius: 5, alignItems: "center", marginVertical: 20 },
   buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
 });
