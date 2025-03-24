@@ -1,12 +1,10 @@
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
-import React, { useEffect, useState } from 'react';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { NavigationProp } from '@react-navigation/native';
-import AlumniSearchScreen from './AlumniSearchScreen';
-import ProfileScreen from './ProfilePage';
 
 interface HomePageProps {
   navigation: NavigationProp<any>;
@@ -57,7 +55,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
         {menuVisible && (
           <View style={styles.menu}>
             <MenuItem icon="person-circle" text="Profile" onPress={() => navigation.navigate('Profile')} />
-            <MenuItem icon="mail" text="Messages" onPress={() => {}} />
+            <MenuItem icon="mail" text="Messages" onPress={() => navigation.navigate('MessagesList')} />
             <MenuItem icon="cash-outline" text="Donations" onPress={() => {}} />
             <MenuItem icon="chatbubble-ellipses-outline" text="Discussion" onPress={() => {}} />
           </View>
@@ -69,13 +67,12 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
         <View style={styles.cardContainer}>
           <FeatureCard title="Explore Job Opportunities" image={require('./assets/Job.png')} text="Join our community for exclusive job listings." />
           <TouchableOpacity onPress={() => navigation.navigate('Map')}>
-  <FeatureCard 
-    title="Connect with Nearby Alumni" 
-    image={require('./assets/alumni.png')} 
-    text="See alumni locations and connect with peers." 
-  />
-</TouchableOpacity>
-
+            <FeatureCard
+              title="Connect with Nearby Alumni"
+              image={require('./assets/alumni.png')}
+              text="See alumni locations and connect with peers."
+            />
+          </TouchableOpacity>
           <FeatureCard title="Upcoming Events" image={require('./assets/events.png')} text="Stay updated with events and networking opportunities." />
         </View>
       </ScrollView>

@@ -10,6 +10,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   // Reset state when screen comes into focus
   useFocusEffect(
@@ -17,6 +18,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       setEmail("");
       setPassword("");
       setErrorMessage(null);
+      setIsResettingPassword(false);
     }, [])
   );
 
@@ -70,6 +72,48 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
+  // Handle Password Reset
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setErrorMessage("Please enter your email address to reset password.");
+      return;
+    }
+
+    // Check if email ends with @nitdelhi.ac.in
+    if (!email.endsWith("@nitdelhi.ac.in")) {
+      setErrorMessage("Please use your college email (@nitdelhi.ac.in)");
+      return;
+    }
+
+    setIsResettingPassword(true);
+    setErrorMessage(null);
+
+    try {
+      await auth().sendPasswordResetEmail(email);
+      Alert.alert(
+        "Password Reset Email Sent",
+        `Please check your email (${email}) for instructions to reset your password.`,
+        [
+          {
+            text: "OK",
+            onPress: () => setIsResettingPassword(false),
+          },
+        ]
+      );
+    } catch (error) {
+      const err = error as FirebaseAuthTypes.NativeFirebaseAuthError;
+      console.log("Password Reset Error:", err);
+      
+      let errorMessage = "Failed to send password reset email. Please try again.";
+      if (err.code === "auth/user-not-found") {
+        errorMessage = "No account found with this email address.";
+      }
+
+      setErrorMessage(errorMessage);
+      setIsResettingPassword(false);
+    }
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
@@ -89,41 +133,68 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           autoCapitalize="none"
         />
 
-        {/* Password Input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          onChangeText={setPassword}
-          value={password}
-          secureTextEntry
-        />
+        {/* Password Input - Only show if not resetting password */}
+        {!isResettingPassword && (
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            onChangeText={setPassword}
+            value={password}
+            secureTextEntry
+          />
+        )}
 
         {/* Error Message */}
         {errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>}
 
         {/* Forgot Password */}
-        <TouchableOpacity onPress={() => Alert.alert("Reset Password", "Feature Coming Soon!")}>
-          <Text style={styles.forgotPassword}>Forgot Password?</Text>
-        </TouchableOpacity>
-
-        {/* Login Button */}
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Continue</Text>
-        </TouchableOpacity>
-
-        {/* Social Logins */}
-        <TouchableOpacity style={[styles.socialButton, { backgroundColor: "#fff" }]} onPress={googleLogin}>
-          <Image source={require("./assets/google.png")} style={styles.icon} />
-          <Text style={styles.socialText}>Continue with Google</Text>
-        </TouchableOpacity>
-
-        {/* Register Link */}
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Don’t have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-            <Text style={styles.registerLink}>Register Now</Text>
+        {!isResettingPassword ? (
+          <TouchableOpacity onPress={handleForgotPassword}>
+            <Text style={styles.forgotPassword}>Forgot Password?</Text>
           </TouchableOpacity>
-        </View>
+        ) : (
+          <TouchableOpacity 
+            onPress={() => setIsResettingPassword(false)}
+            style={styles.backToLogin}
+          >
+            <Text style={styles.forgotPassword}>Back to Login</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Login Button - Only show if not resetting password */}
+        {!isResettingPassword ? (
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Continue</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity 
+            style={styles.button} 
+            onPress={handleForgotPassword}
+            disabled={isResettingPassword}
+          >
+            <Text style={styles.buttonText}>
+              {isResettingPassword ? "Sending..." : "Send Reset Email"}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Social Logins - Only show if not resetting password */}
+        {!isResettingPassword && (
+          <TouchableOpacity style={[styles.socialButton, { backgroundColor: "#fff" }]} onPress={googleLogin}>
+            <Image source={require("./assets/google.png")} style={styles.icon} />
+            <Text style={styles.socialText}>Continue with Google</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Register Link - Only show if not resetting password */}
+        {!isResettingPassword && (
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+              <Text style={styles.registerLink}>Register Now</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Contact */}
         <Text style={styles.contactText}>
@@ -175,12 +246,16 @@ const styles = StyleSheet.create({
     color: "#4A00E0",
     marginBottom: 15,
   },
+  backToLogin: {
+    marginBottom: 15,
+  },
   button: {
     backgroundColor: "#4A00E0",
     padding: 12,
     borderRadius: 8,
     width: "100%",
     alignItems: "center",
+    marginBottom: 10,
   },
   buttonText: {
     color: "#fff",
