@@ -19,13 +19,13 @@ import * as ImagePicker from "react-native-image-picker";
 import Geolocation from "@react-native-community/geolocation";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import axios from "axios";
+import RNPickerSelect from "react-native-picker-select";
 
 const CLOUDINARY_UPLOAD_PRESET = "Profile";
 const CLOUDINARY_CLOUD_NAME = "dqdhnkdzo";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqdhnkdzo/image/upload";
 const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 
-// Sample skills data
 const SKILLS_LIST = [
   "Programming",
   "JavaScript",
@@ -85,6 +85,9 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+
+  // Generate graduation years
+  const years = Array.from({ length: 87 }, (_, i) => (2100 - i).toString());
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -342,25 +345,39 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           />
         )}
         <Text style={styles.label}>Bio/About Me</Text>
-        <TextInput style={styles.input} value={bio} onChangeText={setBio} multiline />
+        <TextInput style={[styles.input, { minHeight: 80 }]} value={bio} onChangeText={setBio} multiline />
       </View>
 
+      {/* Education Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Education</Text>
         <Text style={styles.label}>Institution Name</Text>
         <TextInput style={styles.input} value={institution} onChangeText={setInstitution} />
+        
         <Text style={styles.label}>Degree/Program</Text>
         <TextInput style={styles.input} value={degree} onChangeText={setDegree} />
+        
         <Text style={styles.label}>Graduation Year</Text>
-        <TextInput style={styles.input} value={graduationYear} onChangeText={setGraduationYear} />
+        <View style={styles.dropdownContainer}>
+          <RNPickerSelect
+            onValueChange={(value) => setGraduationYear(value)}
+            items={years.map((year) => ({ label: year, value: year }))}
+            value={graduationYear}
+            placeholder={{ label: "Select Year", value: "" }}
+            style={pickerSelectStyles}
+          />
+        </View>
+        
         <Text style={styles.label}>Field of Study</Text>
         <TextInput style={styles.input} value={fieldOfStudy} onChangeText={setFieldOfStudy} />
       </View>
 
+      {/* Work Experience Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Work Experience</Text>
         <Text style={styles.label}>Company Name</Text>
         <TextInput style={styles.input} value={company} onChangeText={setCompany} />
+        
         <Text style={styles.label}>Job Title</Text>
         <TextInput style={styles.input} value={jobTitle} onChangeText={setJobTitle} />
         
@@ -401,9 +418,10 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         )}
         
         <Text style={styles.label}>Description</Text>
-        <TextInput style={styles.input} value={jobDescription} onChangeText={setJobDescription} multiline />
+        <TextInput style={[styles.input, { minHeight: 80 }]} value={jobDescription} onChangeText={setJobDescription} multiline />
       </View>
 
+      {/* Skills Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Skills</Text>
         <View style={styles.skillsInputContainer}>
@@ -447,12 +465,36 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </View>
       </View>
 
+      {/* Save Changes Button */}
       <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30,
+  },
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
@@ -528,6 +570,13 @@ const styles = StyleSheet.create({
   skillTagText: {
     color: '#fff',
     marginRight: 5,
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    marginBottom: 10,
+    backgroundColor: '#fff',
   },
 });
 
