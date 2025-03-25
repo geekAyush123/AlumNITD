@@ -25,6 +25,41 @@ const CLOUDINARY_CLOUD_NAME = "dqdhnkdzo";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqdhnkdzo/image/upload";
 const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 
+// Sample skills data
+const SKILLS_LIST = [
+  "Programming",
+  "JavaScript",
+  "TypeScript",
+  "React",
+  "React Native",
+  "Node.js",
+  "Python",
+  "Java",
+  "C++",
+  "Swift",
+  "Kotlin",
+  "HTML",
+  "CSS",
+  "UI/UX Design",
+  "Graphic Design",
+  "Project Management",
+  "Data Analysis",
+  "Machine Learning",
+  "Artificial Intelligence",
+  "Cloud Computing",
+  "DevOps",
+  "Database Management",
+  "SQL",
+  "NoSQL",
+  "Agile Methodologies",
+  "Scrum",
+  "Product Management",
+  "Digital Marketing",
+  "Content Writing",
+  "Public Speaking",
+  "Leadership",
+];
+
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -42,7 +77,10 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const [skills, setSkills] = useState("");
+  const [skillsInput, setSkillsInput] = useState("");
+  const [skillSuggestions, setSkillSuggestions] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -70,7 +108,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setStartDate(userData?.startDate ? new Date(userData.startDate) : null);
           setEndDate(userData?.endDate ? new Date(userData.endDate) : null);
           setJobDescription(userData?.jobDescription || "");
-          setSkills(userData?.skills || "");
+          setSelectedSkills(userData?.skills ? userData.skills.split(',').map((s: string) => s.trim()) : []);
         }
       }
     };
@@ -97,7 +135,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           startDate: startDate?.toISOString(),
           endDate: endDate?.toISOString(),
           jobDescription,
-          skills,
+          skills: selectedSkills.join(', '),
         });
         Alert.alert("Success", "Profile updated successfully");
       } catch (error) {
@@ -225,6 +263,31 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setEndDate(currentDate || null);
   };
 
+  const handleSkillInputChange = (text: string) => {
+    setSkillsInput(text);
+    if (text.length > 0) {
+      const filtered = SKILLS_LIST.filter(skill =>
+        skill.toLowerCase().includes(text.toLowerCase())
+      );
+      setSkillSuggestions(filtered);
+      setShowSkillSuggestions(true);
+    } else {
+      setShowSkillSuggestions(false);
+    }
+  };
+
+  const addSkill = (skill: string) => {
+    if (!selectedSkills.includes(skill)) {
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+    setSkillsInput("");
+    setShowSkillSuggestions(false);
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Profile Settings</Text>
@@ -282,7 +345,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <TextInput style={styles.input} value={bio} onChangeText={setBio} multiline />
       </View>
 
-      {/* Education Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Education</Text>
         <Text style={styles.label}>Institution Name</Text>
@@ -295,7 +357,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <TextInput style={styles.input} value={fieldOfStudy} onChangeText={setFieldOfStudy} />
       </View>
 
-      {/* Work Experience Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Work Experience</Text>
         <Text style={styles.label}>Company Name</Text>
@@ -343,13 +404,49 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <TextInput style={styles.input} value={jobDescription} onChangeText={setJobDescription} multiline />
       </View>
 
-      {/* Skills Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Skills</Text>
-        <TextInput style={styles.input} value={skills} onChangeText={setSkills} multiline />
+        <View style={styles.skillsInputContainer}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            value={skillsInput}
+            onChangeText={handleSkillInputChange}
+            placeholder="Type to search skills"
+            onFocus={() => skillsInput.length > 0 && setShowSkillSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSkillSuggestions(false), 200)}
+          />
+        </View>
+        
+        {showSkillSuggestions && skillSuggestions.length > 0 && (
+          <View style={styles.skillSuggestionsContainer}>
+            <FlatList
+              data={skillSuggestions}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.skillSuggestionItem}
+                  onPress={() => addSkill(item)}
+                >
+                  <Text>{item}</Text>
+                </TouchableOpacity>
+              )}
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
+        )}
+        
+        <View style={styles.selectedSkillsContainer}>
+          {selectedSkills.map((skill) => (
+            <View key={skill} style={styles.skillTag}>
+              <Text style={styles.skillTagText}>{skill}</Text>
+              <TouchableOpacity onPress={() => removeSkill(skill)}>
+                <Icon name="close" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
       </View>
 
-      {/* Save Changes Button */}
       <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
@@ -373,7 +470,7 @@ const styles = StyleSheet.create({
     borderRadius: 5, 
     marginBottom: 10, 
     backgroundColor: "#fff",
-    minHeight: 40, // Ensures consistent height for date inputs
+    minHeight: 40,
   },
   locationContainer: { flexDirection: "row", alignItems: "center" },
   gpsButton: { marginLeft: 10, padding: 10 },
@@ -395,6 +492,43 @@ const styles = StyleSheet.create({
     marginVertical: 20 
   },
   buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
+  skillsInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  skillSuggestionsContainer: {
+    maxHeight: 150,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 10,
+  },
+  skillSuggestionItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  selectedSkillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 5,
+  },
+  skillTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6200ea',
+    borderRadius: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  skillTagText: {
+    color: '#fff',
+    marginRight: 5,
+  },
 });
 
 export default ProfileScreen;
