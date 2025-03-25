@@ -10,18 +10,20 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
+  Platform,
 } from "react-native";
+import DateTimePicker from '@react-native-community/datetimepicker';
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import * as ImagePicker from "react-native-image-picker";
 import Geolocation from "@react-native-community/geolocation";
-import Icon from "react-native-vector-icons/MaterialIcons"; // Import the icon library
-import axios from "axios"; // For making API requests
+import Icon from "react-native-vector-icons/MaterialIcons";
+import axios from "axios";
 
 const CLOUDINARY_UPLOAD_PRESET = "Profile";
 const CLOUDINARY_CLOUD_NAME = "dqdhnkdzo";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqdhnkdzo/image/upload";
-const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG"; // Replace with your MapTiler API key
+const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -37,12 +39,14 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [skills, setSkills] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -63,8 +67,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setFieldOfStudy(userData?.fieldOfStudy || "");
           setCompany(userData?.company || "");
           setJobTitle(userData?.jobTitle || "");
-          setStartDate(userData?.startDate || "");
-          setEndDate(userData?.endDate || "");
+          setStartDate(userData?.startDate ? new Date(userData.startDate) : null);
+          setEndDate(userData?.endDate ? new Date(userData.endDate) : null);
           setJobDescription(userData?.jobDescription || "");
           setSkills(userData?.skills || "");
         }
@@ -74,7 +78,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     fetchUserData();
   }, []);
 
-  // Handle updating profile
   const handleUpdateProfile = async () => {
     const user = auth().currentUser;
     if (user) {
@@ -91,8 +94,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           fieldOfStudy,
           company,
           jobTitle,
-          startDate,
-          endDate,
+          startDate: startDate?.toISOString(),
+          endDate: endDate?.toISOString(),
           jobDescription,
           skills,
         });
@@ -103,7 +106,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
-  // Handle choosing an image
   const handleChooseImage = async () => {
     ImagePicker.launchImageLibrary({ mediaType: "photo", quality: 0.8 }, async (response) => {
       if (!response.didCancel && response.assets) {
@@ -115,7 +117,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     });
   };
 
-  // Upload image to Cloudinary
   const uploadImage = async (imageUri: string) => {
     setUploading(true);
     const user = auth().currentUser;
@@ -154,7 +155,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setUploading(false);
   };
 
-  // Fetch location suggestions from MapTiler Geocoding API
   const fetchSuggestions = async (query: string) => {
     if (!query) {
       setSuggestions([]);
@@ -171,21 +171,19 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
-  // Handle location selection
   const handleLocationSelect = (item: any) => {
     setLocation(item.place_name);
     setSearchQuery(item.place_name);
     setSuggestions([]);
   };
 
-  // Reverse geocode coordinates to get human-readable address
   const reverseGeocode = async (latitude: number, longitude: number) => {
     try {
       const response = await axios.get(
         `https://api.maptiler.com/geocoding/${longitude},${latitude}.json?key=${MAPTILER_API_KEY}`
       );
       if (response.data && response.data.features && response.data.features.length > 0) {
-        const address = response.data.features[0].place_name; // Full address
+        const address = response.data.features[0].place_name;
         setLocation(address);
         setSearchQuery(address);
       } else {
@@ -197,18 +195,34 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
-  // Fetch current location using GPS and reverse geocode it
   const updateLocation = () => {
     Geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        reverseGeocode(latitude, longitude); // Reverse geocode the coordinates
+        reverseGeocode(latitude, longitude);
       },
       (error) => {
         Alert.alert("Error", "Failed to fetch location. Please ensure GPS is enabled.");
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
+  };
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return "";
+    return date.toLocaleDateString();
+  };
+
+  const onStartDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || startDate;
+    setShowStartDatePicker(Platform.OS === 'ios');
+    setStartDate(currentDate || null);
+  };
+
+  const onEndDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || endDate;
+    setShowEndDatePicker(Platform.OS === 'ios');
+    setEndDate(currentDate || null);
   };
 
   return (
@@ -249,7 +263,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <Icon name="gps-fixed" size={24} color="#6200ea" />
           </TouchableOpacity>
         </View>
-        {/* Display Suggestions */}
         {suggestions.length > 0 && (
           <FlatList
             data={suggestions}
@@ -289,10 +302,43 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <TextInput style={styles.input} value={company} onChangeText={setCompany} />
         <Text style={styles.label}>Job Title</Text>
         <TextInput style={styles.input} value={jobTitle} onChangeText={setJobTitle} />
+        
         <Text style={styles.label}>Start Date</Text>
-        <TextInput style={styles.input} value={startDate} onChangeText={setStartDate} />
+        <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+          <TextInput
+            style={styles.input}
+            value={formatDate(startDate)}
+            placeholder="Select start date"
+            editable={false}
+          />
+        </TouchableOpacity>
+        {showStartDatePicker && (
+          <DateTimePicker
+            value={startDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={onStartDateChange}
+          />
+        )}
+        
         <Text style={styles.label}>End Date</Text>
-        <TextInput style={styles.input} value={endDate} onChangeText={setEndDate} />
+        <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+          <TextInput
+            style={styles.input}
+            value={formatDate(endDate)}
+            placeholder="Select end date"
+            editable={false}
+          />
+        </TouchableOpacity>
+        {showEndDatePicker && (
+          <DateTimePicker
+            value={endDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={onEndDateChange}
+          />
+        )}
+        
         <Text style={styles.label}>Description</Text>
         <TextInput style={styles.input} value={jobDescription} onChangeText={setJobDescription} multiline />
       </View>
@@ -320,12 +366,34 @@ const styles = StyleSheet.create({
   section: { backgroundColor: "white", padding: 15, borderRadius: 8, marginBottom: 15, elevation: 3 },
   sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#333" },
   label: { fontSize: 16, marginBottom: 5, color: "#555" },
-  input: { borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 5, marginBottom: 10, backgroundColor: "#fff" },
+  input: { 
+    borderWidth: 1, 
+    borderColor: "#ddd", 
+    padding: 10, 
+    borderRadius: 5, 
+    marginBottom: 10, 
+    backgroundColor: "#fff",
+    minHeight: 40, // Ensures consistent height for date inputs
+  },
   locationContainer: { flexDirection: "row", alignItems: "center" },
   gpsButton: { marginLeft: 10, padding: 10 },
-  suggestionsList: { width: "100%", maxHeight: 150, backgroundColor: "#fff", borderRadius: 8, borderWidth: 1, borderColor: "#ccc", marginTop: 5 },
+  suggestionsList: { 
+    width: "100%", 
+    maxHeight: 150, 
+    backgroundColor: "#fff", 
+    borderRadius: 8, 
+    borderWidth: 1, 
+    borderColor: "#ccc", 
+    marginTop: 5 
+  },
   suggestionItem: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  button: { backgroundColor: "#6200ea", padding: 15, borderRadius: 5, alignItems: "center", marginVertical: 20 },
+  button: { 
+    backgroundColor: "#6200ea", 
+    padding: 15, 
+    borderRadius: 5, 
+    alignItems: "center", 
+    marginVertical: 20 
+  },
   buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
 });
 
