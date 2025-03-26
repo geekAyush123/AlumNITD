@@ -4,7 +4,6 @@ import firestore from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 
-// Define Alumni Type
 interface Alumni {
   id: string;
   fullName: string;
@@ -16,6 +15,7 @@ const AlumniSearchScreen = ({ navigation }: { navigation: any }) => {
   const [query, setQuery] = useState<string>('');
   const [alumniList, setAlumniList] = useState<Alumni[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false); // New state for filter visibility
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -33,6 +33,10 @@ const AlumniSearchScreen = ({ navigation }: { navigation: any }) => {
     setSelectedFilters(prev =>
       prev.includes(filter) ? prev.filter(item => item !== filter) : [...prev, filter]
     );
+  };
+
+  const toggleFilterVisibility = () => {
+    setShowFilters(!showFilters);
   };
 
   return (
@@ -54,78 +58,103 @@ const AlumniSearchScreen = ({ navigation }: { navigation: any }) => {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.filterTitle}>Filter Graduation Year</Text>
-            <View style={styles.filterContainer}>
-              {['2020', '2021', '2022', '2023', '2024'].map(year => (
-                <TouchableOpacity
-                  key={year}
-                  style={[styles.filterButton, selectedFilters.includes(year) && styles.selectedFilter]}
-                  onPress={() => toggleFilter(year)}
-                >
-                  <Text style={styles.filterText}>{year}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.filterTitle}>Filter Location</Text>
-            <View style={styles.filterContainer}>
-              {['City', 'State', 'Country'].map(location => (
-                <TouchableOpacity
-                  key={location}
-                  style={[styles.filterButton, selectedFilters.includes(location) && styles.selectedFilter]}
-                  onPress={() => toggleFilter(location)}
-                >
-                  <Text style={styles.filterText}>{location}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.filterTitle}>Filter Industry</Text>
-            <View style={styles.filterContainer}>
-              {['Technology', 'Healthcare', 'Education'].map(industry => (
-                <TouchableOpacity
-                  key={industry}
-                  style={[styles.filterButton, selectedFilters.includes(industry) && styles.selectedFilter]}
-                  onPress={() => toggleFilter(industry)}
-                >
-                  <Text style={styles.filterText}>{industry}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.filterTitle}>Filter Skills</Text>
-            <View style={styles.filterContainer}>
-              {['Java', 'Marketing', 'Data Analysis'].map(skill => (
-                <TouchableOpacity
-                  key={skill}
-                  style={[styles.filterButton, selectedFilters.includes(skill) && styles.selectedFilter]}
-                  onPress={() => toggleFilter(skill)}
-                >
-                  <Text style={styles.filterText}>{skill}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.filterTitle}>Sort By</Text>
-            <View style={styles.filterContainer}>
-              {['Relevance', 'Graduation Year', 'Alphabetical'].map(sortOption => (
-                <TouchableOpacity
-                  key={sortOption}
-                  style={[styles.filterButton, selectedFilters.includes(sortOption) && styles.selectedFilter]}
-                  onPress={() => toggleFilter(sortOption)}
-                >
-                  <Text style={styles.filterText}>{sortOption}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity style={styles.resetButton} onPress={() => setSelectedFilters([])}>
-              <Text style={styles.buttonText}>Reset Filters</Text>
+            {/* Filter toggle button */}
+            <TouchableOpacity 
+              style={styles.filterToggleButton}
+              onPress={toggleFilterVisibility}
+            >
+              <Text style={styles.filterToggleText}>Filters</Text>
+              <Icon 
+                name={showFilters ? 'chevron-up' : 'chevron-down'} 
+                size={20} 
+                color="black" 
+              />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.saveButton}>
-              <Text style={styles.buttonText}>Save Search</Text>
-            </TouchableOpacity>
+            {/* Collapsible filter section */}
+            {showFilters && (
+              <View style={styles.filterSection}>
+                <Text style={styles.filterTitle}>Graduation Year</Text>
+                <View style={styles.filterContainer}>
+                  {['2020', '2021', '2022', '2023', '2024'].map(year => (
+                    <TouchableOpacity
+                      key={year}
+                      style={[styles.filterButton, selectedFilters.includes(year) && styles.selectedFilter]}
+                      onPress={() => toggleFilter(year)}
+                    >
+                      <Text style={styles.filterText}>{year}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.filterTitle}>Location</Text>
+                <View style={styles.filterContainer}>
+                  {['City', 'State', 'Country'].map(location => (
+                    <TouchableOpacity
+                      key={location}
+                      style={[styles.filterButton, selectedFilters.includes(location) && styles.selectedFilter]}
+                      onPress={() => toggleFilter(location)}
+                    >
+                      <Text style={styles.filterText}>{location}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.filterTitle}>Industry</Text>
+                <View style={styles.filterContainer}>
+                  {['Technology', 'Healthcare', 'Education'].map(industry => (
+                    <TouchableOpacity
+                      key={industry}
+                      style={[styles.filterButton, selectedFilters.includes(industry) && styles.selectedFilter]}
+                      onPress={() => toggleFilter(industry)}
+                    >
+                      <Text style={styles.filterText}>{industry}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.filterTitle}>Skills</Text>
+                <View style={styles.filterContainer}>
+                  {['Java', 'Marketing', 'Data Analysis'].map(skill => (
+                    <TouchableOpacity
+                      key={skill}
+                      style={[styles.filterButton, selectedFilters.includes(skill) && styles.selectedFilter]}
+                      onPress={() => toggleFilter(skill)}
+                    >
+                      <Text style={styles.filterText}>{skill}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.filterTitle}>Sort By</Text>
+                <View style={styles.filterContainer}>
+                  {['Relevance', 'Graduation Year', 'Alphabetical'].map(sortOption => (
+                    <TouchableOpacity
+                      key={sortOption}
+                      style={[styles.filterButton, selectedFilters.includes(sortOption) && styles.selectedFilter]}
+                      onPress={() => toggleFilter(sortOption)}
+                    >
+                      <Text style={styles.filterText}>{sortOption}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <View style={styles.filterActionButtons}>
+                  <TouchableOpacity 
+                    style={styles.resetButton} 
+                    onPress={() => setSelectedFilters([])}
+                  >
+                    <Text style={styles.buttonText}>Reset</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.applyButton} 
+                    onPress={toggleFilterVisibility}
+                  >
+                    <Text style={styles.applyButtonText}>Apply</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
 
             <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
               <Text style={styles.searchButtonText}>Search</Text>
@@ -159,35 +188,135 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
+  header: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    marginBottom: 10,
+    color: 'black',
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    padding: 6,
+    padding: 3,
     borderRadius: 8,
     marginBottom: 15,
     backgroundColor: 'white',
   },
   input: {
     flex: 1,
+    fontSize: 16,
+  },
+  filterToggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginBottom: 10,
+  },
+  filterToggleText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 5,
+    color: 'black',
+  },
+  filterSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+  },
+  filterTitle: { 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  filterContainer: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    marginBottom: 10,
+  },
+  filterButton: { 
+    backgroundColor: '#e0e0e0', 
+    padding: 8, 
+    borderRadius: 10, 
+    margin: 5,
+  },
+  selectedFilter: { 
+    backgroundColor: '#7B61FF',
+  },
+  filterText: { 
+    color: 'black',
     fontSize: 14,
   },
-  filterTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 10 },
-  filterContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
-  filterButton: { backgroundColor: '#e0e0e0', padding: 8, borderRadius: 10, margin: 5 },
-  selectedFilter: { backgroundColor: '#7B61FF' },
-  filterText: { color: 'black' },
-  resetButton: { backgroundColor: 'white', padding: 12, borderRadius: 10, alignItems: 'center', marginVertical: 5 },
-  saveButton: { backgroundColor: 'white', padding: 12, borderRadius: 10, alignItems: 'center', marginVertical: 5 },
-  searchButton: { backgroundColor: 'black', padding: 12, borderRadius: 10, alignItems: 'center', marginVertical: 5 },
-  searchButtonText: { color: 'white' },
-  alumniCard: { backgroundColor: 'white', padding: 15, borderRadius: 10, marginVertical: 5 },
-  alumniName: { fontSize: 18, fontWeight: 'bold' },
-  alumniDetails: { fontSize: 14, color: 'gray' },
-  connectButton: { backgroundColor: '#6200EE', padding: 8, borderRadius: 5, marginTop: 5 },
-  connectText: { color: 'white', textAlign: 'center' },
-  buttonText: { color: 'black' },
+  filterActionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  resetButton: { 
+    backgroundColor: 'white', 
+    padding: 10, 
+    borderRadius: 10, 
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 5,
+    borderWidth: 1,
+    borderColor: '#7B61FF',
+  },
+  applyButton: { 
+    backgroundColor: '#7B61FF', 
+    padding: 10, 
+    borderRadius: 10, 
+    alignItems: 'center',
+    flex: 1,
+    marginLeft: 5,
+  },
+  buttonText: { 
+    color: '#7B61FF',
+    fontWeight: 'bold',
+  },
+  applyButtonText: { 
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  searchButton: { 
+    backgroundColor: 'black', 
+    padding: 12, 
+    borderRadius: 10, 
+    alignItems: 'center', 
+    marginVertical: 5,
+  },
+  searchButtonText: { 
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  alumniCard: { 
+    backgroundColor: 'white', 
+    padding: 15, 
+    borderRadius: 10, 
+    marginVertical: 5,
+  },
+  alumniName: { 
+    fontSize: 18, 
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  alumniDetails: { 
+    fontSize: 14, 
+    color: 'gray',
+    marginVertical: 3,
+  },
+  connectButton: { 
+    backgroundColor: '#6200EE', 
+    padding: 8, 
+    borderRadius: 5, 
+    marginTop: 5,
+  },
+  connectText: { 
+    color: 'white', 
+    textAlign: 'center',
+  },
 });
 
-export default AlumniSearchScreen;  
+export default AlumniSearchScreen;
