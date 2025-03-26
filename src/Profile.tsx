@@ -85,6 +85,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
 
   // Generate graduation years
   const years = Array.from({ length: 87 }, (_, i) => (2100 - i).toString());
@@ -112,6 +114,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setEndDate(userData?.endDate ? new Date(userData.endDate) : null);
           setJobDescription(userData?.jobDescription || "");
           setSelectedSkills(userData?.skills ? userData.skills.split(',').map((s: string) => s.trim()) : []);
+          setLinkedinUrl(userData?.linkedinUrl || "");
+          setGithubUrl(userData?.githubUrl || "");
         }
       }
     };
@@ -139,6 +143,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           endDate: endDate?.toISOString(),
           jobDescription,
           skills: selectedSkills.join(', '),
+          linkedinUrl,
+          githubUrl,
         });
         Alert.alert("Success", "Profile updated successfully");
       } catch (error) {
@@ -346,6 +352,24 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         )}
         <Text style={styles.label}>Bio/About Me</Text>
         <TextInput style={[styles.input, { minHeight: 80 }]} value={bio} onChangeText={setBio} multiline />
+        
+        <Text style={styles.label}>LinkedIn Profile URL</Text>
+        <TextInput 
+          style={styles.input} 
+          value={linkedinUrl} 
+          onChangeText={setLinkedinUrl} 
+          placeholder="https://linkedin.com/in/yourprofile" 
+          keyboardType="url"
+        />
+
+        <Text style={styles.label}>GitHub Profile URL</Text>
+        <TextInput 
+          style={styles.input} 
+          value={githubUrl} 
+          onChangeText={setGithubUrl} 
+          placeholder="https://github.com/yourusername" 
+          keyboardType="url"
+        />
       </View>
 
       {/* Education Section */}
