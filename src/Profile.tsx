@@ -10,18 +10,19 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
+  Linking,
 } from "react-native";
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import * as ImagePicker from "react-native-image-picker";
 import Geolocation from "@react-native-community/geolocation";
-import Icon from "react-native-vector-icons/MaterialIcons"; // Import the icon library
-import axios from "axios"; // For making API requests
+import Icon from "react-native-vector-icons/MaterialIcons";
+import axios from "axios";
 
 const CLOUDINARY_UPLOAD_PRESET = "Profile";
 const CLOUDINARY_CLOUD_NAME = "dqdhnkdzo";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqdhnkdzo/image/upload";
-const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG"; // Replace with your MapTiler API key
+const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -43,6 +44,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [skills, setSkills] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [githubLink, setGithubLink] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -67,6 +70,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setEndDate(userData?.endDate || "");
           setJobDescription(userData?.jobDescription || "");
           setSkills(userData?.skills || "");
+          setProjects(userData?.projects || []);
+          setGithubLink(userData?.githubLink || "");
         }
       }
     };
@@ -74,7 +79,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     fetchUserData();
   }, []);
 
-  // Handle updating profile
   const handleUpdateProfile = async () => {
     const user = auth().currentUser;
     if (user) {
@@ -95,6 +99,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           endDate,
           jobDescription,
           skills,
+          projects,
+          githubLink,
         });
         Alert.alert("Success", "Profile updated successfully");
       } catch (error) {
@@ -103,7 +109,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
-  // Handle choosing an image
   const handleChooseImage = async () => {
     ImagePicker.launchImageLibrary({ mediaType: "photo", quality: 0.8 }, async (response) => {
       if (!response.didCancel && response.assets) {
@@ -115,7 +120,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     });
   };
 
-  // Upload image to Cloudinary
   const uploadImage = async (imageUri: string) => {
     setUploading(true);
     const user = auth().currentUser;
@@ -154,7 +158,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setUploading(false);
   };
 
-  // Fetch location suggestions from MapTiler Geocoding API
   const fetchSuggestions = async (query: string) => {
     if (!query) {
       setSuggestions([]);
@@ -171,21 +174,19 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
-  // Handle location selection
   const handleLocationSelect = (item: any) => {
     setLocation(item.place_name);
     setSearchQuery(item.place_name);
     setSuggestions([]);
   };
 
-  // Reverse geocode coordinates to get human-readable address
   const reverseGeocode = async (latitude: number, longitude: number) => {
     try {
       const response = await axios.get(
         `https://api.maptiler.com/geocoding/${longitude},${latitude}.json?key=${MAPTILER_API_KEY}`
       );
       if (response.data && response.data.features && response.data.features.length > 0) {
-        const address = response.data.features[0].place_name; // Full address
+        const address = response.data.features[0].place_name;
         setLocation(address);
         setSearchQuery(address);
       } else {
@@ -197,12 +198,11 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
-  // Fetch current location using GPS and reverse geocode it
   const updateLocation = () => {
     Geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        reverseGeocode(latitude, longitude); // Reverse geocode the coordinates
+        reverseGeocode(latitude, longitude);
       },
       (error) => {
         Alert.alert("Error", "Failed to fetch location. Please ensure GPS is enabled.");
@@ -211,9 +211,30 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
+  const handleShareProfile = () => {
+    // Implement share functionality
+    Alert.alert("Share Profile", "Profile sharing functionality will be implemented here");
+  };
+
+  const handleConnect = () => {
+    // Implement connect functionality
+    Alert.alert("Connect", "Connect functionality will be implemented here");
+  };
+
+  const handleOpenGithub = () => {
+    if (githubLink) {
+      Linking.openURL(githubLink).catch(err => {
+        Alert.alert("Error", "Could not open the GitHub link");
+      });
+    } else {
+      Alert.alert("No Link", "Please add a GitHub link first");
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Profile Settings</Text>
+      
       <View style={styles.profilePictureContainer}>
         {uploading ? (
           <ActivityIndicator size="large" color="#6200ea" />
@@ -227,6 +248,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </TouchableOpacity>
         )}
       </View>
+
       <View style={styles.section}>
         <Text style={styles.label}>Full Name</Text>
         <TextInput style={styles.input} value={fullName} onChangeText={setFullName} />
@@ -249,7 +271,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <Icon name="gps-fixed" size={24} color="#6200ea" />
           </TouchableOpacity>
         </View>
-        {/* Display Suggestions */}
         {suggestions.length > 0 && (
           <FlatList
             data={suggestions}
@@ -269,7 +290,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <TextInput style={styles.input} value={bio} onChangeText={setBio} multiline />
       </View>
 
-      {/* Education Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Education</Text>
         <Text style={styles.label}>Institution Name</Text>
@@ -282,7 +302,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <TextInput style={styles.input} value={fieldOfStudy} onChangeText={setFieldOfStudy} />
       </View>
 
-      {/* Work Experience Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Work Experience</Text>
         <Text style={styles.label}>Company Name</Text>
@@ -297,13 +316,63 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <TextInput style={styles.input} value={jobDescription} onChangeText={setJobDescription} multiline />
       </View>
 
-      {/* Skills Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Skills</Text>
         <TextInput style={styles.input} value={skills} onChangeText={setSkills} multiline />
       </View>
 
-      {/* Save Changes Button */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Projects</Text>
+        <Text style={styles.label}>GitHub Link</Text>
+        <TextInput 
+          style={styles.input} 
+          value={githubLink} 
+          onChangeText={setGithubLink} 
+          placeholder="https://github.com/username/project"
+        />
+        
+        {projects.length > 0 ? (
+          projects.map((project, index) => (
+            <View key={index} style={styles.projectItem}>
+              {project.image && (
+                <Image source={{ uri: project.image }} style={styles.projectImage} />
+              )}
+              <Text style={styles.projectTitle}>{project.title}</Text>
+              <Text style={styles.projectDescription}>{project.description}</Text>
+              {project.githubLink && (
+                <TouchableOpacity onPress={() => Linking.openURL(project.githubLink)}>
+                  <Text style={styles.linkText}>View on GitHub</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))
+        ) : (
+          <Text style={styles.noProjectsText}>No projects added yet</Text>
+        )}
+        
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => navigation.navigate('AddProject')}
+        >
+          <Text style={styles.addButtonText}>Add Project</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.actionButtonsContainer}>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.shareButton]}
+          onPress={handleShareProfile}
+        >
+          <Text style={styles.actionButtonText}>Share Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.connectButton]}
+          onPress={handleConnect}
+        >
+          <Text style={styles.actionButtonText}>Connect</Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
@@ -317,16 +386,109 @@ const styles = StyleSheet.create({
   profilePictureContainer: { alignItems: "center", marginBottom: 20 },
   profilePicture: { width: 120, height: 120, borderRadius: 60, backgroundColor: "#ddd" },
   uploadText: { color: "#6200ea", marginTop: 8, fontSize: 14 },
-  section: { backgroundColor: "white", padding: 15, borderRadius: 8, marginBottom: 15, elevation: 3 },
+  section: { 
+    backgroundColor: "white", 
+    padding: 15, 
+    borderRadius: 8, 
+    marginBottom: 15, 
+    elevation: 3 
+  },
   sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#333" },
   label: { fontSize: 16, marginBottom: 5, color: "#555" },
-  input: { borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 5, marginBottom: 10, backgroundColor: "#fff" },
+  input: { 
+    borderWidth: 1, 
+    borderColor: "#ddd", 
+    padding: 10, 
+    borderRadius: 5, 
+    marginBottom: 10, 
+    backgroundColor: "#fff" 
+  },
   locationContainer: { flexDirection: "row", alignItems: "center" },
   gpsButton: { marginLeft: 10, padding: 10 },
-  suggestionsList: { width: "100%", maxHeight: 150, backgroundColor: "#fff", borderRadius: 8, borderWidth: 1, borderColor: "#ccc", marginTop: 5 },
+  suggestionsList: { 
+    width: "100%", 
+    maxHeight: 150, 
+    backgroundColor: "#fff", 
+    borderRadius: 8, 
+    borderWidth: 1, 
+    borderColor: "#ccc", 
+    marginTop: 5 
+  },
   suggestionItem: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  button: { backgroundColor: "#6200ea", padding: 15, borderRadius: 5, alignItems: "center", marginVertical: 20 },
+  button: { 
+    backgroundColor: "#6200ea", 
+    padding: 15, 
+    borderRadius: 5, 
+    alignItems: "center", 
+    marginVertical: 20 
+  },
   buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
+  projectItem: {
+    marginBottom: 15,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  projectImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  projectTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  projectDescription: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 5,
+  },
+  linkText: {
+    color: '#6200ea',
+    textDecorationLine: 'underline',
+  },
+  noProjectsText: {
+    textAlign: 'center',
+    color: '#888',
+    marginVertical: 10,
+  },
+  addButton: {
+    backgroundColor: '#6200ea',
+    padding: 12,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  actionButton: {
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 5,
+  },
+  shareButton: {
+    backgroundColor: '#4CAF50',
+  },
+  connectButton: {
+    backgroundColor: '#2196F3',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export default ProfileScreen;
