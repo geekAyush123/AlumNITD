@@ -44,10 +44,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
           <Text style={styles.logo}>AlumNITD</Text>
           <View style={styles.headerIcons}>
             <TouchableOpacity onPress={() => navigation.navigate('AlumniSearch')}>
-              <Icon name="search" size={30} color="black" style={styles.iconSpacing} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleSignOut}>
-              <Icon name="log-out-outline" size={30} color="black" />
+              <Icon name="search" size={30} color="black" />
             </TouchableOpacity>
           </View>
         </View>
@@ -58,6 +55,13 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
             <MenuItem icon="mail" text="Messages" onPress={() => navigation.navigate('MessagesList')} />
             <MenuItem icon="cash-outline" text="Donations" onPress={() => {}} />
             <MenuItem icon="chatbubble-ellipses-outline" text="Discussion" onPress={() => {}} />
+            <MenuItem 
+              icon="log-out-outline" 
+              text="Log Out" 
+              onPress={handleSignOut} 
+              iconColor="#FF0000" 
+              textColor="#FF0000" 
+            />
           </View>
         )}
 
@@ -98,12 +102,14 @@ interface MenuItemProps {
   icon: string;
   text: string;
   onPress: () => void;
+  iconColor?: string;
+  textColor?: string;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({ icon, text, onPress }) => (
+const MenuItem: React.FC<MenuItemProps> = ({ icon, text, onPress, iconColor = 'black', textColor = 'black' }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-    <Icon name={icon} size={25} color="black" />
-    <Text style={styles.menuText}>{text}</Text>
+    <Icon name={icon} size={25} color={iconColor} />
+    <Text style={[styles.menuText, { color: textColor }]}>{text}</Text>
   </TouchableOpacity>
 );
 
@@ -112,7 +118,6 @@ const styles = StyleSheet.create({
   scrollContainer: { alignItems: 'center', paddingBottom: 20 },
   header: { flexDirection: 'row', width: '90%', justifyContent: 'space-between', alignItems: 'center', marginTop: 50 },
   headerIcons: { flexDirection: 'row', alignItems: 'center' },
-  iconSpacing: { marginRight: 15 },
   logo: { fontSize: 22, fontWeight: 'bold' },
   userText: { fontSize: 18 },
   bold: { fontWeight: 'bold' },

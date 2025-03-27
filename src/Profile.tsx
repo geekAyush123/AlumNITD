@@ -10,19 +10,19 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
-  Linking,
 } from "react-native";
+import DateTimePicker from '@react-native-community/datetimepicker';
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import * as ImagePicker from "react-native-image-picker";
 import Geolocation from "@react-native-community/geolocation";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import axios from "axios";
+import Icon from "react-native-vector-icons/MaterialIcons"; // Import the icon library
+import axios from "axios"; // For making API requests
 
 const CLOUDINARY_UPLOAD_PRESET = "Profile";
 const CLOUDINARY_CLOUD_NAME = "dqdhnkdzo";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqdhnkdzo/image/upload";
-const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
+const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG"; // Replace with your MapTiler API key
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -38,14 +38,15 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const [skills, setSkills] = useState("");
+  const [skillsInput, setSkillsInput] = useState("");
+  const [skillSuggestions, setSkillSuggestions] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [githubLink, setGithubLink] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -66,12 +67,10 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setFieldOfStudy(userData?.fieldOfStudy || "");
           setCompany(userData?.company || "");
           setJobTitle(userData?.jobTitle || "");
-          setStartDate(userData?.startDate || "");
-          setEndDate(userData?.endDate || "");
+          setStartDate(userData?.startDate ? new Date(userData.startDate) : null);
+          setEndDate(userData?.endDate ? new Date(userData.endDate) : null);
           setJobDescription(userData?.jobDescription || "");
           setSkills(userData?.skills || "");
-          setProjects(userData?.projects || []);
-          setGithubLink(userData?.githubLink || "");
         }
       }
     };
@@ -95,12 +94,10 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           fieldOfStudy,
           company,
           jobTitle,
-          startDate,
-          endDate,
+          startDate: startDate?.toISOString(),
+          endDate: endDate?.toISOString(),
           jobDescription,
           skills,
-          projects,
-          githubLink,
         });
         Alert.alert("Success", "Profile updated successfully");
       } catch (error) {
@@ -211,26 +208,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
-  const handleShareProfile = () => {
-    // Implement share functionality
-    Alert.alert("Share Profile", "Profile sharing functionality will be implemented here");
-  };
-
-  const handleConnect = () => {
-    // Implement connect functionality
-    Alert.alert("Connect", "Connect functionality will be implemented here");
-  };
-
-  const handleOpenGithub = () => {
-    if (githubLink) {
-      Linking.openURL(githubLink).catch(err => {
-        Alert.alert("Error", "Could not open the GitHub link");
-      });
-    } else {
-      Alert.alert("No Link", "Please add a GitHub link first");
-    }
-  };
-
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Profile Settings</Text>
@@ -287,17 +264,46 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           />
         )}
         <Text style={styles.label}>Bio/About Me</Text>
-        <TextInput style={styles.input} value={bio} onChangeText={setBio} multiline />
+        <TextInput style={[styles.input, { minHeight: 80 }]} value={bio} onChangeText={setBio} multiline />
+        
+        <Text style={styles.label}>LinkedIn Profile URL</Text>
+        <TextInput 
+          style={styles.input} 
+          value={linkedinUrl} 
+          onChangeText={setLinkedinUrl} 
+          placeholder="https://linkedin.com/in/yourprofile" 
+          keyboardType="url"
+        />
+
+        <Text style={styles.label}>GitHub Profile URL</Text>
+        <TextInput 
+          style={styles.input} 
+          value={githubUrl} 
+          onChangeText={setGithubUrl} 
+          placeholder="https://github.com/yourusername" 
+          keyboardType="url"
+        />
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Education</Text>
         <Text style={styles.label}>Institution Name</Text>
         <TextInput style={styles.input} value={institution} onChangeText={setInstitution} />
+        
         <Text style={styles.label}>Degree/Program</Text>
         <TextInput style={styles.input} value={degree} onChangeText={setDegree} />
+        
         <Text style={styles.label}>Graduation Year</Text>
-        <TextInput style={styles.input} value={graduationYear} onChangeText={setGraduationYear} />
+        <View style={styles.dropdownContainer}>
+          <RNPickerSelect
+            onValueChange={(value) => setGraduationYear(value)}
+            items={years.map((year) => ({ label: year, value: year }))}
+            value={graduationYear}
+            placeholder={{ label: "Select Year", value: "" }}
+            style={pickerSelectStyles}
+          />
+        </View>
+        
         <Text style={styles.label}>Field of Study</Text>
         <TextInput style={styles.input} value={fieldOfStudy} onChangeText={setFieldOfStudy} />
       </View>
@@ -306,19 +312,91 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Work Experience</Text>
         <Text style={styles.label}>Company Name</Text>
         <TextInput style={styles.input} value={company} onChangeText={setCompany} />
+        
         <Text style={styles.label}>Job Title</Text>
         <TextInput style={styles.input} value={jobTitle} onChangeText={setJobTitle} />
+        
         <Text style={styles.label}>Start Date</Text>
-        <TextInput style={styles.input} value={startDate} onChangeText={setStartDate} />
+        <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+          <TextInput
+            style={styles.input}
+            value={formatDate(startDate)}
+            placeholder="Select start date"
+            editable={false}
+          />
+        </TouchableOpacity>
+        {showStartDatePicker && (
+          <DateTimePicker
+            value={startDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={onStartDateChange}
+          />
+        )}
+        
         <Text style={styles.label}>End Date</Text>
-        <TextInput style={styles.input} value={endDate} onChangeText={setEndDate} />
+        <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+          <TextInput
+            style={styles.input}
+            value={formatDate(endDate)}
+            placeholder="Select end date"
+            editable={false}
+          />
+        </TouchableOpacity>
+        {showEndDatePicker && (
+          <DateTimePicker
+            value={endDate || new Date()}
+            mode="date"
+            display="default"
+            onChange={onEndDateChange}
+          />
+        )}
+        
         <Text style={styles.label}>Description</Text>
-        <TextInput style={styles.input} value={jobDescription} onChangeText={setJobDescription} multiline />
+        <TextInput style={[styles.input, { minHeight: 80 }]} value={jobDescription} onChangeText={setJobDescription} multiline />
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Skills</Text>
-        <TextInput style={styles.input} value={skills} onChangeText={setSkills} multiline />
+        <View style={styles.skillsInputContainer}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            value={skillsInput}
+            onChangeText={handleSkillInputChange}
+            placeholder="Type to search skills"
+            onFocus={() => skillsInput.length > 0 && setShowSkillSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSkillSuggestions(false), 200)}
+          />
+        </View>
+        
+        {showSkillSuggestions && skillSuggestions.length > 0 && (
+          <View style={styles.skillSuggestionsContainer}>
+            <FlatList
+              data={skillSuggestions}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.skillSuggestionItem}
+                  onPress={() => addSkill(item)}
+                >
+                  <Text>{item}</Text>
+                </TouchableOpacity>
+              )}
+              keyboardShouldPersistTaps="always"
+            />
+          </View>
+        )}
+        
+        <View style={styles.selectedSkillsContainer}>
+          {selectedSkills.map((skill) => (
+            <View key={skill} style={styles.skillTag}>
+              <Text style={styles.skillTagText}>{skill}</Text>
+              <TouchableOpacity onPress={() => removeSkill(skill)}>
+                <Icon name="close" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -380,6 +458,29 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   );
 };
 
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30,
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30,
+  },
+});
+
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
   title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#333" },
@@ -395,14 +496,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#333" },
   label: { fontSize: 16, marginBottom: 5, color: "#555" },
-  input: { 
-    borderWidth: 1, 
-    borderColor: "#ddd", 
-    padding: 10, 
-    borderRadius: 5, 
-    marginBottom: 10, 
-    backgroundColor: "#fff" 
-  },
+  input: { borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 5, marginBottom: 10, backgroundColor: "#fff" },
   locationContainer: { flexDirection: "row", alignItems: "center" },
   gpsButton: { marginLeft: 10, padding: 10 },
   suggestionsList: { 
@@ -423,72 +517,6 @@ const styles = StyleSheet.create({
     marginVertical: 20 
   },
   buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
-  projectItem: {
-    marginBottom: 15,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  projectImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  projectTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  projectDescription: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 5,
-  },
-  linkText: {
-    color: '#6200ea',
-    textDecorationLine: 'underline',
-  },
-  noProjectsText: {
-    textAlign: 'center',
-    color: '#888',
-    marginVertical: 10,
-  },
-  addButton: {
-    backgroundColor: '#6200ea',
-    padding: 12,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  actionButton: {
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 5,
-  },
-  shareButton: {
-    backgroundColor: '#4CAF50',
-  },
-  connectButton: {
-    backgroundColor: '#2196F3',
-  },
-  actionButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
 });
 
 export default ProfileScreen;
