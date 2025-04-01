@@ -12,9 +12,11 @@ import ProfilePage from "./ProfilePage";
 import HereMap from "./HereMap";
 import MessagesListScreen from './MessagesListScreen';
 import ChatScreen from './ChatScreen';
-import JobListings from "./JobListings";
-// Define the types for your navigation stack
-type RootStackParamList = {
+import JobOpportunitiesScreen from './JobOpportunitiesScreen';
+import JobDetailsScreen from './JobDetailsScreen';
+
+// At the top of your App.tsx (after the imports)
+export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Home: undefined;
@@ -24,8 +26,11 @@ type RootStackParamList = {
   Profile: undefined;
   AlumniSearch: undefined;
   Map: undefined;
-  JobListings: undefined; // Add this line
+  JobOpportunities: undefined;
+  JobDetails: { jobId: string };
 };
+
+// ... rest of your App.tsx remains the same ...
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -43,7 +48,16 @@ function App() {
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="AlumniSearch" component={AlumniSearchScreen} options={{ title: "Search Alumni" }} />
           <Stack.Screen name="Map" component={HereMap} options={{ title: "Campus Map" }} />
-          <Stack.Screen name="JobListings" component={JobListings} options={{ title: "Job Listings" }} />
+          <Stack.Screen 
+            name="JobOpportunities" 
+            component={JobOpportunitiesScreen} 
+            options={{ title: "Job Opportunities" }} 
+          />
+          <Stack.Screen 
+            name="JobDetails" 
+            component={JobDetailsScreen} 
+            options={{ title: "Job Details" }} 
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
