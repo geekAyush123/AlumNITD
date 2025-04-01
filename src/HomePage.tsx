@@ -35,7 +35,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.container}>
+    <LinearGradient colors={['#A89CFF', '#A89CFF']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>

@@ -1,0 +1,110 @@
+[
+    {
+      "title": "Senior Software Engineer",
+      "company": "TechCorp",
+      "location": "San Francisco, CA",
+      "type": "full-time",
+      "postedBy": "alumni123",
+      "salary": "$120,000 - $150,000",
+      "description": "We're looking for an experienced software engineer to join our team working on cutting-edge web applications. You'll be responsible for designing and implementing new features, optimizing performance, and mentoring junior developers.",
+      "requirements": [
+        "5+ years of software development experience",
+        "Strong knowledge of JavaScript/TypeScript",
+        "Experience with React and Node.js",
+        "Bachelor's degree in Computer Science or related field"
+      ],
+      "responsibilities": [
+        "Develop new user-facing features",
+        "Build reusable components and front-end libraries",
+        "Optimize applications for maximum speed and scalability",
+        "Collaborate with product team and other stakeholders"
+      ],
+      "postedDate": "2023-05-15",
+      "contactEmail": "careers@techcorp.com"
+    },
+    {
+      "title": "Marketing Intern",
+      "company": "Digital Solutions Inc.",
+      "location": "Remote",
+      "type": "internship",
+      "postedBy": "alumni456",
+      "salary": "$20 - $25 per hour",
+      "description": "Great opportunity for marketing students to gain real-world experience in digital marketing. You'll assist with social media campaigns, content creation, and market research.",
+      "requirements": [
+        "Currently enrolled in Marketing or related program",
+        "Basic understanding of social media platforms",
+        "Strong communication skills",
+        "Ability to work 20 hours per week"
+      ],
+      "postedDate": "2023-06-01",
+      "contactEmail": "hr@digitalsolutions.com"
+    },
+    {
+      "title": "Product Manager",
+      "company": "InnovateTech",
+      "location": "New York, NY",
+      "type": "full-time",
+      "postedBy": "alumni789",
+      "salary": "$110,000 - $140,000",
+      "description": "Lead product development from conception to launch. Work closely with engineering, design, and business teams to deliver exceptional products to our customers.",
+      "requirements": [
+        "3+ years of product management experience",
+        "Technical background preferred",
+        "Excellent communication and leadership skills",
+        "Experience with Agile methodologies"
+      ],
+      "postedDate": "2023-05-20",
+      "contactEmail": "jobs@innovatetech.com"
+    },
+    {
+      "title": "Data Analyst (Part-time)",
+      "company": "Analytics Pro",
+      "location": "Chicago, IL",
+      "type": "part-time",
+      "postedBy": "alumni101",
+      "salary": "$35 - $45 per hour",
+      "description": "Part-time position analyzing business data to provide insights and recommendations. Perfect for recent graduates looking to gain experience in data analytics.",
+      "requirements": [
+        "Degree in Statistics, Mathematics, or related field",
+        "Proficiency in SQL and Python",
+        "Experience with data visualization tools",
+        "20-30 hours per week availability"
+      ],
+      "postedDate": "2023-06-05",
+      "contactEmail": "analytics-careers@analyticspro.com"
+    },
+    {
+      "title": "UX/UI Designer",
+      "company": "Creative Minds",
+      "location": "Remote",
+      "type": "remote",
+      "postedBy": "alumni202",
+      "salary": "$90,000 - $110,000",
+      "description": "Join our design team to create beautiful, intuitive interfaces for our suite of products. You'll conduct user research, create wireframes, and work closely with developers.",
+      "requirements": [
+        "Portfolio demonstrating UI/UX skills",
+        "3+ years of design experience",
+        "Proficiency in Figma or Sketch",
+        "Understanding of user-centered design principles"
+      ],
+      "postedDate": "2023-05-25",
+      "contactEmail": "design@creativeminds.com"
+    },
+    {
+      "title": "DevOps Engineer",
+      "company": "Cloud Systems",
+      "location": "Austin, TX",
+      "type": "full-time",
+      "postedBy": "alumni303",
+      "salary": "$130,000 - $160,000",
+      "description": "Help us build and maintain our cloud infrastructure. Automate deployment processes and ensure system reliability and security.",
+      "requirements": [
+        "Experience with AWS or Azure",
+        "Knowledge of CI/CD pipelines",
+        "Infrastructure as code (Terraform, CloudFormation)",
+        "Containerization experience (Docker, Kubernetes)"
+      ],
+      "postedDate": "2023-06-10",
+      "contactEmail": "devops-hiring@cloudsystems.com"
+    }
+  ]
