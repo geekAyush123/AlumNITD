@@ -17,6 +17,8 @@ import { WebView } from "react-native-webview";
 import firestore from "@react-native-firebase/firestore";
 import axios from "axios";
 import debounce from 'lodash.debounce';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCommentDots } from '@fortawesome/free-solid-svg-icons';
 
 const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 
@@ -317,289 +319,315 @@ const HereMap: React.FC = () => {
       ? [currentLongitude, currentLatitude]
       : [0, 0];
 
-  const html = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
-      <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css" />
-      <script src="https://unpkg.com/supercluster@7.1.5/dist/supercluster.min.js"></script>
-      <style>
-        html, body { margin: 0; height: 100%; overflow: hidden; }
-        #map { width: 100%; height: 100%; }
-        .mapboxgl-popup-content {
-          padding: 10px;
-          text-align: center;
-        }
-        .profile-pic {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          margin-bottom: 10px;
-        }
-        .connect-button {
-          background-color: #4A00E0;
-          color: white;
-          padding: 5px 10px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          margin-top: 8px;
-        }
-        .view-profile-button {
-          background-color: #00A86B;
-          color: white;
-          padding: 5px 10px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          margin-top: 8px;
-        }
-        .popup-buttons {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 10px;
-          gap: 8px;
-        }
-        .cluster-marker {
-          width: 30px;
-          height: 30px;
-          border-radius: 50%;
-          background-color: #51bbd6;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          font-weight: bold;
-          font-size: 14px;
-          color: white;
-          border: 2px solid #3388cc;
-        }
-        .cluster-marker-large {
-          width: 40px;
-          height: 40px;
-          background-color: #f1f075;
-          color: #333;
-        }
-        .cluster-marker-huge {
-          width: 50px;
-          height: 50px;
-          background-color: #f28cb1;
-        }
-      </style>
-    </head>
-    <body>
-      <div id="map"></div>
-      <script>
-        document.addEventListener("DOMContentLoaded", function () {
-          console.log("Initializing MapLibre with clustering...");
-
-          window.map = new maplibregl.Map({
-            container: 'map',
-            style: 'https://api.maptiler.com/maps/streets/style.json?key=' + '${MAPTILER_API_KEY}',
-            center: ${JSON.stringify(coords)}, 
-            zoom: 2
-          });
-
-          window.map.addControl(new maplibregl.NavigationControl());
-
-          var currentUserMarker = new maplibregl.Marker({ color: "red" })
-            .setLngLat(${JSON.stringify(coords)}) 
-            .addTo(window.map);
-
-          var index = new Supercluster({
-            radius: 60,
-            maxZoom: 16,
-            minZoom: 2,
-            extent: 256,
-            nodeSize: 64
-          });
-
-          var alumniData = ${JSON.stringify(alumniData)};
-          var points = alumniData
-            .filter(alum => alum && alum.longitude && alum.latitude)
-            .map(alum => ({
-              type: 'Feature',
-              properties: {
-                id: alum.id,
-                name: alum.name,
-                profilePic: alum.profilePic,
-                cluster: false
+      const html = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css" />
+        <script src="https://unpkg.com/supercluster@7.1.5/dist/supercluster.min.js"></script>
+        <style>
+          html, body { margin: 0; height: 100%; overflow: hidden; }
+          #map { width: 100%; height: 100%; }
+          .mapboxgl-popup-content {
+            padding: 10px;
+            text-align: center;
+          }
+          .profile-pic {
+            width: 70px; /* Increased size */
+            height: 70px; /* Increased size */
+            border-radius: 50%;
+            margin-bottom: 10px;
+          }
+          .connect-button {
+            background-color: #4A00E0;
+            color: white;
+            padding: 5px 8px; /* Reduced size */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+          }
+          .view-profile-button {
+            background-color: #00A86B;
+            color: white;
+            padding: 5px 8px; /* Reduced size */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+          }
+          .popup-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 8px;
+          }
+          .cluster-marker {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #51bbd6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            border: 2px solid #3388cc;
+          }
+          .cluster-marker-large {
+            width: 40px;
+            height: 40px;
+            background-color: #f1f075;
+            color: #333;
+          }
+          .cluster-marker-huge {
+            width: 50px;
+            height: 50px;
+            background-color: #f28cb1;
+          }
+          .speech-bubble {
+            width: 15px;
+            height: 15px;
+            background-color: #fff;
+            border-radius: 50%;
+            border: 2px solid #4A00E0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          .speech-bubble::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4A00E0;
+          }
+        </style>
+      </head>
+      <body>
+        <div id="map"></div>
+        <script>
+          document.addEventListener("DOMContentLoaded", function () {
+            console.log("Initializing MapLibre with clustering...");
+            
+            window.map = new maplibregl.Map({
+              container: 'map',
+              style: 'https://api.maptiler.com/maps/streets/style.json?key=' + '${MAPTILER_API_KEY}',
+              center: ${JSON.stringify(coords)}, 
+              zoom: 2
+            });
+    
+            window.map.addControl(new maplibregl.NavigationControl());
+    
+            var currentUserMarker = new maplibregl.Marker({ color: "red" })
+              .setLngLat(${JSON.stringify(coords)}) 
+              .addTo(window.map);
+    
+            var index = new Supercluster({
+              radius: 60,
+              maxZoom: 16,
+              minZoom: 2,
+              extent: 256,
+              nodeSize: 64
+            });
+    
+            var alumniData = ${JSON.stringify(alumniData)};
+            var points = alumniData
+              .filter(alum => alum && alum.longitude && alum.latitude)
+              .map(alum => ({
+                type: 'Feature',
+                properties: {
+                  id: alum.id,
+                  name: alum.name,
+                  profilePic: alum.profilePic,
+                  cluster: false
+                },
+                geometry: {
+                  type: 'Point',
+                  coordinates: [alum.longitude, alum.latitude]
+                }
+              }));
+    
+            index.load(points);
+    
+            var clusterSource = {
+              type: 'geojson',
+              data: {
+                type: 'FeatureCollection',
+                features: []
               },
-              geometry: {
-                type: 'Point',
-                coordinates: [alum.longitude, alum.latitude]
-              }
-            }));
-
-          index.load(points);
-
-          var clusterSource = {
-            type: 'geojson',
-            data: {
-              type: 'FeatureCollection',
-              features: []
-            },
-            cluster: true,
-            clusterMaxZoom: 14,
-            clusterRadius: 50
-          };
-
-          window.map.on('load', function() {
-            window.map.addSource('alumni', clusterSource);
-            
-            window.map.addLayer({
-              id: 'clusters',
-              type: 'circle',
-              source: 'alumni',
-              filter: ['has', 'point_count'],
-              paint: {
-                'circle-color': [
-                  'step',
-                  ['get', 'point_count'],
-                  '#51bbd6',
-                  10,
-                  '#f1f075',
-                  30,
-                  '#f28cb1'
-                ],
-                'circle-radius': [
-                  'step',
-                  ['get', 'point_count'],
-                  20,
-                  10,
-                  30,
-                  30,
-                  40
-                ]
-              }
+              cluster: true,
+              clusterMaxZoom: 14,
+              clusterRadius: 50
+            };
+    
+            window.map.on('load', function() {
+              window.map.addSource('alumni', clusterSource);
+    
+              window.map.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: 'alumni',
+                filter: ['has', 'point_count'],
+                paint: {
+                  'circle-color': [
+                    'step',
+                    ['get', 'point_count'],
+                    '#51bbd6',
+                    10,
+                    '#f1f075',
+                    30,
+                    '#f28cb1'
+                  ],
+                  'circle-radius': [
+                    'step',
+                    ['get', 'point_count'],
+                    20,
+                    10,
+                    30,
+                    30,
+                    40
+                  ]
+                }
+              });
+    
+              window.map.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: 'alumni',
+                filter: ['has', 'point_count'],
+                layout: {
+                  'text-field': '{point_count_abbreviated}',
+                  'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                  'text-size': 12
+                }
+              });
+    
+              window.map.addLayer({
+                id: 'unclustered-point',
+                type: 'circle',
+                source: 'alumni',
+                filter: ['!', ['has', 'point_count']],
+                paint: {
+                  'circle-color': '#11b4da',
+                  'circle-radius': 8,
+                  'circle-stroke-width': 1,
+                  'circle-stroke-color': '#fff'
+                }
+              });
+    
+              updateClusters();
             });
-
-            window.map.addLayer({
-              id: 'cluster-count',
-              type: 'symbol',
-              source: 'alumni',
-              filter: ['has', 'point_count'],
-              layout: {
-                'text-field': '{point_count_abbreviated}',
-                'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                'text-size': 12
-              }
-            });
-
-            window.map.addLayer({
-              id: 'unclustered-point',
-              type: 'circle',
-              source: 'alumni',
-              filter: ['!', ['has', 'point_count']],
-              paint: {
-                'circle-color': '#11b4da',
-                'circle-radius': 8,
-                'circle-stroke-width': 1,
-                'circle-stroke-color': '#fff'
-              }
-            });
-
-            updateClusters();
-          });
-
-          window.map.on('click', 'clusters', function(e) {
-            var features = window.map.queryRenderedFeatures(e.point, {
-              layers: ['clusters']
-            });
-            
-            var clusterId = features[0].properties.cluster_id;
-            var source = window.map.getSource('alumni');
-            
-            source.getClusterExpansionZoom(clusterId, function(err, zoom) {
-              if (err) return;
-              
-              window.map.easeTo({
-                center: features[0].geometry.coordinates,
-                zoom: zoom
+    
+            window.map.on('click', 'clusters', function(e) {
+              var features = window.map.queryRenderedFeatures(e.point, {
+                layers: ['clusters']
+              });
+    
+              var clusterId = features[0].properties.cluster_id;
+              var source = window.map.getSource('alumni');
+    
+              source.getClusterExpansionZoom(clusterId, function(err, zoom) {
+                if (err) return;
+    
+                window.map.easeTo({
+                  center: features[0].geometry.coordinates,
+                  zoom: zoom
+                });
               });
             });
-          });
-
-          window.map.on('click', 'unclustered-point', function(e) {
-            var coordinates = e.features[0].geometry.coordinates.slice();
-            var properties = e.features[0].properties;
-            
-            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-              coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-            }
-            
-            new maplibregl.Popup({ offset: 25 })
-              .setLngLat(coordinates)
-              .setHTML(\`
-                <div style="text-align: center;">
-                  <img src="\${properties.profilePic}" class="profile-pic" alt="\${properties.name}" />
-                  <h4>\${properties.name}</h4>
-                  <p>\${alumniData.find(a => a.id === properties.id)?.jobTitle || ''} \${alumniData.find(a => a.id === properties.id)?.company ? 'at ' + alumniData.find(a => a.id === properties.id)?.company : ''}</p>
-                  <div class="popup-buttons">
-                    <button class="connect-button" onclick="handleConnect('\${properties.id}')">Connect</button>
-                    <button class="view-profile-button" onclick="handleViewProfile('\${properties.id}')">View Profile</button>
+    
+            window.map.on('click', 'unclustered-point', function(e) {
+              var coordinates = e.features[0].geometry.coordinates.slice();
+              var properties = e.features[0].properties;
+    
+              while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+              }
+    
+              new maplibregl.Popup({ offset: 25 })
+                .setLngLat(coordinates)
+                .setHTML(\`
+                  <div style="text-align: center;">
+                    <img src="\${properties.profilePic}" class="profile-pic" alt="\${properties.name}" />
+                    <h4>\${properties.name}</h4>
+                    <p>\${alumniData.find(a => a.id === properties.id)?.jobTitle || ''} \${alumniData.find(a => a.id === properties.id)?.company ? 'at ' + alumniData.find(a => a.id === properties.id)?.company : ''}</p>
+                    <div class="popup-buttons">
+                      <button class="connect-button">
+                        <span class="speech-bubble"></span> <!-- Speech bubble icon -->
+                      </button>
+                      <button class="view-profile-button" onclick="handleViewProfile('\${properties.id}')">View Profile</button>
+                    </div>
                   </div>
-                </div>
-              \`)
-              .addTo(window.map);
-          });
-
-          window.map.on('mouseenter', 'clusters', function() {
-            window.map.getCanvas().style.cursor = 'pointer';
-          });
-          
-          window.map.on('mouseleave', 'clusters', function() {
-            window.map.getCanvas().style.cursor = '';
-          });
-          
-          window.map.on('mouseenter', 'unclustered-point', function() {
-            window.map.getCanvas().style.cursor = 'pointer';
-          });
-          
-          window.map.on('mouseleave', 'unclustered-point', function() {
-            window.map.getCanvas().style.cursor = '';
-          });
-
-          window.map.on('moveend', updateClusters);
-
-          function updateClusters() {
-            var bounds = window.map.getBounds();
-            var zoom = window.map.getZoom();
-            
-            var clusters = index.getClusters([
-              bounds.getWest(),
-              bounds.getSouth(),
-              bounds.getEast(),
-              bounds.getNorth()
-            ], Math.floor(zoom));
-            
-            window.map.getSource('alumni').setData({
-              type: 'FeatureCollection',
-              features: clusters
+                \`)
+                .addTo(window.map);
             });
-          }
-
-          window.handleConnect = function (alumniId) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'connect',
-              id: alumniId
-            }));
-          };
-
-          window.handleViewProfile = function (alumniId) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({
-              type: 'viewProfile',
-              id: alumniId
-            }));
-          };
-
-          console.log("Map with clustering initialized.");
-        });
-      </script>
-    </body>
-    </html>
-  `;
+    
+            window.map.on('mouseenter', 'clusters', function() {
+              window.map.getCanvas().style.cursor = 'pointer';
+            });
+    
+            window.map.on('mouseleave', 'clusters', function() {
+              window.map.getCanvas().style.cursor = '';
+            });
+    
+            window.map.on('mouseenter', 'unclustered-point', function() {
+              window.map.getCanvas().style.cursor = 'pointer';
+            });
+    
+            window.map.on('mouseleave', 'unclustered-point', function() {
+              window.map.getCanvas().style.cursor = '';
+            });
+    
+            window.map.on('moveend', updateClusters);
+    
+            function updateClusters() {
+              var bounds = window.map.getBounds();
+              var zoom = window.map.getZoom();
+    
+              var clusters = index.getClusters([
+                bounds.getWest(),
+                bounds.getSouth(),
+                bounds.getEast(),
+                bounds.getNorth()
+              ], Math.floor(zoom));
+    
+              window.map.getSource('alumni').setData({
+                type: 'FeatureCollection',
+                features: clusters
+              });
+            }
+    
+            window.handleConnect = function (alumniId) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'connect',
+                id: alumniId
+              }));
+            };
+    
+            window.handleViewProfile = function (alumniId) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'viewProfile',
+                id: alumniId
+              }));
+            };
+    
+            console.log("Map with clustering initialized.");
+          });
+        </script>
+      </body>
+      </html>
+    `;
+    
 
   return (
     <TouchableWithoutFeedback 
