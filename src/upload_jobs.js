@@ -1,46 +1,61 @@
 const admin = require("firebase-admin");
 const fs = require("fs");
+const path = require("path");
 
-// Initialize Firebase Admin SDK
-const serviceAccount = require("./alumnitd-5d90f-firebase-adminsdk-fbsvc-4f18aebc41.json");
+// 1. Use absolute path to your service account file
+const serviceAccount = require(path.join(__dirname, "firebase-adminsdk.json"));
 
+// 2. Initialize Firebase with explicit project ID
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
+  databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
 });
 
 const db = admin.firestore();
 
-// Read JSON file with job data
-const jobs = JSON.parse(fs.readFileSync("./dummy_jobs.json", "utf8"));
-
-async function uploadJobs() {
-  const batch = db.batch();
-  let count = 0;
-
-  for (const job of jobs) {
-    // Create a reference to a new document with auto-generated ID
-    const jobRef = db.collection("jobs").doc();
-    
-    // Add the job data to the batch
-    batch.set(jobRef, job);
-    count++;
-    
-    console.log(`➕ Added job: ${job.title} at ${job.company}`);
-    
-    // Firestore batches have a limit of 500 operations
-    if (count % 500 === 0) {
-      await batch.commit();
-      console.log(`🔥 Committed batch of 500 jobs`);
-      batch = db.batch(); // Start a new batch
-    }
-  }
-
-  // Commit any remaining jobs in the batch
-  await batch.commit();
-  console.log(`✅ Successfully uploaded ${count} jobs to Firestore!`);
+// 3. Add error handling for JSON parsing
+let jobs = [];
+try {
+  jobs = JSON.parse(fs.readFileSync(path.join(__dirname, "dummy_jobs.json"), "utf8"));
+} catch (err) {
+  console.error("Error reading jobs file:", err);
+  process.exit(1);
 }
 
-uploadJobs().catch((error) => {
-  console.error("Error uploading jobs:", error);
-  process.exit(1);
-});
+// 4. Modified upload function with better error handling
+async function uploadJobs() {
+  try {
+    console.log("Starting job upload...");
+    
+    // Process jobs in smaller batches
+    const batchSize = 10;
+    for (let i = 0; i < jobs.length; i += batchSize) {
+      const batch = db.batch();
+      const batchJobs = jobs.slice(i, i + batchSize);
+      
+      for (const job of batchJobs) {
+        const newDocRef = db.collection("jobs").doc();
+        batch.set(newDocRef, job);
+        console.log(`➕ Prepared: ${job.title} at ${job.company}`);
+      }
+      
+      await batch.commit();
+      console.log(`✅ Committed batch ${i/batchSize + 1}`);
+    }
+    
+    console.log("🔥 All jobs uploaded successfully!");
+  } catch (error) {
+    console.error("Error uploading jobs:", error.message);
+    if (error.details) console.error("Details:", error.details);
+    process.exit(1);
+  }
+}
+
+// 5. Run with async error handling
+(async () => {
+  try {
+    await uploadJobs();
+  } catch (err) {
+    console.error("Fatal error:", err);
+  }
+})();
