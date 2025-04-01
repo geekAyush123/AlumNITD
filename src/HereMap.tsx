@@ -243,8 +243,24 @@ const HereMap: React.FC = () => {
     }
   };
 
+  const handleWebViewMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'viewProfile') {
+        // Here you would navigate to the profile screen
+        console.log("View profile for ID:", data.id);
+        // Example: navigation.navigate('Profile', { userId: data.id });
+      } else if (data.type === 'connect') {
+        console.log("Connect with ID:", data.id);
+        // Handle connect logic here
+      }
+    } catch (error) {
+      console.error("Error parsing WebView message:", error);
+    }
+  };
+
   const handleSearchResultSelect = (alum: any) => {
-    setSearchQuery(alum.name); // Fill the search with the selected name
+    setSearchQuery(alum.name);
     setSearchResults([]);
     
     if (webViewRef.current) {
@@ -257,11 +273,14 @@ const HereMap: React.FC = () => {
         new maplibregl.Popup({ offset: 25 })
           .setLngLat([${alum.longitude}, ${alum.latitude}])
           .setHTML(\`
-            <div>
+            <div style="text-align: center;">
               <img src="${alum.profilePic}" class="profile-pic" alt="${alum.name}" />
               <h4>${alum.name}</h4>
               <p>${alum.jobTitle || ''} ${alum.company ? `at ${alum.company}` : ''}</p>
-              <button class="connect-button" onclick="handleConnect('${alum.id}')">Connect</button>
+              <div class="popup-buttons">
+                <button class="connect-button" onclick="handleConnect('${alum.id}')">Connect</button>
+                <button class="view-profile-button" onclick="handleViewProfile('${alum.id}')">View Profile</button>
+              </div>
             </div>
           \`)
           .addTo(window.map);
@@ -294,7 +313,6 @@ const HereMap: React.FC = () => {
       ? [currentLongitude, currentLatitude]
       : [0, 0];
 
-  // Rest of your HTML and WebView code remains the same...
   const html = `
     <!DOCTYPE html>
     <html lang="en">
@@ -324,6 +342,21 @@ const HereMap: React.FC = () => {
           border-radius: 5px;
           cursor: pointer;
           margin-top: 8px;
+        }
+        .view-profile-button {
+          background-color: #00A86B;
+          color: white;
+          padding: 5px 10px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          margin-top: 8px;
+        }
+        .popup-buttons {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 10px;
+          gap: 8px;
         }
         .cluster-marker {
           width: 30px;
@@ -495,11 +528,14 @@ const HereMap: React.FC = () => {
             new maplibregl.Popup({ offset: 25 })
               .setLngLat(coordinates)
               .setHTML(\`
-                <div>
+                <div style="text-align: center;">
                   <img src="\${properties.profilePic}" class="profile-pic" alt="\${properties.name}" />
                   <h4>\${properties.name}</h4>
                   <p>\${alumniData.find(a => a.id === properties.id)?.jobTitle || ''} \${alumniData.find(a => a.id === properties.id)?.company ? 'at ' + alumniData.find(a => a.id === properties.id)?.company : ''}</p>
-                  <button class="connect-button" onclick="handleConnect('\${properties.id}')">Connect</button>
+                  <div class="popup-buttons">
+                    <button class="connect-button" onclick="handleConnect('\${properties.id}')">Connect</button>
+                    <button class="view-profile-button" onclick="handleViewProfile('\${properties.id}')">View Profile</button>
+                  </div>
                 </div>
               \`)
               .addTo(window.map);
@@ -541,7 +577,17 @@ const HereMap: React.FC = () => {
           }
 
           window.handleConnect = function (alumniId) {
-            alert("Connect request sent to alumni with ID: " + alumniId);
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'connect',
+              id: alumniId
+            }));
+          };
+
+          window.handleViewProfile = function (alumniId) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'viewProfile',
+              id: alumniId
+            }));
           };
 
           console.log("Map with clustering initialized.");
@@ -592,6 +638,15 @@ const HereMap: React.FC = () => {
         allowFileAccessFromFileURLs={true}
         allowUniversalAccessFromFileURLs={true}
         mixedContentMode="always"
+        onMessage={handleWebViewMessage}
+        injectedJavaScript={`
+          window.ReactNativeWebView = window.ReactNativeWebView || {
+            postMessage: function(data) {
+              window.postMessage(data);
+            }
+          };
+          true;
+        `}
       />
     </View>
   );

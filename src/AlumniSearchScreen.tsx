@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -15,7 +15,7 @@ const AlumniSearchScreen = ({ navigation }: { navigation: any }) => {
   const [query, setQuery] = useState<string>('');
   const [alumniList, setAlumniList] = useState<Alumni[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false); // New state for filter visibility
+  const [showFilters, setShowFilters] = useState(false);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -39,141 +39,143 @@ const AlumniSearchScreen = ({ navigation }: { navigation: any }) => {
     setShowFilters(!showFilters);
   };
 
+  const renderHeader = () => (
+    <>
+      <Text style={styles.header}>Search Alumni</Text>
+      <View style={styles.searchBar}>
+        <TextInput
+          style={styles.input}
+          placeholder="Search Alumni by Name, Skills, or Keywords"
+          value={query}
+          onChangeText={setQuery}
+          onSubmitEditing={handleSearch}
+        />
+        <TouchableOpacity onPress={handleSearch}>
+          <Icon name="search" size={25} color="black" />
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity 
+        style={styles.filterToggleButton}
+        onPress={toggleFilterVisibility}
+      >
+        <Text style={styles.filterToggleText}>Filters</Text>
+        <Icon 
+          name={showFilters ? 'chevron-up' : 'chevron-down'} 
+          size={20} 
+          color="black" 
+        />
+      </TouchableOpacity>
+
+      {showFilters && (
+        <View style={styles.filterSection}>
+          <Text style={styles.filterTitle}>Graduation Year</Text>
+          <View style={styles.filterContainer}>
+            {['2020', '2021', '2022', '2023', '2024'].map(year => (
+              <TouchableOpacity
+                key={year}
+                style={[styles.filterButton, selectedFilters.includes(year) && styles.selectedFilter]}
+                onPress={() => toggleFilter(year)}
+              >
+                <Text style={styles.filterText}>{year}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.filterTitle}>Location</Text>
+          <View style={styles.filterContainer}>
+            {['City', 'State', 'Country'].map(location => (
+              <TouchableOpacity
+                key={location}
+                style={[styles.filterButton, selectedFilters.includes(location) && styles.selectedFilter]}
+                onPress={() => toggleFilter(location)}
+              >
+                <Text style={styles.filterText}>{location}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.filterTitle}>Industry</Text>
+          <View style={styles.filterContainer}>
+            {['Technology', 'Healthcare', 'Education'].map(industry => (
+              <TouchableOpacity
+                key={industry}
+                style={[styles.filterButton, selectedFilters.includes(industry) && styles.selectedFilter]}
+                onPress={() => toggleFilter(industry)}
+              >
+                <Text style={styles.filterText}>{industry}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.filterTitle}>Skills</Text>
+          <View style={styles.filterContainer}>
+            {['Java', 'Marketing', 'Data Analysis'].map(skill => (
+              <TouchableOpacity
+                key={skill}
+                style={[styles.filterButton, selectedFilters.includes(skill) && styles.selectedFilter]}
+                onPress={() => toggleFilter(skill)}
+              >
+                <Text style={styles.filterText}>{skill}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.filterTitle}>Sort By</Text>
+          <View style={styles.filterContainer}>
+            {['Relevance', 'Graduation Year', 'Alphabetical'].map(sortOption => (
+              <TouchableOpacity
+                key={sortOption}
+                style={[styles.filterButton, selectedFilters.includes(sortOption) && styles.selectedFilter]}
+                onPress={() => toggleFilter(sortOption)}
+              >
+                <Text style={styles.filterText}>{sortOption}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.filterActionButtons}>
+            <TouchableOpacity 
+              style={styles.resetButton} 
+              onPress={() => setSelectedFilters([])}
+            >
+              <Text style={styles.buttonText}>Reset</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.applyButton} 
+              onPress={toggleFilterVisibility}
+            >
+              <Text style={styles.applyButtonText}>Apply</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+        <Text style={styles.searchButtonText}>Search</Text>
+      </TouchableOpacity>
+    </>
+  );
+
   return (
     <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.gradientContainer}>
       <View style={styles.container}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={styles.header}>Search Alumni</Text>
-            <View style={styles.searchBar}>
-              <TextInput
-                style={styles.input}
-                placeholder="Search Alumni by Name, Skills, or Keywords"
-                value={query}
-                onChangeText={setQuery}
-                onSubmitEditing={handleSearch}
-              />
-              <TouchableOpacity onPress={handleSearch}>
-                <Icon name="search" size={25} color="black" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Filter toggle button */}
-            <TouchableOpacity 
-              style={styles.filterToggleButton}
-              onPress={toggleFilterVisibility}
-            >
-              <Text style={styles.filterToggleText}>Filters</Text>
-              <Icon 
-                name={showFilters ? 'chevron-up' : 'chevron-down'} 
-                size={20} 
-                color="black" 
-              />
-            </TouchableOpacity>
-
-            {/* Collapsible filter section */}
-            {showFilters && (
-              <View style={styles.filterSection}>
-                <Text style={styles.filterTitle}>Graduation Year</Text>
-                <View style={styles.filterContainer}>
-                  {['2020', '2021', '2022', '2023', '2024'].map(year => (
-                    <TouchableOpacity
-                      key={year}
-                      style={[styles.filterButton, selectedFilters.includes(year) && styles.selectedFilter]}
-                      onPress={() => toggleFilter(year)}
-                    >
-                      <Text style={styles.filterText}>{year}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.filterTitle}>Location</Text>
-                <View style={styles.filterContainer}>
-                  {['City', 'State', 'Country'].map(location => (
-                    <TouchableOpacity
-                      key={location}
-                      style={[styles.filterButton, selectedFilters.includes(location) && styles.selectedFilter]}
-                      onPress={() => toggleFilter(location)}
-                    >
-                      <Text style={styles.filterText}>{location}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.filterTitle}>Industry</Text>
-                <View style={styles.filterContainer}>
-                  {['Technology', 'Healthcare', 'Education'].map(industry => (
-                    <TouchableOpacity
-                      key={industry}
-                      style={[styles.filterButton, selectedFilters.includes(industry) && styles.selectedFilter]}
-                      onPress={() => toggleFilter(industry)}
-                    >
-                      <Text style={styles.filterText}>{industry}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.filterTitle}>Skills</Text>
-                <View style={styles.filterContainer}>
-                  {['Java', 'Marketing', 'Data Analysis'].map(skill => (
-                    <TouchableOpacity
-                      key={skill}
-                      style={[styles.filterButton, selectedFilters.includes(skill) && styles.selectedFilter]}
-                      onPress={() => toggleFilter(skill)}
-                    >
-                      <Text style={styles.filterText}>{skill}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.filterTitle}>Sort By</Text>
-                <View style={styles.filterContainer}>
-                  {['Relevance', 'Graduation Year', 'Alphabetical'].map(sortOption => (
-                    <TouchableOpacity
-                      key={sortOption}
-                      style={[styles.filterButton, selectedFilters.includes(sortOption) && styles.selectedFilter]}
-                      onPress={() => toggleFilter(sortOption)}
-                    >
-                      <Text style={styles.filterText}>{sortOption}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <View style={styles.filterActionButtons}>
-                  <TouchableOpacity 
-                    style={styles.resetButton} 
-                    onPress={() => setSelectedFilters([])}
-                  >
-                    <Text style={styles.buttonText}>Reset</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.applyButton} 
-                    onPress={toggleFilterVisibility}
-                  >
-                    <Text style={styles.applyButtonText}>Apply</Text>
-                  </TouchableOpacity>
-                </View>
+          <FlatList
+            data={alumniList}
+            keyExtractor={item => item.id}
+            ListHeaderComponent={renderHeader}
+            renderItem={({ item }) => (
+              <View style={styles.alumniCard}>
+                <Text style={styles.alumniName}>{item.fullName}</Text>
+                <Text style={styles.alumniDetails}>{item.skill || 'N/A'} | {item.location || 'N/A'}</Text>
+                <TouchableOpacity style={styles.connectButton}>
+                  <Text style={styles.connectText}>Connect</Text>
+                </TouchableOpacity>
               </View>
             )}
-
-            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-              <Text style={styles.searchButtonText}>Search</Text>
-            </TouchableOpacity>
-
-            <FlatList
-              data={alumniList}
-              keyExtractor={item => item.id}
-              renderItem={({ item }) => (
-                <View style={styles.alumniCard}>
-                  <Text style={styles.alumniName}>{item.fullName}</Text>
-                  <Text style={styles.alumniDetails}>{item.skill || 'N/A'} | {item.location || 'N/A'}</Text>
-                  <TouchableOpacity style={styles.connectButton}>
-                    <Text style={styles.connectText}>Connect</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            />
-          </ScrollView>
+            keyboardShouldPersistTaps="handled"
+          />
         </TouchableWithoutFeedback>
       </View>
     </LinearGradient>
