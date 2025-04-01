@@ -10,7 +10,7 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableWithoutFeedback,
-  Keyboard,
+  Keyboard
 } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 import { WebView } from "react-native-webview";
@@ -91,6 +91,7 @@ const HereMap: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [allAlumniData, setAllAlumniData] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
@@ -142,7 +143,6 @@ const HereMap: React.FC = () => {
     requestLocationPermission();
   }, []);
 
-  // Fetch alumni data from Firestore and reverse geocode their locations
   useEffect(() => {
     const fetchAlumniData = async () => {
       try {
@@ -150,9 +150,8 @@ const HereMap: React.FC = () => {
         const alumni = await Promise.all(
           alumniSnapshot.docs.map(async (doc) => {
             const data = doc.data();
-            const address = data.location; // Human-readable address
+            const address = data.location;
 
-            // Reverse geocode the address to get coordinates
             try {
               const response = await axios.get(
                 `https://api.maptiler.com/geocoding/${encodeURIComponent(address)}.json?key=${MAPTILER_API_KEY}`
@@ -184,7 +183,6 @@ const HereMap: React.FC = () => {
           })
         );
 
-        // Filter out null values and set alumni data
         const filteredAlumni = alumni.filter((alum) => alum !== null);
         setAllAlumniData(filteredAlumni);
         setAlumniData(filteredAlumni);
@@ -196,7 +194,6 @@ const HereMap: React.FC = () => {
     fetchAlumniData();
   }, []);
 
-  // Debounced search function
   const debouncedSearch = debounce((query: string) => {
     if (query.trim() === "") {
       setSearchResults([]);
@@ -206,7 +203,6 @@ const HereMap: React.FC = () => {
 
     const lowerCaseQuery = query.toLowerCase();
     const results = allAlumniData.filter(alum => {
-      // Combine all searchable fields into a single string
       const searchFields = [
         alum.name,
         alum.location,
@@ -220,11 +216,10 @@ const HereMap: React.FC = () => {
         Array.isArray(alum.skills) ? alum.skills.join(' ') : alum.skills,
         alum.jobDescription
       ]
-        .filter(Boolean) // Remove any undefined/null values
+        .filter(Boolean)
         .join(' ')
         .toLowerCase();
 
-      // Check if any field contains the query (partial match)
       return searchFields.includes(lowerCaseQuery) || 
              searchFields.split(' ').some(word => word.startsWith(lowerCaseQuery));
     });
@@ -233,7 +228,6 @@ const HereMap: React.FC = () => {
     setIsSearching(false);
   }, 300);
 
-  // Handle search input changes
   const handleSearchChange = (text: string) => {
     setSearchQuery(text);
     if (text.trim().length > 0) {
@@ -245,16 +239,24 @@ const HereMap: React.FC = () => {
     }
   };
 
+  const handleInputFocus = () => {
+    setIsInputFocused(true);
+  };
+
+  const handleInputBlur = () => {
+    setTimeout(() => {
+      setIsInputFocused(false);
+      setSearchResults([]);
+    }, 200);
+  };
+
   const handleWebViewMessage = (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'viewProfile') {
-        // Here you would navigate to the profile screen
         console.log("View profile for ID:", data.id);
-        // Example: navigation.navigate('Profile', { userId: data.id });
       } else if (data.type === 'connect') {
         console.log("Connect with ID:", data.id);
-        // Handle connect logic here
       }
     } catch (error) {
       console.error("Error parsing WebView message:", error);
@@ -600,7 +602,14 @@ const HereMap: React.FC = () => {
   `;
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <TouchableWithoutFeedback 
+      onPress={() => {
+        Keyboard.dismiss();
+        setIsInputFocused(false);
+        setSearchResults([]);
+      }} 
+      accessible={false}
+    >
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <TextInput
@@ -609,10 +618,12 @@ const HereMap: React.FC = () => {
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={handleSearchChange}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             autoCorrect={false}
             autoCapitalize="none"
           />
-          {(isSearching || searchResults.length > 0) && (
+          {(isSearching || (searchResults.length > 0 && isInputFocused)) && (
             <View style={styles.resultsContainer}>
               {isSearching ? (
                 <View style={styles.loadingContainer}>
