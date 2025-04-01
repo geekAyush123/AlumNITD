@@ -91,29 +91,31 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
         />
       </View>
 
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterContainer}
-      >
-        {['all', 'full-time', 'part-time', 'internship', 'remote'].map((type) => (
-          <TouchableOpacity
-            key={type}
-            style={[
-              styles.filterChip,
-              filter === type && styles.activeFilterChip
-            ]}
-            onPress={() => setFilter(type)}
-          >
-            <Text style={[
-              styles.filterText,
-              filter === type && styles.activeFilterText
-            ]}>
-              {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.filterWrapper}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContainer}
+        >
+          {['all', 'full-time', 'part-time', 'internship', 'remote'].map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.filterChip,
+                filter === type && styles.activeFilterChip
+              ]}
+              onPress={() => setFilter(type)}
+            >
+              <Text style={[
+                styles.filterText,
+                filter === type && styles.activeFilterText
+              ]}>
+                {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -137,122 +139,31 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    margin: 15,
-    paddingHorizontal: 15,
-    elevation: 2,
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 50,
-    fontSize: 16,
-  },
-  filterContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 10,
-  },
-  filterChip: {
-    backgroundColor: '#e0e0e0',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginRight: 10,
-  },
-  activeFilterChip: {
-    backgroundColor: '#A89CFF',
-  },
-  filterText: {
-    color: '#666',
-  },
-  activeFilterText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  listContainer: {
-    padding: 15,
-  },
-  jobCard: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-    elevation: 2,
-  },
-  jobHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  companyLogo: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    marginRight: 15,
-  },
-  jobInfo: {
-    flex: 1,
-  },
-  jobTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 2,
-  },
-  companyName: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 5,
-  },
-  jobMeta: {
-    flexDirection: 'row',
-  },
-  jobLocation: {
-    fontSize: 12,
-    color: '#666',
-    marginRight: 10,
-  },
-  jobType: {
-    fontSize: 12,
-    color: '#A89CFF',
-    fontWeight: 'bold',
-  },
-  postedBy: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 5,
-    fontStyle: 'italic',
-  },
-  salary: {
-    fontSize: 14,
-    color: '#4CAF50',
-    marginTop: 5,
-    fontWeight: 'bold',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 10, margin: 15, paddingHorizontal: 15, elevation: 2 },
+  searchIcon: { marginRight: 10 },
+  searchInput: { flex: 1, height: 50, fontSize: 16 },
+  filterWrapper: { paddingVertical: 10 },
+  filterContainer: { paddingHorizontal: 15 },
+  filterChip: { backgroundColor: '#e0e0e0', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 8, marginRight: 10 },
+  activeFilterChip: { backgroundColor: '#A89CFF' },
+  filterText: { color: '#666' },
+  activeFilterText: { color: 'white', fontWeight: 'bold' },
+  listContainer: { padding: 15 },
+  jobCard: { backgroundColor: 'white', borderRadius: 10, padding: 15, marginBottom: 15, elevation: 2 },
+  jobHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  companyLogo: { width: 50, height: 50, borderRadius: 10, marginRight: 15 },
+  jobInfo: { flex: 1 },
+  jobTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 2 },
+  companyName: { fontSize: 14, color: '#666', marginBottom: 5 },
+  jobMeta: { flexDirection: 'row' },
+  jobLocation: { fontSize: 12, color: '#666', marginRight: 10 },
+  jobType: { fontSize: 12, color: '#A89CFF', fontWeight: 'bold' },
+  postedBy: { fontSize: 12, color: '#888', marginTop: 5, fontStyle: 'italic' },
+  salary: { fontSize: 14, color: '#4CAF50', marginTop: 5, fontWeight: 'bold' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyText: { marginTop: 10, fontSize: 16, color: '#666' },
 });
 
 export default JobOpportunitiesScreen;
