@@ -8,7 +8,9 @@ import {
   Text, 
   TouchableOpacity,
   FlatList,
-  ActivityIndicator
+  ActivityIndicator,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 import { WebView } from "react-native-webview";
@@ -598,57 +600,59 @@ const HereMap: React.FC = () => {
   `;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search alumni by name, location, skills, etc."
-          placeholderTextColor="#888"
-          value={searchQuery}
-          onChangeText={handleSearchChange}
-          autoCorrect={false}
-          autoCapitalize="none"
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search alumni by name, location, skills, etc."
+            placeholderTextColor="#888"
+            value={searchQuery}
+            onChangeText={handleSearchChange}
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+          {(isSearching || searchResults.length > 0) && (
+            <View style={styles.resultsContainer}>
+              {isSearching ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#4A00E0" />
+                </View>
+              ) : searchResults.length > 0 ? (
+                <FlatList
+                  data={searchResults}
+                  renderItem={renderSearchResult}
+                  keyExtractor={(item) => item.id}
+                  keyboardShouldPersistTaps="always"
+                />
+              ) : (
+                <Text style={styles.noResultsText}>No results found</Text>
+              )}
+            </View>
+          )}
+        </View>
+        <WebView
+          ref={webViewRef}
+          source={{ html }}
+          style={styles.map}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          originWhitelist={["*"]}
+          allowFileAccessFromFileURLs={true}
+          allowUniversalAccessFromFileURLs={true}
+          mixedContentMode="always"
+          onMessage={handleWebViewMessage}
+          injectedJavaScript={`
+            window.ReactNativeWebView = window.ReactNativeWebView || {
+              postMessage: function(data) {
+                window.postMessage(data);
+              }
+            };
+            true;
+          `}
         />
-        {(isSearching || searchResults.length > 0) && (
-          <View style={styles.resultsContainer}>
-            {isSearching ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="#4A00E0" />
-              </View>
-            ) : searchResults.length > 0 ? (
-              <FlatList
-                data={searchResults}
-                renderItem={renderSearchResult}
-                keyExtractor={(item) => item.id}
-                keyboardShouldPersistTaps="always"
-              />
-            ) : (
-              <Text style={styles.noResultsText}>No results found</Text>
-            )}
-          </View>
-        )}
       </View>
-      <WebView
-        ref={webViewRef}
-        source={{ html }}
-        style={styles.map}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        originWhitelist={["*"]}
-        allowFileAccessFromFileURLs={true}
-        allowUniversalAccessFromFileURLs={true}
-        mixedContentMode="always"
-        onMessage={handleWebViewMessage}
-        injectedJavaScript={`
-          window.ReactNativeWebView = window.ReactNativeWebView || {
-            postMessage: function(data) {
-              window.postMessage(data);
-            }
-          };
-          true;
-        `}
-      />
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
