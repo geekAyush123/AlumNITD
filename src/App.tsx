@@ -12,7 +12,7 @@ import ProfilePage from "./ProfilePage";
 import HereMap from "./HereMap";
 import MessagesListScreen from './MessagesListScreen';
 import ChatScreen from './ChatScreen';
-
+import JobListings from "./JobListings";
 // Define the types for your navigation stack
 type RootStackParamList = {
   Login: undefined;
@@ -24,6 +24,7 @@ type RootStackParamList = {
   Profile: undefined;
   AlumniSearch: undefined;
   Map: undefined;
+  JobListings: undefined; // Add this line
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -42,6 +43,7 @@ function App() {
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="AlumniSearch" component={AlumniSearchScreen} options={{ title: "Search Alumni" }} />
           <Stack.Screen name="Map" component={HereMap} options={{ title: "Campus Map" }} />
+          <Stack.Screen name="JobListings" component={JobListings} options={{ title: "Job Listings" }} />
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

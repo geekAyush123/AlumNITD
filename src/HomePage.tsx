@@ -69,7 +69,14 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
         <Text style={styles.welcomeText}>Welcome to AlumNITD - Your Alumni Network</Text>
 
         <View style={styles.cardContainer}>
-          <FeatureCard title="Explore Job Opportunities" image={require('./assets/Job.png')} text="Join our community for exclusive job listings." />
+        <TouchableOpacity onPress={() => navigation.navigate('JobListings')}>
+  <FeatureCard 
+    title="Explore Job Opportunities" 
+    image={require('./assets/Job.png')} 
+    text="Join our community for exclusive job listings." 
+  />
+</TouchableOpacity>
+
           <TouchableOpacity onPress={() => navigation.navigate('Map')}>
             <FeatureCard
               title="Connect with Nearby Alumni"

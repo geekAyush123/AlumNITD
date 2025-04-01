@@ -9,7 +9,6 @@ import {
   Alert,
   Image,
   ActivityIndicator,
-  FlatList,
   Platform,
 } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -336,19 +335,17 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         {suggestions.length > 0 && (
-          <FlatList
-            data={suggestions}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+          <View style={styles.suggestionsList}>
+            {suggestions.map((item) => (
               <TouchableOpacity
+                key={item.id}
                 style={styles.suggestionItem}
                 onPress={() => handleLocationSelect(item)}
               >
                 <Text>{item.place_name}</Text>
               </TouchableOpacity>
-            )}
-            style={styles.suggestionsList}
-          />
+            ))}
+          </View>
         )}
         <Text style={styles.label}>Bio/About Me</Text>
         <TextInput style={[styles.input, { minHeight: 80 }]} value={bio} onChangeText={setBio} multiline />
@@ -446,49 +443,46 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </View>
 
       {/* Skills Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Skills</Text>
-        <View style={styles.skillsInputContainer}>
-          <TextInput
-            style={[styles.input, { flex: 1 }]}
-            value={skillsInput}
-            onChangeText={handleSkillInputChange}
-            placeholder="Type to search skills"
-            onFocus={() => skillsInput.length > 0 && setShowSkillSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSkillSuggestions(false), 200)}
-          />
-        </View>
-        
-        {showSkillSuggestions && skillSuggestions.length > 0 && (
-          <View style={styles.skillSuggestionsContainer}>
-            <FlatList
-              data={skillSuggestions}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.skillSuggestionItem}
-                  onPress={() => addSkill(item)}
-                >
-                  <Text>{item}</Text>
-                </TouchableOpacity>
-              )}
-              keyboardShouldPersistTaps="always"
-            />
-          </View>
-        )}
-        
-        <View style={styles.selectedSkillsContainer}>
-          {selectedSkills.map((skill) => (
-            <View key={skill} style={styles.skillTag}>
-              <Text style={styles.skillTagText}>{skill}</Text>
-              <TouchableOpacity onPress={() => removeSkill(skill)}>
-                <Icon name="close" size={16} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>Skills</Text>
+  <View style={styles.skillsInputContainer}>
+    <TextInput
+      style={[styles.input, { flex: 1 }]}
+      value={skillsInput}
+      onChangeText={handleSkillInputChange}
+      placeholder="Type to search skills"
+      onFocus={() => skillsInput.length > 0 && setShowSkillSuggestions(true)}
+    />
+  </View>
+  
+  {showSkillSuggestions && skillSuggestions.length > 0 && (
+    <View style={styles.skillSuggestionsContainer}>
+      {skillSuggestions.map((item) => (
+        <TouchableOpacity
+          key={item}
+          style={styles.skillSuggestionItem}
+          onPress={() => {
+            addSkill(item);
+            setShowSkillSuggestions(false);
+          }}
+        >
+          <Text>{item}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  )}
+  
+  <View style={styles.selectedSkillsContainer}>
+    {selectedSkills.map((skill) => (
+      <View key={skill} style={styles.skillTag}>
+        <Text style={styles.skillTagText}>{skill}</Text>
+        <TouchableOpacity onPress={() => removeSkill(skill)}>
+          <Icon name="close" size={16} color="#fff" />
+        </TouchableOpacity>
       </View>
-
+    ))}
+  </View>
+</View>
       {/* Save Changes Button */}
       <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
         <Text style={styles.buttonText}>Save Changes</Text>
@@ -547,7 +541,8 @@ const styles = StyleSheet.create({
     borderRadius: 8, 
     borderWidth: 1, 
     borderColor: "#ccc", 
-    marginTop: 5 
+    marginTop: 5,
+    overflow: 'hidden',
   },
   suggestionItem: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
   button: { 
@@ -570,6 +565,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     marginBottom: 10,
+    overflow: 'hidden',
   },
   skillSuggestionItem: {
     padding: 10,
