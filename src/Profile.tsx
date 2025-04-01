@@ -5,24 +5,59 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Alert,
   Image,
   ActivityIndicator,
   FlatList,
+  Platform,
 } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import * as ImagePicker from "react-native-image-picker";
 import Geolocation from "@react-native-community/geolocation";
-import Icon from "react-native-vector-icons/MaterialIcons"; // Import the icon library
-import axios from "axios"; // For making API requests
+import Icon from "react-native-vector-icons/MaterialIcons";
+import axios from "axios";
+import RNPickerSelect from "react-native-picker-select";
 
 const CLOUDINARY_UPLOAD_PRESET = "Profile";
 const CLOUDINARY_CLOUD_NAME = "dqdhnkdzo";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqdhnkdzo/image/upload";
-const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG"; // Replace with your MapTiler API key
+const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
+
+const SKILLS_LIST = [
+  "Programming",
+  "JavaScript",
+  "TypeScript",
+  "React",
+  "React Native",
+  "Node.js",
+  "Python",
+  "Java",
+  "C++",
+  "Swift",
+  "Kotlin",
+  "HTML",
+  "CSS",
+  "UI/UX Design",
+  "Graphic Design",
+  "Project Management",
+  "Data Analysis",
+  "Machine Learning",
+  "Artificial Intelligence",
+  "Cloud Computing",
+  "DevOps",
+  "Database Management",
+  "SQL",
+  "NoSQL",
+  "Agile Methodologies",
+  "Scrum",
+  "Product Management",
+  "Digital Marketing",
+  "Content Writing",
+  "Public Speaking",
+  "Leadership",
+];
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -47,6 +82,13 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+
+  // Generate graduation years
+  const years = Array.from({ length: 87 }, (_, i) => (2100 - i).toString());
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -70,7 +112,9 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setStartDate(userData?.startDate ? new Date(userData.startDate) : null);
           setEndDate(userData?.endDate ? new Date(userData.endDate) : null);
           setJobDescription(userData?.jobDescription || "");
-          setSkills(userData?.skills || "");
+          setSelectedSkills(userData?.skills ? userData.skills.split(',').map((s: string) => s.trim()) : []);
+          setLinkedinUrl(userData?.linkedinUrl || "");
+          setGithubUrl(userData?.githubUrl || "");
         }
       }
     };
@@ -97,7 +141,9 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           startDate: startDate?.toISOString(),
           endDate: endDate?.toISOString(),
           jobDescription,
-          skills,
+          skills: selectedSkills.join(', '),
+          linkedinUrl,
+          githubUrl,
         });
         Alert.alert("Success", "Profile updated successfully");
       } catch (error) {
@@ -208,10 +254,51 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
-  return (
-    <ScrollView style={styles.container}>
+  const formatDate = (date: Date | null) => {
+    if (!date) return "";
+    return date.toLocaleDateString();
+  };
+
+  const onStartDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || startDate;
+    setShowStartDatePicker(Platform.OS === 'ios');
+    setStartDate(currentDate || null);
+  };
+
+  const onEndDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || endDate;
+    setShowEndDatePicker(Platform.OS === 'ios');
+    setEndDate(currentDate || null);
+  };
+
+  const handleSkillInputChange = (text: string) => {
+    setSkillsInput(text);
+    if (text.length > 0) {
+      const filtered = SKILLS_LIST.filter(skill =>
+        skill.toLowerCase().includes(text.toLowerCase())
+      );
+      setSkillSuggestions(filtered);
+      setShowSkillSuggestions(true);
+    } else {
+      setShowSkillSuggestions(false);
+    }
+  };
+
+  const addSkill = (skill: string) => {
+    if (!selectedSkills.includes(skill)) {
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+    setSkillsInput("");
+    setShowSkillSuggestions(false);
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    setSelectedSkills(selectedSkills.filter(skill => skill !== skillToRemove));
+  };
+
+  const renderHeader = () => (
+    <View>
       <Text style={styles.title}>Profile Settings</Text>
-      
       <View style={styles.profilePictureContainer}>
         {uploading ? (
           <ActivityIndicator size="large" color="#6200ea" />
@@ -225,236 +312,215 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </TouchableOpacity>
         )}
       </View>
+    </View>
+  );
 
-      <View style={styles.section}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput style={styles.input} value={fullName} onChangeText={setFullName} />
-        <Text style={styles.label}>Email</Text>
-        <TextInput style={styles.input} value={email} editable={false} />
-        <Text style={styles.label}>Phone Number</Text>
-        <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        <Text style={styles.label}>Location</Text>
-        <View style={styles.locationContainer}>
-          <TextInput
-            style={[styles.input, { flex: 1 }]}
-            value={searchQuery}
-            onChangeText={(text) => {
-              setSearchQuery(text);
-              fetchSuggestions(text);
-            }}
-            placeholder="Enter your location"
-          />
-          <TouchableOpacity onPress={updateLocation} style={styles.gpsButton}>
-            <Icon name="gps-fixed" size={24} color="#6200ea" />
-          </TouchableOpacity>
-        </View>
-        {suggestions.length > 0 && (
+  const renderPersonalInfo = () => (
+    <View style={styles.section}>
+      <Text style={styles.label}>Full Name</Text>
+      <TextInput style={styles.input} value={fullName} onChangeText={setFullName} />
+      <Text style={styles.label}>Email</Text>
+      <TextInput style={styles.input} value={email} editable={false} />
+      <Text style={styles.label}>Phone Number</Text>
+      <TextInput style={styles.input} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+      <Text style={styles.label}>Location</Text>
+      <View style={styles.locationContainer}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          value={searchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            fetchSuggestions(text);
+          }}
+          placeholder="Enter your location"
+        />
+        <TouchableOpacity onPress={updateLocation} style={styles.gpsButton}>
+          <Icon name="gps-fixed" size={24} color="#6200ea" />
+        </TouchableOpacity>
+      </View>
+      {suggestions.length > 0 && (
+        <FlatList
+          data={suggestions}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.suggestionItem}
+              onPress={() => handleLocationSelect(item)}
+            >
+              <Text>{item.place_name}</Text>
+            </TouchableOpacity>
+          )}
+          style={styles.suggestionsList}
+          scrollEnabled={false}
+        />
+      )}
+      <Text style={styles.label}>Bio/About Me</Text>
+      <TextInput style={[styles.input, { minHeight: 80 }]} value={bio} onChangeText={setBio} multiline />
+      
+      <Text style={styles.label}>LinkedIn Profile URL</Text>
+      <TextInput 
+        style={styles.input} 
+        value={linkedinUrl} 
+        onChangeText={setLinkedinUrl} 
+        placeholder="https://linkedin.com/in/yourprofile" 
+        keyboardType="url"
+      />
+
+      <Text style={styles.label}>GitHub Profile URL</Text>
+      <TextInput 
+        style={styles.input} 
+        value={githubUrl} 
+        onChangeText={setGithubUrl} 
+        placeholder="https://github.com/yourusername" 
+        keyboardType="url"
+      />
+    </View>
+  );
+
+  const renderEducation = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Education</Text>
+      <Text style={styles.label}>Institution Name</Text>
+      <TextInput style={styles.input} value={institution} onChangeText={setInstitution} />
+      
+      <Text style={styles.label}>Degree/Program</Text>
+      <TextInput style={styles.input} value={degree} onChangeText={setDegree} />
+      
+      <Text style={styles.label}>Graduation Year</Text>
+      <View style={styles.dropdownContainer}>
+        <RNPickerSelect
+          onValueChange={(value) => setGraduationYear(value)}
+          items={years.map((year) => ({ label: year, value: year }))}
+          value={graduationYear}
+          placeholder={{ label: "Select Year", value: "" }}
+          style={pickerSelectStyles}
+        />
+      </View>
+      
+      <Text style={styles.label}>Field of Study</Text>
+      <TextInput style={styles.input} value={fieldOfStudy} onChangeText={setFieldOfStudy} />
+    </View>
+  );
+
+  const renderWorkExperience = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Work Experience</Text>
+      <Text style={styles.label}>Company Name</Text>
+      <TextInput style={styles.input} value={company} onChangeText={setCompany} />
+      
+      <Text style={styles.label}>Job Title</Text>
+      <TextInput style={styles.input} value={jobTitle} onChangeText={setJobTitle} />
+      
+      <Text style={styles.label}>Start Date</Text>
+      <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+        <TextInput
+          style={styles.input}
+          value={formatDate(startDate)}
+          placeholder="Select start date"
+          editable={false}
+        />
+      </TouchableOpacity>
+      {showStartDatePicker && (
+        <DateTimePicker
+          value={startDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={onStartDateChange}
+        />
+      )}
+      
+      <Text style={styles.label}>End Date</Text>
+      <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+        <TextInput
+          style={styles.input}
+          value={formatDate(endDate)}
+          placeholder="Select end date"
+          editable={false}
+        />
+      </TouchableOpacity>
+      {showEndDatePicker && (
+        <DateTimePicker
+          value={endDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={onEndDateChange}
+        />
+      )}
+      
+      <Text style={styles.label}>Description</Text>
+      <TextInput style={[styles.input, { minHeight: 80 }]} value={jobDescription} onChangeText={setJobDescription} multiline />
+    </View>
+  );
+
+  const renderSkills = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Skills</Text>
+      <View style={styles.skillsInputContainer}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          value={skillsInput}
+          onChangeText={handleSkillInputChange}
+          placeholder="Type to search skills"
+          onFocus={() => skillsInput.length > 0 && setShowSkillSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSkillSuggestions(false), 200)}
+        />
+      </View>
+      
+      {showSkillSuggestions && skillSuggestions.length > 0 && (
+        <View style={styles.skillSuggestionsContainer}>
           <FlatList
-            data={suggestions}
-            keyExtractor={(item) => item.id}
+            data={skillSuggestions}
+            keyExtractor={(item) => item}
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={styles.suggestionItem}
-                onPress={() => handleLocationSelect(item)}
+                style={styles.skillSuggestionItem}
+                onPress={() => addSkill(item)}
               >
-                <Text>{item.place_name}</Text>
+                <Text>{item}</Text>
               </TouchableOpacity>
             )}
-            style={styles.suggestionsList}
-          />
-        )}
-        <Text style={styles.label}>Bio/About Me</Text>
-        <TextInput style={[styles.input, { minHeight: 80 }]} value={bio} onChangeText={setBio} multiline />
-        
-        <Text style={styles.label}>LinkedIn Profile URL</Text>
-        <TextInput 
-          style={styles.input} 
-          value={linkedinUrl} 
-          onChangeText={setLinkedinUrl} 
-          placeholder="https://linkedin.com/in/yourprofile" 
-          keyboardType="url"
-        />
-
-        <Text style={styles.label}>GitHub Profile URL</Text>
-        <TextInput 
-          style={styles.input} 
-          value={githubUrl} 
-          onChangeText={setGithubUrl} 
-          placeholder="https://github.com/yourusername" 
-          keyboardType="url"
-        />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Education</Text>
-        <Text style={styles.label}>Institution Name</Text>
-        <TextInput style={styles.input} value={institution} onChangeText={setInstitution} />
-        
-        <Text style={styles.label}>Degree/Program</Text>
-        <TextInput style={styles.input} value={degree} onChangeText={setDegree} />
-        
-        <Text style={styles.label}>Graduation Year</Text>
-        <View style={styles.dropdownContainer}>
-          <RNPickerSelect
-            onValueChange={(value) => setGraduationYear(value)}
-            items={years.map((year) => ({ label: year, value: year }))}
-            value={graduationYear}
-            placeholder={{ label: "Select Year", value: "" }}
-            style={pickerSelectStyles}
+            keyboardShouldPersistTaps="always"
+            scrollEnabled={false}
           />
         </View>
-        
-        <Text style={styles.label}>Field of Study</Text>
-        <TextInput style={styles.input} value={fieldOfStudy} onChangeText={setFieldOfStudy} />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Work Experience</Text>
-        <Text style={styles.label}>Company Name</Text>
-        <TextInput style={styles.input} value={company} onChangeText={setCompany} />
-        
-        <Text style={styles.label}>Job Title</Text>
-        <TextInput style={styles.input} value={jobTitle} onChangeText={setJobTitle} />
-        
-        <Text style={styles.label}>Start Date</Text>
-        <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
-          <TextInput
-            style={styles.input}
-            value={formatDate(startDate)}
-            placeholder="Select start date"
-            editable={false}
-          />
-        </TouchableOpacity>
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={startDate || new Date()}
-            mode="date"
-            display="default"
-            onChange={onStartDateChange}
-          />
-        )}
-        
-        <Text style={styles.label}>End Date</Text>
-        <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
-          <TextInput
-            style={styles.input}
-            value={formatDate(endDate)}
-            placeholder="Select end date"
-            editable={false}
-          />
-        </TouchableOpacity>
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={endDate || new Date()}
-            mode="date"
-            display="default"
-            onChange={onEndDateChange}
-          />
-        )}
-        
-        <Text style={styles.label}>Description</Text>
-        <TextInput style={[styles.input, { minHeight: 80 }]} value={jobDescription} onChangeText={setJobDescription} multiline />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Skills</Text>
-        <View style={styles.skillsInputContainer}>
-          <TextInput
-            style={[styles.input, { flex: 1 }]}
-            value={skillsInput}
-            onChangeText={handleSkillInputChange}
-            placeholder="Type to search skills"
-            onFocus={() => skillsInput.length > 0 && setShowSkillSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSkillSuggestions(false), 200)}
-          />
-        </View>
-        
-        {showSkillSuggestions && skillSuggestions.length > 0 && (
-          <View style={styles.skillSuggestionsContainer}>
-            <FlatList
-              data={skillSuggestions}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.skillSuggestionItem}
-                  onPress={() => addSkill(item)}
-                >
-                  <Text>{item}</Text>
-                </TouchableOpacity>
-              )}
-              keyboardShouldPersistTaps="always"
-            />
+      )}
+      
+      <View style={styles.selectedSkillsContainer}>
+        {selectedSkills.map((skill) => (
+          <View key={skill} style={styles.skillTag}>
+            <Text style={styles.skillTagText}>{skill}</Text>
+            <TouchableOpacity onPress={() => removeSkill(skill)}>
+              <Icon name="close" size={16} color="#fff" />
+            </TouchableOpacity>
           </View>
-        )}
-        
-        <View style={styles.selectedSkillsContainer}>
-          {selectedSkills.map((skill) => (
-            <View key={skill} style={styles.skillTag}>
-              <Text style={styles.skillTagText}>{skill}</Text>
-              <TouchableOpacity onPress={() => removeSkill(skill)}>
-                <Icon name="close" size={16} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          ))}
+        ))}
+      </View>
+    </View>
+  );
+
+  const renderFooter = () => (
+    <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
+      <Text style={styles.buttonText}>Save Changes</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <FlatList
+      data={[]}
+      renderItem={null}
+      ListHeaderComponent={
+        <View>
+          {renderHeader()}
+          {renderPersonalInfo()}
+          {renderEducation()}
+          {renderWorkExperience()}
+          {renderSkills()}
         </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Projects</Text>
-        <Text style={styles.label}>GitHub Link</Text>
-        <TextInput 
-          style={styles.input} 
-          value={githubLink} 
-          onChangeText={setGithubLink} 
-          placeholder="https://github.com/username/project"
-        />
-        
-        {projects.length > 0 ? (
-          projects.map((project, index) => (
-            <View key={index} style={styles.projectItem}>
-              {project.image && (
-                <Image source={{ uri: project.image }} style={styles.projectImage} />
-              )}
-              <Text style={styles.projectTitle}>{project.title}</Text>
-              <Text style={styles.projectDescription}>{project.description}</Text>
-              {project.githubLink && (
-                <TouchableOpacity onPress={() => Linking.openURL(project.githubLink)}>
-                  <Text style={styles.linkText}>View on GitHub</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ))
-        ) : (
-          <Text style={styles.noProjectsText}>No projects added yet</Text>
-        )}
-        
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AddProject')}
-        >
-          <Text style={styles.addButtonText}>Add Project</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.actionButtonsContainer}>
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.shareButton]}
-          onPress={handleShareProfile}
-        >
-          <Text style={styles.actionButtonText}>Share Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.connectButton]}
-          onPress={handleConnect}
-        >
-          <Text style={styles.actionButtonText}>Connect</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
-        <Text style={styles.buttonText}>Save Changes</Text>
-      </TouchableOpacity>
-    </ScrollView>
+      }
+      ListFooterComponent={renderFooter()}
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={styles.container}
+    />
   );
 };
 
@@ -482,21 +548,27 @@ const pickerSelectStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
+  container: { 
+    padding: 20, 
+    backgroundColor: "#f5f5f5",
+    paddingBottom: 40 
+  },
   title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20, color: "#333" },
   profilePictureContainer: { alignItems: "center", marginBottom: 20 },
   profilePicture: { width: 120, height: 120, borderRadius: 60, backgroundColor: "#ddd" },
   uploadText: { color: "#6200ea", marginTop: 8, fontSize: 14 },
-  section: { 
-    backgroundColor: "white", 
-    padding: 15, 
-    borderRadius: 8, 
-    marginBottom: 15, 
-    elevation: 3 
-  },
+  section: { backgroundColor: "white", padding: 15, borderRadius: 8, marginBottom: 15, elevation: 3 },
   sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#333" },
   label: { fontSize: 16, marginBottom: 5, color: "#555" },
-  input: { borderWidth: 1, borderColor: "#ddd", padding: 10, borderRadius: 5, marginBottom: 10, backgroundColor: "#fff" },
+  input: { 
+    borderWidth: 1, 
+    borderColor: "#ddd", 
+    padding: 10, 
+    borderRadius: 5, 
+    marginBottom: 10, 
+    backgroundColor: "#fff",
+    minHeight: 40,
+  },
   locationContainer: { flexDirection: "row", alignItems: "center" },
   gpsButton: { marginLeft: 10, padding: 10 },
   suggestionsList: { 
@@ -517,6 +589,50 @@ const styles = StyleSheet.create({
     marginVertical: 20 
   },
   buttonText: { color: "white", fontSize: 16, fontWeight: "bold" },
+  skillsInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  skillSuggestionsContainer: {
+    maxHeight: 150,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 10,
+  },
+  skillSuggestionItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  selectedSkillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 5,
+  },
+  skillTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6200ea',
+    borderRadius: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  skillTagText: {
+    color: '#fff',
+    marginRight: 5,
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+  },
 });
 
 export default ProfileScreen;
