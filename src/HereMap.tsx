@@ -280,7 +280,7 @@ const HereMap: React.FC = () => {
           .setLngLat([${alum.longitude}, ${alum.latitude}])
           .setHTML(\`
             <div style="text-align: center;">
-              <img src="${alum.profilePic}" class="profile-pic" alt="${alum.name}" />
+              <img src="${alum.profilePic}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 12px;" alt="${alum.name}" />
               <h4>${alum.name}</h4>
               <p>${alum.jobTitle || ''} ${alum.company ? `at ${alum.company}` : ''}</p>
               <div class="popup-buttons">
@@ -335,10 +335,11 @@ const HereMap: React.FC = () => {
             text-align: center;
           }
           .profile-pic {
-            width: 70px; /* Increased size */
-            height: 70px; /* Increased size */
+            width: 120px;  /* Increased from previous size */
+            height: 120px; /* Increased from previous size */
             border-radius: 50%;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            object-fit: cover;
           }
           .connect-button {
             background-color: #4A00E0;
