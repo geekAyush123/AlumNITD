@@ -14,6 +14,7 @@ import MessagesListScreen from './MessagesListScreen';
 import ChatScreen from './ChatScreen';
 import JobOpportunitiesScreen from './JobOpportunitiesScreen';
 import JobDetailsScreen from './JobDetailsScreen';
+import ViewProfileScreen from './ViewProfileScreen';
 
 // At the top of your App.tsx (after the imports)
 export type RootStackParamList = {
@@ -28,9 +29,8 @@ export type RootStackParamList = {
   Map: undefined;
   JobOpportunities: undefined;
   JobDetails: { jobId: string };
+  ViewProfile: { userId: string };
 };
-
-// ... rest of your App.tsx remains the same ...
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -48,6 +48,7 @@ function App() {
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="AlumniSearch" component={AlumniSearchScreen} options={{ title: "Search Alumni" }} />
           <Stack.Screen name="Map" component={HereMap} options={{ title: "Campus Map" }} />
+          <Stack.Screen name="ViewProfile" component={ViewProfileScreen} options = {{title: "Profile"}}/>
           <Stack.Screen 
             name="JobOpportunities" 
             component={JobOpportunitiesScreen} 

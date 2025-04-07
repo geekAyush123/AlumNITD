@@ -120,7 +120,7 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
               styles.filterText,
               filter === type && styles.activeFilterText
             ]}>
-              {getFilterLabel(type)}
+              {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -171,29 +171,24 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingBottom: 10,
   },
   filterChip: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginRight: 10,
   },
   activeFilterChip: {
     backgroundColor: '#A89CFF',
-    borderColor: '#A89CFF',
   },
   filterText: {
     color: '#666',
-    fontSize: 14,
-    fontWeight: '500',
   },
   activeFilterText: {
     color: 'white',
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   listContainer: {
     padding: 15,
