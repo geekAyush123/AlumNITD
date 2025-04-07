@@ -79,6 +79,17 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
     </TouchableOpacity>
   );
 
+  const getFilterLabel = (type: string) => {
+    switch (type) {
+      case 'all': return 'All';
+      case 'full-time': return 'Full Time';
+      case 'part-time': return 'Part Time';
+      case 'internship': return 'Internship';
+      case 'remote': return 'Remote';
+      default: return type;
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.searchContainer}>
@@ -109,7 +120,7 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
               styles.filterText,
               filter === type && styles.activeFilterText
             ]}>
-              {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+              {getFilterLabel(type)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -160,24 +171,29 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     paddingHorizontal: 15,
-    paddingBottom: 10,
+    paddingVertical: 10,
   },
   filterChip: {
-    backgroundColor: '#e0e0e0',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginRight: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   activeFilterChip: {
     backgroundColor: '#A89CFF',
+    borderColor: '#A89CFF',
   },
   filterText: {
     color: '#666',
+    fontSize: 14,
+    fontWeight: '500',
   },
   activeFilterText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   listContainer: {
     padding: 15,
