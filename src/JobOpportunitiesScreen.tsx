@@ -79,52 +79,94 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
     </TouchableOpacity>
   );
 
-  const getFilterLabel = (type: string) => {
+  const getFilterDetails = (type: string) => {
     switch (type) {
-      case 'all': return 'All';
-      case 'full-time': return 'Full Time';
-      case 'part-time': return 'Part Time';
-      case 'internship': return 'Internship';
-      case 'remote': return 'Remote';
-      default: return type;
+      case 'full-time':
+        return {
+          icon: 'briefcase',
+          count: jobs.filter(j => j.type === 'full-time').length
+        };
+      case 'part-time':
+        return {
+          icon: 'time-outline',
+          count: jobs.filter(j => j.type === 'part-time').length
+        };
+      case 'internship':
+        return {
+          icon: 'school-outline',
+          count: jobs.filter(j => j.type === 'internship').length
+        };
+      case 'remote':
+        return {
+          icon: 'home-outline',
+          count: jobs.filter(j => j.type === 'remote').length
+        };
+      default:
+        return {
+          icon: 'options-outline',
+          count: jobs.length
+        };
     }
   };
 
+  const filterTypes = ['all', 'full-time', 'part-time', 'internship', 'remote'];
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.searchContainer}>
-        <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search jobs or companies"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
+      <View style={styles.header}>
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search jobs or companies"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
 
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterContainer}
-      >
-        {['all', 'full-time', 'part-time', 'internship', 'remote'].map((type) => (
-          <TouchableOpacity
-            key={type}
-            style={[
-              styles.filterChip,
-              filter === type && styles.activeFilterChip
-            ]}
-            onPress={() => setFilter(type)}
+        <View style={styles.filtersWrapper}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterContainer}
           >
-            <Text style={[
-              styles.filterText,
-              filter === type && styles.activeFilterText
-            ]}>
-              {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            {filterTypes.map((type) => {
+              const isActive = filter === type;
+              const details = getFilterDetails(type);
+              
+              return (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.filterChip,
+                    isActive && styles.activeFilterChip,
+                  ]}
+                  onPress={() => setFilter(type)}
+                >
+                  <Icon 
+                    name={details.icon} 
+                    size={16} 
+                    color={isActive ? 'white' : '#666'} 
+                    style={styles.filterIcon}
+                  />
+                  <Text style={[
+                    styles.filterText,
+                    isActive && styles.activeFilterText
+                  ]}>
+                    {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  </Text>
+                  <Text style={[
+                    styles.filterCount,
+                    isActive && styles.activeFilterCount
+                  ]}>
+                    {details.count}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -134,6 +176,7 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
         <View style={styles.emptyContainer}>
           <Icon name="sad-outline" size={50} color="#666" />
           <Text style={styles.emptyText}>No jobs found</Text>
+          <Text style={styles.emptySubText}>Try adjusting your filters</Text>
         </View>
       ) : (
         <FlatList
@@ -141,6 +184,11 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
           renderItem={renderJobItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
+          ListHeaderComponent={
+            <Text style={styles.resultsCount}>
+              Showing {filteredJobs.length} {filter === 'all' ? 'jobs' : filter + ' jobs'}
+            </Text>
+          }
         />
       )}
     </SafeAreaView>
@@ -151,6 +199,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  header: {
+    backgroundColor: '#f5f5f5',
+    paddingBottom: 10,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -169,26 +221,51 @@ const styles = StyleSheet.create({
     height: 50,
     fontSize: 16,
   },
+  filtersWrapper: {
+    height: 70,
+  },
   filterContainer: {
     paddingHorizontal: 15,
     paddingBottom: 10,
   },
   filterChip: {
     backgroundColor: '#e0e0e0',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginRight: 10,
+    height: 48
   },
   activeFilterChip: {
     backgroundColor: '#A89CFF',
   },
+  filterIcon: {
+    marginRight: 5,
+  },
   filterText: {
     color: '#666',
+    fontWeight: '500',
+    flex: 1,
   },
   activeFilterText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  filterCount: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 5,
+    fontSize: 12,
+    color: '#666',
+  },
+  activeFilterCount: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    color: 'white',
   },
   listContainer: {
     padding: 15,
@@ -258,11 +335,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   emptyText: {
     marginTop: 10,
     fontSize: 16,
     color: '#666',
+    fontWeight: 'bold',
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 5,
+  },
+  resultsCount: {
+    color: '#666',
+    fontSize: 14,
+    marginBottom: 10,
+    marginLeft: 5,
   },
 });
 
