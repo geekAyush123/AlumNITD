@@ -1,0 +1,3 @@
+<resources>
+    <color name="splash_background">#FFFFE0</color>  <!-- Match launch_screen.xml -->
+</resources>
