@@ -54,9 +54,24 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       
-      // Get the ID token (new correct way)
-      const { idToken } = await GoogleSignin.getTokens();
+      // Proper typed access to email (confirmed structure)
+      const email = userInfo.data?.user.email;
+      console.log('User email:', email);
   
+      // NIT Delhi email validation
+      if (!email || !email.endsWith('@nitdelhi.ac.in')) {
+        await GoogleSignin.signOut();
+        Alert.alert(
+          'Access Restricted',
+          'Please use your college email (@nitdelhi.ac.in) to login',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+  
+      // Get the ID token
+      const { idToken } = await GoogleSignin.getTokens();
+    
       if (idToken) {
         const googleCredential = auth.GoogleAuthProvider.credential(idToken);
         await auth().signInWithCredential(googleCredential);
