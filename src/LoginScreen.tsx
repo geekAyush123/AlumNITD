@@ -25,7 +25,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   // Configure Google Sign-In
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: "556028993106-5jf05j3rcs5c40e8v3gpi8p82385tu6e.apps.googleusercontent.com", // Replace with your Web Client ID from Firebase Console
+      webClientId: "556028993106-5jf05j3rcs5c40e8v3gpi8p82385tu6e.apps.googleusercontent.com", 
     });
   }, []);
 
