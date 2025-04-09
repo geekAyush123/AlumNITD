@@ -52,21 +52,21 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const googleLogin = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
-
-      if (response?.idToken) {
-        const googleCredential = auth.GoogleAuthProvider.credential(response.idToken);
+      const userInfo = await GoogleSignin.signIn();
+      
+      // Get the ID token (new correct way)
+      const { idToken } = await GoogleSignin.getTokens();
+  
+      if (idToken) {
+        const googleCredential = auth.GoogleAuthProvider.credential(idToken);
         await auth().signInWithCredential(googleCredential);
-
         navigation.navigate("Home");
       }
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        // 🔥 Ignore back button press – No action, no alert
         console.log("Google Sign-In cancelled by user");
         return;
       }
-
       console.error("Google Sign-In Error:", error);
       Alert.alert("Error", error.message || "Failed to sign in with Google.");
     }
