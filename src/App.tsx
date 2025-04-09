@@ -72,7 +72,7 @@ const SplashScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FDD965",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   slogan: {
     fontSize: 16,
-    color: "#666",
+    color: "#4A00E0",
     fontStyle: "italic",
   },
 });
