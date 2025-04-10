@@ -4,6 +4,7 @@ import { View, StyleSheet, Animated, Image, Text } from "react-native";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createStackNavigator, StackNavigationProp } from "@react-navigation/stack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { RouteProp } from "@react-navigation/native";
 
 // Screen imports
 import LoginScreen from "./LoginScreen";
@@ -21,8 +22,10 @@ import ViewProfileScreen from './ViewProfileScreen';
 import EventsScreen from "./Events_Codes/EventsScreen";
 import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
 import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
-import { RouteProp } from "@react-navigation/native";
 import DonationScreen from "./DonationScreen";
+import ViewTimeCapsuleScreen from "./ViewTimeCapsuleScreen";
+import CreateTimeCapsuleScreen from "./CreateTimeCapsuleScreen";
+import TimeCapsuleListScreen from "./TimeCapsuleListScreen";
 
 // Splash Screen Component
 const SplashScreen = () => {
@@ -31,7 +34,6 @@ const SplashScreen = () => {
   const animationRef = useRef<Animated.CompositeAnimation>();
 
   useEffect(() => {
-    // Heartbeat animation
     animationRef.current = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -49,7 +51,6 @@ const SplashScreen = () => {
     );
     animationRef.current.start();
 
-    // Navigate after 3 seconds
     const timer = setTimeout(() => {
       navigation.navigate("Login");
     }, 3000);
@@ -73,6 +74,81 @@ const SplashScreen = () => {
     </View>
   );
 };
+
+// Time Capsule Type
+export interface TimeCapsuleType {
+  id: string;
+  title: string;
+  message: string;
+  creationDate: Date;
+  unlockDate: Date;
+  mediaUrls: string[];
+  recipients?: string[];
+  isPublic?: boolean;
+  viewedBy: string[];
+}
+
+// Navigation types
+export type RootStackParamList = {
+  Splash: undefined;
+  Login: undefined;
+  Register: undefined;
+  Home: undefined;
+  MessagesList: undefined;
+  Chat: { conversationId: string };
+  ProfilePage: undefined;
+  Profile: undefined;
+  AlumniSearch: undefined;
+  Map: undefined;
+  JobOpportunities: undefined;
+  JobDetails: { jobId: string };
+  ViewProfile: { userId: string };
+  Events: undefined;
+  EventDetails: { eventId: string };
+  VirtualEvent: { eventId: string };
+  Donation: undefined;
+  TimeCapsules: undefined;
+  ViewTimeCapsule: { capsuleId: string };
+  CreateTimeCapsule: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
+
+function App() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Splash">
+          {/* Splash Screen */}
+          <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
+
+          {/* App Screens */}
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: true, title: "Back" }} />
+          <Stack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
+          <Stack.Screen name="MessagesList" component={MessagesListScreen} options={{ title: "Messages" }} />
+          <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Chat" }} />
+          <Stack.Screen name="ProfilePage" component={ProfilePage} options={{ title: "Profile" }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Edit Profile" }} />
+          <Stack.Screen name="AlumniSearch" component={AlumniSearchScreen} options={{ title: "Search Alumni" }} />
+          <Stack.Screen name="Map" component={HereMap} options={{ title: "Campus Map" }} />
+          <Stack.Screen name="JobOpportunities" component={JobOpportunitiesScreen} options={{ title: "Job Opportunities" }} />
+          <Stack.Screen name="JobDetails" component={JobDetailsScreen} options={{ title: "Job Details" }} />
+          <Stack.Screen name="ViewProfile" component={ViewProfileScreen} options={{ title: "Profile" }} />
+          <Stack.Screen name="Events" component={EventsScreen} options={{ title: "Upcoming Events" }} />
+          <Stack.Screen name="EventDetails" component={EventDetailsScreen} options={{ title: "Event Details" }} />
+          <Stack.Screen name="VirtualEvent" component={VirtualEventScreen} options={{ title: "Virtual Event" }} />
+          <Stack.Screen name="Donation" component={DonationScreen} options={{ title: "Donate" }} />
+          
+          {/* Time Capsule Screens */}
+          <Stack.Screen name="TimeCapsules" component={TimeCapsuleListScreen} options={{ title: "Time Capsules" }} />
+          <Stack.Screen name="ViewTimeCapsule" component={ViewTimeCapsuleScreen} options={{ title: "Time Capsule" }} />
+          <Stack.Screen name="CreateTimeCapsule" component={CreateTimeCapsuleScreen} options={{ title: "Create Time Capsule" }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -99,133 +175,5 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
 });
-
-// Navigation types
-export type RootStackParamList = {
-  Splash: undefined;
-  Login: undefined;
-  Register: undefined;
-  Home: undefined;
-  MessagesList: undefined;
-  Chat: { conversationId: string };
-  ProfilePage: undefined;
-  Profile: undefined;
-  AlumniSearch: undefined;
-  Map: undefined;
-  JobOpportunities: undefined;
-  JobDetails: { jobId: string };
-  ViewProfile: { userId: string };
-  Events: undefined;
-  EventDetails: { eventId: string };
-  VirtualEvent: { eventId: string };
-  Donation: undefined; 
-};
-
-export type EventDetailsScreenRouteProp = RouteProp<RootStackParamList, 'EventDetails'>;
-export type VirtualEventScreenRouteProp = RouteProp<RootStackParamList, 'VirtualEvent'>;
-
-export type EventDetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'EventDetails'>;
-export type VirtualEventScreenNavigationProp = StackNavigationProp<RootStackParamList, 'VirtualEvent'>;
-
-const Stack = createStackNavigator<RootStackParamList>();
-
-function App() {
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Splash">
-          {/* Splash Screen */}
-          <Stack.Screen
-            name="Splash"
-            component={SplashScreen}
-            options={{ headerShown: false }}
-          />
-
-          {/* App Screens */}
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
-            options={{ headerShown: true, title: "Back" }}
-          />
-          <Stack.Screen
-            name="Home"
-            component={HomePage}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen 
-            name="MessagesList" 
-            component={MessagesListScreen} 
-            options={{ title: "Messages" }}
-          />
-          <Stack.Screen 
-            name="Chat" 
-            component={ChatScreen} 
-            options={{ title: "Chat" }}
-          />
-          <Stack.Screen 
-            name="ProfilePage" 
-            component={ProfilePage} 
-            options={{ title: "Profile" }}
-          />
-          <Stack.Screen 
-            name="Profile" 
-            component={ProfileScreen} 
-            options={{ title: "Edit Profile" }}
-          />
-          <Stack.Screen
-            name="AlumniSearch"
-            component={AlumniSearchScreen}
-            options={{ title: "Search Alumni" }}
-          />
-          <Stack.Screen
-            name="Map"
-            component={HereMap}
-            options={{ title: "Campus Map" }}
-          />
-          <Stack.Screen
-            name="ViewProfile"
-            component={ViewProfileScreen}
-            options={{ title: "Profile" }}
-          />
-          <Stack.Screen
-            name="JobOpportunities"
-            component={JobOpportunitiesScreen}
-            options={{ title: "Job Opportunities" }}
-          />
-          <Stack.Screen
-            name="JobDetails"
-            component={JobDetailsScreen}
-            options={{ title: "Job Details" }}
-          />
-          <Stack.Screen
-            name="Events"
-            component={EventsScreen}
-            options={{ title: "Upcoming Events" }}
-          />
-          <Stack.Screen
-            name="EventDetails"
-            component={EventDetailsScreen}
-            options={{ title: "Event Details" }}
-          />
-          <Stack.Screen
-            name="VirtualEvent"
-            component={VirtualEventScreen}
-            options={{ title: "Virtual Event" }}
-          />
-          <Stack.Screen
-  name="Donation"
-  component={DonationScreen}
-  options={{ title: "Donate" }}
-/>
-        </Stack.Navigator>
-      </NavigationContainer>
-    </GestureHandlerRootView>
-  );
-}
 
 export default App;
