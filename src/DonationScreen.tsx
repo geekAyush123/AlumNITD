@@ -11,39 +11,38 @@ import {
 } from "react-native";
 
 const DonationScreen = () => {
-  const [amount, setAmount] = useState("");
+  const [transactionId, setTransactionId] = useState("");
 
-  const handleDonate = () => {
-    if (!amount || isNaN(Number(amount))) {
-      Alert.alert("Invalid Input", "Please enter a valid donation amount.");
+  const handleSubmit = () => {
+    if (!transactionId.trim()) {
+      Alert.alert("Missing Transaction ID", "Please enter a valid transaction ID.");
       return;
     }
 
-    // Ideally, integrate payment gateway here
-    Alert.alert("Thank You!", `You've donated ₹${amount}`);
-    setAmount("");
+    Alert.alert("Thank You!", `Your transaction ID: ${transactionId} has been recorded.`);
+    setTransactionId("");
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Support AlumNITD</Text>
-      <Text style={styles.subtitle}>Every contribution helps us grow!</Text>
+      <Text style={styles.subtitle}>Scan the QR code below to donate!</Text>
 
       <Image
-        source={require("./assets/qr-code.png")} // Replace with your actual QR image path
+        source={require("./assets/qr-code.png")} // Make sure your QR code image is here
         style={styles.qrImage}
       />
 
-      <Text style={styles.scanText}>Scan to Donate</Text>
+      <Text style={styles.scanText}>After payment, enter your Transaction ID below</Text>
 
       <TextInput
         style={styles.input}
-        keyboardType="numeric"
-        value={amount}
-        onChangeText={setAmount}
-        placeholder="Or enter amount (₹)"
+        value={transactionId}
+        onChangeText={setTransactionId}
+        placeholder="Enter Transaction ID"
+        autoCapitalize="characters"
       />
-      <Button title="Donate Now" onPress={handleDonate} />
+      <Button title="Submit" onPress={handleSubmit} />
     </ScrollView>
   );
 };
@@ -82,6 +81,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
     color: "gray",
+    textAlign: "center",
   },
   input: {
     borderColor: "#ccc",
