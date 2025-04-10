@@ -53,7 +53,7 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
             <Icon name="arrow-back" size={30} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}>Event Details</Text>
-          <View style={{ width: 30 }} /> {/* For alignment */}
+          <View style={{ width: 30 }} /> 
         </View>
 
         <Image source={require('../assets/event_placeholder.png')} style={styles.eventImage} />

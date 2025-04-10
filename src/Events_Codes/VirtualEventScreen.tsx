@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
@@ -18,9 +18,14 @@ const VirtualEventScreen: React.FC<VirtualEventScreenProps> = ({ route, navigati
 
   useEffect(() => {
     const fetchEvent = async () => {
-      const eventDoc = await firestore().collection('events').doc(eventId).get();
-      if (eventDoc.exists) {
-        setEvent({ id: eventDoc.id, ...eventDoc.data() });
+      try {
+        const eventDoc = await firestore().collection('events').doc(eventId).get();
+        if (eventDoc.exists) {
+          setEvent({ id: eventDoc.id, ...eventDoc.data() });
+        }
+      } catch (error) {
+        console.error('Error fetching event:', error);
+        Alert.alert('Error', 'Failed to load event details');
       }
     };
     
@@ -29,7 +34,9 @@ const VirtualEventScreen: React.FC<VirtualEventScreenProps> = ({ route, navigati
 
   const handleJoinEvent = () => {
     if (event?.meetingLink) {
-      Linking.openURL(event.meetingLink);
+      Linking.openURL(event.meetingLink).catch(() => {
+        Alert.alert('Error', 'Could not open the meeting link');
+      });
     } else {
       Alert.alert('Error', 'No meeting link available for this event');
     }
@@ -38,7 +45,9 @@ const VirtualEventScreen: React.FC<VirtualEventScreenProps> = ({ route, navigati
   if (!event) {
     return (
       <LinearGradient colors={['#A89CFF', '#A89CFF']} style={styles.container}>
-        <Text style={styles.loadingText}>Loading event details...</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading event details...</Text>
+        </View>
       </LinearGradient>
     );
   }
@@ -87,7 +96,14 @@ const VirtualEventScreen: React.FC<VirtualEventScreenProps> = ({ route, navigati
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { 
+    flex: 1 
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -99,11 +115,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: 'bold',
+    color: 'black',
   },
   loadingText: {
     color: 'white',
     textAlign: 'center',
-    marginTop: 50,
+    fontSize: 16,
   },
   content: {
     flex: 1,
@@ -115,6 +132,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 5,
+    color: 'black',
   },
   eventDateTime: {
     fontSize: 16,
@@ -131,6 +149,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 10,
     marginBottom: 5,
+    color: 'black',
   },
   platformText: {
     fontSize: 16,
@@ -159,10 +178,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: 'black',
   },
   instructionsText: {
     fontSize: 14,
     marginBottom: 5,
+    color: 'black',
   },
 });
 

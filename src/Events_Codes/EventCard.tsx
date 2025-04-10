@@ -6,7 +6,7 @@ interface EventCardProps {
   title: string;
   dateTime: string;
   description: string;
-  image: any;
+  image: any; // Can be require(localImage) or {uri: 'https://...'}
   attendees: number;
   engagementRate: string;
   speakers: { name: string; role: string }[];
@@ -109,12 +109,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: '90%',
   },
   eventImage: {
     width: '100%',
     height: 150,
     borderRadius: 8,
     marginBottom: 10,
+    resizeMode: 'cover',
   },
   eventTitle: {
     fontSize: 20,
