@@ -1,13 +1,33 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 
-const applications = [
+type Application = {
+  id: string;
+  title: string;
+  company: string;
+  status: 'Applied' | 'In Progress' | 'Rejected';
+};
+
+const applications: Application[] = [
   { id: '1', title: 'Software Engineer', company: 'Google', status: 'Applied' },
   { id: '2', title: 'UX Designer', company: 'Apple', status: 'In Progress' },
   { id: '3', title: 'Data Analyst', company: 'Microsoft', status: 'Rejected' },
 ];
 
 const ApplicationScreen = () => {
+  const getStatusStyle = (status: Application['status']) => {
+    switch (status) {
+      case 'Applied':
+        return styles.applied;
+      case 'In Progress':
+        return styles.inprogress;
+      case 'Rejected':
+        return styles.rejected;
+      default:
+        return {};
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Filtered Applications</Text>
@@ -20,7 +40,9 @@ const ApplicationScreen = () => {
           <View style={styles.card}>
             <Text style={styles.jobTitle}>{item.title}</Text>
             <Text style={styles.company}>{item.company}</Text>
-            <Text style={[styles.status, styles[item.status.replace(' ', '').toLowerCase()]]}>{item.status}</Text>
+            <Text style={[styles.status, getStatusStyle(item.status)]}>
+              {item.status}
+            </Text>
           </View>
         )}
       />
