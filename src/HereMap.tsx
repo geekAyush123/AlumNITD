@@ -17,8 +17,6 @@ import { WebView } from "react-native-webview";
 import firestore from "@react-native-firebase/firestore";
 import axios from "axios";
 import debounce from 'lodash.debounce';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCommentDots } from '@fortawesome/free-solid-svg-icons';
 
 const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
 

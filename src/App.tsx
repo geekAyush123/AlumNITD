@@ -22,6 +22,13 @@ import ViewProfileScreen from './ViewProfileScreen';
 import EventsScreen from "./Events_Codes/EventsScreen";
 import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
 import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
+import AlumniSearchResults from './AlumniSearchResults';
+
+type Alumni = {
+  id: string;
+  fullName: string;
+  company?: string;
+};
 
 // Splash Screen Component
 const SplashScreen = () => {
@@ -92,6 +99,7 @@ export type RootStackParamList = {
   TimeCapsules: undefined;
   CreateTimeCapsule: undefined;
   ViewTimeCapsule: { capsule: TimeCapsule };
+  AlumniSearchResults: { alumniList: Alumni[] };
 };
 
 // Define the TimeCapsule type
@@ -213,6 +221,11 @@ function App() {
             name="ViewTimeCapsule" 
             component={ViewTimeCapsuleScreen} 
             options={{ title: "Time Capsule" }}
+          />
+          <Stack.Screen 
+            name="AlumniSearchResults" 
+            component={AlumniSearchResults} 
+            options={{ title: 'Search Results' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

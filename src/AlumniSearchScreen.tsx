@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 
@@ -9,24 +9,59 @@ interface Alumni {
   fullName: string;
   skill?: string;
   location?: string;
+  graduationYear?: string;
+  industry?: string;
 }
 
-const AlumniSearchScreen = ({ navigation }: { navigation: any }) => {
+type NavigationProps = {
+  navigation: {
+    navigate: (screen: string, params?: { alumniList: Alumni[] }) => void;
+  };
+};
+
+const AlumniSearchScreen = ({ navigation }: NavigationProps) => {
   const [query, setQuery] = useState<string>('');
   const [alumniList, setAlumniList] = useState<Alumni[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
 
   const handleSearch = async () => {
-    if (!query.trim()) return;
-    const snapshot = await firestore()
-      .collection('alumni')
-      .where('fullName', '>=', query)
-      .where('fullName', '<=', query + '\uf8ff')
-      .get();
+    try {
+      let queryRef: FirebaseFirestoreTypes.Query<FirebaseFirestoreTypes.DocumentData> = 
+        firestore().collection('alumni');
 
-    const results: Alumni[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Alumni));
-    setAlumniList(results);
+      if (query.trim()) {
+        queryRef = queryRef
+          .where('fullName', '>=', query)
+          .where('fullName', '<=', query + '\uf8ff');
+      }
+
+      if (selectedFilters.length > 0) {
+        const graduationYears = selectedFilters.filter(f => ['2020', '2021', '2022', '2023', '2024'].includes(f));
+        const locations = selectedFilters.filter(f => ['City', 'State', 'Country'].includes(f));
+        const industries = selectedFilters.filter(f => ['Technology', 'Healthcare', 'Education'].includes(f));
+        const skills = selectedFilters.filter(f => ['Java', 'Marketing', 'Data Analysis'].includes(f));
+
+        if (graduationYears.length > 0) {
+          queryRef = queryRef.where('graduationYear', 'in', graduationYears);
+        }
+        if (locations.length > 0) {
+          queryRef = queryRef.where('location', 'in', locations);
+        }
+        if (industries.length > 0) {
+          queryRef = queryRef.where('industry', 'in', industries);
+        }
+        if (skills.length > 0) {
+          queryRef = queryRef.where('skill', 'in', skills);
+        }
+      }
+
+      const snapshot = await queryRef.get();
+      const results: Alumni[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Alumni));
+      setAlumniList(results);
+    } catch (error) {
+      console.error('Error searching alumni:', error);
+    }
   };
 
   const toggleFilter = (filter: string) => {
@@ -121,19 +156,6 @@ const AlumniSearchScreen = ({ navigation }: { navigation: any }) => {
             ))}
           </View>
 
-          <Text style={styles.filterTitle}>Sort By</Text>
-          <View style={styles.filterContainer}>
-            {['Relevance', 'Graduation Year', 'Alphabetical'].map(sortOption => (
-              <TouchableOpacity
-                key={sortOption}
-                style={[styles.filterButton, selectedFilters.includes(sortOption) && styles.selectedFilter]}
-                onPress={() => toggleFilter(sortOption)}
-              >
-                <Text style={styles.filterText}>{sortOption}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
           <View style={styles.filterActionButtons}>
             <TouchableOpacity 
               style={styles.resetButton} 
@@ -161,28 +183,38 @@ const AlumniSearchScreen = ({ navigation }: { navigation: any }) => {
     <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.gradientContainer}>
       <View style={styles.container}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <FlatList
-            data={alumniList}
-            keyExtractor={item => item.id}
-            ListHeaderComponent={renderHeader}
-            renderItem={({ item }) => (
-              <View style={styles.alumniCard}>
-                <Text style={styles.alumniName}>{item.fullName}</Text>
-                <Text style={styles.alumniDetails}>{item.skill || 'N/A'} | {item.location || 'N/A'}</Text>
-                <TouchableOpacity style={styles.connectButton}>
-                  <Text style={styles.connectText}>Connect</Text>
-                </TouchableOpacity>
-              </View>
+          <>
+            {renderHeader()}
+            {alumniList.length > 0 && (
+              <TouchableOpacity 
+                style={styles.viewResultsButton}
+                onPress={() => {
+                  console.log('Navigating with alumniList:', alumniList);
+                  navigation.navigate('AlumniSearchResults', { alumniList });
+                }}
+              >
+                <Text style={styles.viewResultsButtonText}>View All Results ({alumniList.length})</Text>
+              </TouchableOpacity>
             )}
-            keyboardShouldPersistTaps="handled"
-          />
+          </>
         </TouchableWithoutFeedback>
       </View>
     </LinearGradient>
-  );
+  );  
 };
 
 const styles = StyleSheet.create({
+  viewResultsButton: {
+    backgroundColor: '#7B61FF',
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  viewResultsButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
   gradientContainer: {
     flex: 1,
   },
@@ -292,32 +324,6 @@ const styles = StyleSheet.create({
   searchButtonText: { 
     color: 'white',
     fontWeight: 'bold',
-  },
-  alumniCard: { 
-    backgroundColor: 'white', 
-    padding: 15, 
-    borderRadius: 10, 
-    marginVertical: 5,
-  },
-  alumniName: { 
-    fontSize: 18, 
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  alumniDetails: { 
-    fontSize: 14, 
-    color: 'gray',
-    marginVertical: 3,
-  },
-  connectButton: { 
-    backgroundColor: '#6200EE', 
-    padding: 8, 
-    borderRadius: 5, 
-    marginTop: 5,
-  },
-  connectText: { 
-    color: 'white', 
-    textAlign: 'center',
   },
 });
 
