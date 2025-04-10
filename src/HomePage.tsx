@@ -118,14 +118,6 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               }} 
             />
             <MenuItem 
-  icon="time-outline" 
-  text="Time Capsules" 
-  onPress={() => {
-    setMenuVisible(false);
-    navigation.navigate('TimeCapsules');
-  }} 
-/>
-            <MenuItem 
               icon="mail" 
               text="Messages" 
               onPress={() => {
@@ -138,9 +130,18 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               text="Donations" 
               onPress={() => {
                 setMenuVisible(false);
-                // navigation.navigate('Donations');
+               navigation.navigate('Donation');
               }} 
             />
+            <MenuItem 
+  icon="cash-outline" 
+  text="Donations" 
+  onPress={() => {
+    setMenuVisible(false);
+    navigation.navigate('Donation');
+  }} 
+/>
+
             <MenuItem 
               icon="chatbubble-ellipses-outline" 
               text="Discussion" 
