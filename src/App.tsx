@@ -18,6 +18,10 @@ import ChatScreen from './ChatScreen';
 import JobOpportunitiesScreen from './JobOpportunitiesScreen';
 import JobDetailsScreen from './JobDetailsScreen';
 import ViewProfileScreen from './ViewProfileScreen';
+import EventsScreen from "./Events_Codes/EventsScreen";
+import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
+import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
+import { RouteProp } from "@react-navigation/native";
 
 // Splash Screen Component
 const SplashScreen = () => {
@@ -110,7 +114,16 @@ export type RootStackParamList = {
   JobOpportunities: undefined;
   JobDetails: { jobId: string };
   ViewProfile: { userId: string };
+  Events: undefined;
+  EventDetails: { eventId: string };
+  VirtualEvent: { eventId: string };
 };
+
+export type EventDetailsScreenRouteProp = RouteProp<RootStackParamList, 'EventDetails'>;
+export type VirtualEventScreenRouteProp = RouteProp<RootStackParamList, 'VirtualEvent'>;
+
+export type EventDetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'EventDetails'>;
+export type VirtualEventScreenNavigationProp = StackNavigationProp<RootStackParamList, 'VirtualEvent'>;
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -145,18 +158,22 @@ function App() {
           <Stack.Screen 
             name="MessagesList" 
             component={MessagesListScreen} 
+            options={{ title: "Messages" }}
           />
           <Stack.Screen 
             name="Chat" 
             component={ChatScreen} 
+            options={{ title: "Chat" }}
           />
           <Stack.Screen 
             name="ProfilePage" 
             component={ProfilePage} 
+            options={{ title: "Profile" }}
           />
           <Stack.Screen 
             name="Profile" 
             component={ProfileScreen} 
+            options={{ title: "Edit Profile" }}
           />
           <Stack.Screen
             name="AlumniSearch"
@@ -182,6 +199,21 @@ function App() {
             name="JobDetails"
             component={JobDetailsScreen}
             options={{ title: "Job Details" }}
+          />
+          <Stack.Screen
+            name="Events"
+            component={EventsScreen}
+            options={{ title: "Upcoming Events" }}
+          />
+          <Stack.Screen
+            name="EventDetails"
+            component={EventDetailsScreen}
+            options={{ title: "Event Details" }}
+          />
+          <Stack.Screen
+            name="VirtualEvent"
+            component={VirtualEventScreen}
+            options={{ title: "Virtual Event" }}
           />
         </Stack.Navigator>
       </NavigationContainer>

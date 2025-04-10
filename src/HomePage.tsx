@@ -172,12 +172,12 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
             onPress={() => navigation.navigate('Map')}
           />
 
-          <FeatureCard 
-            title="Upcoming Events" 
-            image={require('./assets/events.png')} 
-            text="Stay updated with events and networking opportunities."
-            onPress={() => navigation.navigate('Events')}
-          />
+<FeatureCard 
+  title="Upcoming Events" 
+  image={require('./assets/events.png')} 
+  text="Stay updated with events and networking opportunities."
+  onPress={() => navigation.navigate('Events')} // Add this line
+/>
         </View>
       </ScrollView>
     </LinearGradient>

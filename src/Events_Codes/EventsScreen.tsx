@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
@@ -54,7 +54,7 @@ const EventsScreen: React.FC<EventsScreenProps> = ({ navigation }) => {
               title={event.title}
               dateTime={event.dateTime}
               description={event.description}
-              image={require('./assets/event-placeholder.png')}
+              image={require('../assets/event_placeholder.png')}
               attendees={event.attendees || 0}
               engagementRate={event.engagementRate || "85% (+10%)"}
               speakers={event.speakers || []}

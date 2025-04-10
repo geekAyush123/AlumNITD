@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import { RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../App';
 
 interface VirtualEventScreenProps {
-  route: RouteProp<{ params: { eventId: string } }, 'params'>;
-  navigation: any;
+  route: RouteProp<RootStackParamList, 'VirtualEvent'>;
+  navigation: StackNavigationProp<RootStackParamList, 'VirtualEvent'>;
 }
 
 const VirtualEventScreen: React.FC<VirtualEventScreenProps> = ({ route, navigation }) => {

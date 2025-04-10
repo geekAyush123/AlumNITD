@@ -4,11 +4,14 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import { RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../App';
 
 interface EventDetailsScreenProps {
-  route: RouteProp<{ params: { eventId: string } }, 'params'>;
-  navigation: any;
+  route: RouteProp<RootStackParamList, 'EventDetails'>;
+  navigation: StackNavigationProp<RootStackParamList, 'EventDetails'>;
 }
+
 
 const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigation }) => {
   const [event, setEvent] = useState<any>(null);
@@ -27,7 +30,7 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
 
   const handleRSVP = () => {
     Alert.alert('RSVP', 'You have successfully RSVPed to this event!');
-    // Here you would typically update the event in Firestore
+
   };
 
   const handleJoinEvent = () => {
@@ -53,7 +56,7 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
           <View style={{ width: 30 }} /> {/* For alignment */}
         </View>
 
-        <Image source={require('./assets/event-placeholder.png')} style={styles.eventImage} />
+        <Image source={require('../assets/event_placeholder.png')} style={styles.eventImage} />
         
         <Text style={styles.eventTitle}>{event.title}</Text>
         <Text style={styles.eventDateTime}>{event.dateTime}</Text>
