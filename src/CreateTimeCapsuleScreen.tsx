@@ -150,7 +150,7 @@ const CreateTimeCapsuleScreen: React.FC<CreateTimeCapsuleScreenProps> = ({ navig
         style={styles.input}
         value={recipientEmails}
         onChangeText={setRecipientEmails}
-        placeholder="alumni1@example.com, alumni2@example.com"
+        placeholder="alumni1@nitdelhi.ac.in, alumni2@nitdelhi.ac.in"
         keyboardType="email-address"
       />
       
