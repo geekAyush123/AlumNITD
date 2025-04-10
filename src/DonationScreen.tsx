@@ -1,6 +1,14 @@
-// DonationScreen.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  Alert,
+  Image,
+  ScrollView,
+} from "react-native";
 
 const DonationScreen = () => {
   const [amount, setAmount] = useState("");
@@ -17,18 +25,26 @@ const DonationScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Support AlumNITD</Text>
       <Text style={styles.subtitle}>Every contribution helps us grow!</Text>
+
+      <Image
+        source={require("./assets/qr-code.png")} // Replace with your actual QR image path
+        style={styles.qrImage}
+      />
+
+      <Text style={styles.scanText}>Scan to Donate</Text>
+
       <TextInput
         style={styles.input}
         keyboardType="numeric"
         value={amount}
         onChangeText={setAmount}
-        placeholder="Enter amount (₹)"
+        placeholder="Or enter amount (₹)"
       />
       <Button title="Donate Now" onPress={handleDonate} />
-    </View>
+    </ScrollView>
   );
 };
 
@@ -36,9 +52,10 @@ export default DonationScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#fff",
   },
   title: {
@@ -54,6 +71,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#4A00E0",
   },
+  qrImage: {
+    width: 220,
+    height: 220,
+    resizeMode: "contain",
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+  scanText: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: "gray",
+  },
   input: {
     borderColor: "#ccc",
     borderWidth: 1,
@@ -61,5 +90,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 8,
     fontSize: 16,
+    width: "100%",
   },
 });
