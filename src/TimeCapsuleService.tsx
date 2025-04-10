@@ -1,3 +1,4 @@
+// TimeCapsuleService.tsx
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { uploadToCloudinary } from './CloudinaryService';
@@ -35,11 +36,11 @@ export const createTimeCapsule = async (
     if (capsuleData.mediaUrls?.length > 0) {
       mediaUrls = await Promise.all(
         capsuleData.mediaUrls.map(async (uri) => {
-          return await uploadToCloudinary(
+          return await uploadToCloudinary({
             uri,
-            CLOUDINARY_CONFIG.uploadPreset,
-            CLOUDINARY_CONFIG.cloudName
-          );
+            uploadPreset: CLOUDINARY_CONFIG.uploadPreset,
+            cloudName: CLOUDINARY_CONFIG.cloudName
+          });
         })
       );
     }

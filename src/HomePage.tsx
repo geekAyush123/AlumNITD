@@ -134,13 +134,14 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               }} 
             />
             <MenuItem 
-  icon="cash-outline" 
-  text="Donations" 
+  icon="time-outline" 
+  text="Time Capsules" 
   onPress={() => {
     setMenuVisible(false);
-    navigation.navigate('Donation');
+    navigation.navigate('TimeCapsules'); // This should match your route name
   }} 
 />
+            
 
             <MenuItem 
               icon="chatbubble-ellipses-outline" 
