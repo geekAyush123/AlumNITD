@@ -37,7 +37,7 @@ const DonationScreen = () => {
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!transactionId.trim()) {
       Alert.alert('Missing Info', 'Please enter the transaction ID.');
       return;
@@ -48,9 +48,36 @@ const DonationScreen = () => {
       return;
     }
 
-    Alert.alert('Thank You!', `Transaction ID: ${transactionId} has been recorded.`);
-    setTransactionId('');
-    setScreenshotUri(null);
+    const formData = new FormData();
+    formData.append('transactionId', transactionId);
+    formData.append('screenshot', {
+      uri: screenshotUri,
+      name: 'receipt.jpg',
+      type: 'image/jpeg',
+    } as any);
+
+    try {
+      const response = await fetch('http://10.10.51.100:3000/api/donations', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Success', 'Donation submitted successfully!');
+        setTransactionId('');
+        setScreenshotUri(null);
+      } else {
+        Alert.alert('Error', data.message || 'Something went wrong');
+      }
+    } catch (error) {
+      Alert.alert('Network Error', 'Unable to connect to server.');
+      console.error(error);
+    }
   };
 
   return (
@@ -59,7 +86,7 @@ const DonationScreen = () => {
       <Text style={styles.subtitle}>Scan the QR code below to donate!</Text>
 
       <Image
-        source={require('./assets/qr-code.png')} // Replace with actual QR image path
+        source={require('./assets/qr-code.png')} // Place your actual image in assets
         style={styles.qrImage}
       />
 
