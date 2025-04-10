@@ -118,6 +118,14 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               }} 
             />
             <MenuItem 
+  icon="time-outline" 
+  text="Time Capsules" 
+  onPress={() => {
+    setMenuVisible(false);
+    navigation.navigate('TimeCapsules');
+  }} 
+/>
+            <MenuItem 
               icon="mail" 
               text="Messages" 
               onPress={() => {
