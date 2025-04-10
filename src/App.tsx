@@ -22,7 +22,6 @@ import ViewProfileScreen from './ViewProfileScreen';
 import EventsScreen from "./Events_Codes/EventsScreen";
 import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
 import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
-<<<<<<< HEAD
 import AlumniSearchResults from './AlumniSearchResults';
 
 export interface Alumni {
@@ -34,15 +33,13 @@ export interface Alumni {
   location?: string;
   skills?: string[];
   graduationYear?: string;
-  skill?: string; // Keep this for backward compatibility
+  skill?: string;
   industry?: string;
 }
-=======
 import DonationScreen from "./DonationScreen";
 import ViewTimeCapsuleScreen from "./ViewTimeCapsuleScreen";
 import CreateTimeCapsuleScreen from "./CreateTimeCapsuleScreen";
 import TimeCapsuleListScreen from "./TimeCapsuleListScreen";
->>>>>>> 623f1852b4d0033bf31993f337dc235871ca806d
 
 // Splash Screen Component
 const SplashScreen = () => {
@@ -127,6 +124,7 @@ export type RootStackParamList = {
   TimeCapsules: undefined;
   ViewTimeCapsule: { capsuleId: string };
   CreateTimeCapsule: undefined;
+  AlumniSearchResults: { alumniList: Alumni[] };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -156,6 +154,9 @@ function App() {
           <Stack.Screen name="EventDetails" component={EventDetailsScreen} options={{ title: "Event Details" }} />
           <Stack.Screen name="VirtualEvent" component={VirtualEventScreen} options={{ title: "Virtual Event" }} />
           <Stack.Screen name="Donation" component={DonationScreen} options={{ title: "Donate" }} />
+          <Stack.Screen name="AlumniSearchResults" component={AlumniSearchResults} options={{ title: "Search Results" }} />
+
+          {/* Job Opportunities Screens */}
           
           {/* Time Capsule Screens */}
           <Stack.Screen name="TimeCapsules" component={TimeCapsuleListScreen} options={{ title: "Time Capsules" }} />
