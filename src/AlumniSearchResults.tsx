@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   View, 
   Text, 
@@ -7,9 +7,7 @@ import {
   StyleSheet, 
   Image,
   ActivityIndicator,
-  RefreshControl,
-  TextInput,
-  ScrollView
+  RefreshControl 
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -23,45 +21,15 @@ const AlumniSearchResults = () => {
   const navigation = useNavigation<AlumniSearchResultsNavigationProp>();
   const route = useRoute();
   const { alumniList } = route.params as { alumniList: Alumni[] };
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredAlumni, setFilteredAlumni] = useState<Alumni[]>(alumniList);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-  const onRefresh = () => {
+  const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
-  };
-
-  const handleSearch = (text: string) => {
-    setSearchQuery(text);
-    if (text.trim() === '') {
-      setFilteredAlumni(alumniList);
-      return;
-    }
-
-    const lowerCaseQuery = text.toLowerCase();
-    const results = alumniList.filter(alum => {
-      const searchFields = [
-        alum.fullName,
-        alum.location,
-        alum.industry,
-        alum.graduationYear,
-        alum.company,
-        alum.jobTitle,
-        ...(alum.skills || [])
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      return searchFields.includes(lowerCaseQuery);
-    });
-
-    setFilteredAlumni(results);
-  };
+  }, []);
 
   const handleViewProfile = (userId: string) => {
     try {
@@ -74,7 +42,7 @@ const AlumniSearchResults = () => {
     }
   };
 
-  const renderAlumniCard = ({ item }: { item: Alumni }) => (
+  const renderAlumniCard = React.useCallback(({ item }: { item: Alumni }) => (
     <View style={styles.alumniCard}>
       <View style={styles.profileHeader}>
         {item.profilePic ? (
@@ -142,36 +110,22 @@ const AlumniSearchResults = () => {
         )}
       </TouchableOpacity>
     </View>
-  );
+  ), [loading]);
 
-  if (filteredAlumni.length === 0) {
+  if (alumniList.length === 0) {
     return (
       <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.gradientContainer}>
-        <ScrollView contentContainerStyle={styles.emptyContainer}>
-          <View style={styles.searchContainer}>
-            <View style={styles.searchBar}>
-              <TextInput
-                style={styles.input}
-                placeholder="Search within results..."
-                placeholderTextColor="#888"
-                value={searchQuery}
-                onChangeText={handleSearch}
-              />
-              <TouchableOpacity style={styles.searchIcon}>
-                <Icon name="search" size={25} color="black" />
-              </TouchableOpacity>
-            </View>
-          </View>
+        <View style={styles.emptyContainer}>
           <Icon name="search" size={50} color="#666" />
-          <Text style={styles.emptyText}>No matching alumni found</Text>
-          <Text style={styles.emptySubtext}>Try adjusting your search</Text>
+          <Text style={styles.emptyText}>No alumni found</Text>
+          <Text style={styles.emptySubtext}>Try adjusting your search criteria</Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
             <Text style={styles.backButtonText}>Back to Search</Text>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </LinearGradient>
     );
   }
@@ -179,33 +133,18 @@ const AlumniSearchResults = () => {
   return (
     <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.gradientContainer}>
       <View style={styles.container}>
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <TextInput
-              style={styles.input}
-              placeholder="Search within results..."
-              placeholderTextColor="#888"
-              value={searchQuery}
-              onChangeText={handleSearch}
-            />
-            <TouchableOpacity style={styles.searchIcon}>
-              <Icon name="search" size={25} color="black" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        
         <View style={styles.headerContainer}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Icon name="arrow-back" size={24} color="black" />
           </TouchableOpacity>
           <Text style={styles.resultsHeader}>
-            {filteredAlumni.length} {filteredAlumni.length === 1 ? 'Result' : 'Results'} Found
+            {alumniList.length} {alumniList.length === 1 ? 'Result' : 'Results'} Found
           </Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: 24 }} /> {/* Spacer for alignment */}
         </View>
         
         <FlatList
-          data={filteredAlumni}
+          data={alumniList}
           renderItem={renderAlumniCard}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContainer}
@@ -233,30 +172,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 15,
   },
-  searchContainer: {
-    marginBottom: 15,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: 'white',
-    height: 50,
-    paddingHorizontal: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    height: '100%',
-    paddingVertical: 0,
-    includeFontPadding: false,
-  },
-  searchIcon: {
-    marginLeft: 10,
-    padding: 5,
-  },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -282,10 +197,9 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginTop: 20,
-    padding: 12,
+    padding: 10,
     backgroundColor: '#7B61FF',
-    borderRadius: 10,
-    alignItems: 'center',
+    borderRadius: 8,
   },
   backButtonText: {
     color: 'white',
