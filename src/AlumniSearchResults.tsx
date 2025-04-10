@@ -9,58 +9,32 @@ import {
   ActivityIndicator,
   RefreshControl 
 } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
-
-type RootStackParamList = {
-  AlumniSearchResults: { alumniList: Alumni[] };
-  ViewProfileScreen: { alumniId: string };
-  // Add other screens here as needed
-};
+import { RootStackParamList, Alumni } from './App';
 
 type AlumniSearchResultsNavigationProp = StackNavigationProp<RootStackParamList, 'AlumniSearchResults'>;
 
-type Props = {
-  navigation: AlumniSearchResultsNavigationProp;
-};
-
-type Alumni = {
-  id: string;
-  fullName: string;
-  company?: string;
-  jobTitle?: string;
-  profilePic?: string;
-  location?: string;
-  skills?: string[];
-  graduationYear?: string;
-};
-
-type RouteParams = {
-  AlumniSearchResults: {
-    alumniList: Alumni[];
-  };
-};
-
-const AlumniSearchResults = ({ navigation }: Props) => {
-  const route = useRoute<RouteProp<RouteParams, 'AlumniSearchResults'>>();
-  const { alumniList } = route.params;
+const AlumniSearchResults = () => {
+  const navigation = useNavigation<AlumniSearchResultsNavigationProp>();
+  const route = useRoute();
+  const { alumniList } = route.params as { alumniList: Alumni[] };
   const [refreshing, setRefreshing] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Simulate refresh
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
   }, []);
 
-  const handleViewProfile = (alumniId: string) => {
+  const handleViewProfile = (userId: string) => {
     try {
       setLoading(true);
-      navigation.navigate('ViewProfileScreen', { alumniId });
+      navigation.navigate('ViewProfile', { userId });
     } catch (error) {
       console.error('Navigation error:', error);
     } finally {
@@ -145,6 +119,12 @@ const AlumniSearchResults = ({ navigation }: Props) => {
           <Icon name="search" size={50} color="#666" />
           <Text style={styles.emptyText}>No alumni found</Text>
           <Text style={styles.emptySubtext}>Try adjusting your search criteria</Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>Back to Search</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
     );
@@ -153,9 +133,15 @@ const AlumniSearchResults = ({ navigation }: Props) => {
   return (
     <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.gradientContainer}>
       <View style={styles.container}>
-        <Text style={styles.resultsHeader}>
-          {alumniList.length} {alumniList.length === 1 ? 'Result' : 'Results'} Found
-        </Text>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Icon name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text style={styles.resultsHeader}>
+            {alumniList.length} {alumniList.length === 1 ? 'Result' : 'Results'} Found
+          </Text>
+          <View style={{ width: 24 }} /> {/* Spacer for alignment */}
+        </View>
         
         <FlatList
           data={alumniList}
@@ -186,6 +172,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 15,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -203,12 +195,22 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 5,
   },
+  backButton: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#7B61FF',
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
   resultsHeader: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 15,
     color: 'black',
     textAlign: 'center',
+    flex: 1,
   },
   listContainer: {
     paddingBottom: 20,

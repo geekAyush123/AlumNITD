@@ -1,73 +1,125 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  TouchableWithoutFeedback, 
+  Keyboard, 
+  ScrollView, 
+  ActivityIndicator
+} from 'react-native';
+import firestore from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList, Alumni } from './App';
+import debounce from 'lodash.debounce';
 
-interface Alumni {
-  id: string;
-  fullName: string;
-  skill?: string;
-  location?: string;
-  graduationYear?: string;
-  industry?: string;
-}
+type AlumniSearchScreenNavigationProp = StackNavigationProp<RootStackParamList, 'AlumniSearch'>;
 
-type NavigationProps = {
-  navigation: {
-    navigate: (screen: string, params?: { alumniList: Alumni[] }) => void;
-  };
-};
-
-const AlumniSearchScreen = ({ navigation }: NavigationProps) => {
+const AlumniSearchScreen = () => {
+  const navigation = useNavigation<AlumniSearchScreenNavigationProp>();
   const [query, setQuery] = useState<string>('');
-  const [alumniList, setAlumniList] = useState<Alumni[]>([]);
+  const [allAlumni, setAllAlumni] = useState<Alumni[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = async () => {
-    try {
-      let queryRef: FirebaseFirestoreTypes.Query<FirebaseFirestoreTypes.DocumentData> = 
-        firestore().collection('alumni');
+  // Fetch all alumni data on component mount
+  useEffect(() => {
+    const fetchAllAlumni = async () => {
+      try {
+        const alumniSnapshot = await firestore().collection('alumni').get();
+        const alumniData = alumniSnapshot.docs.map(doc => ({
+          id: doc.id,
+          fullName: doc.data().fullName || '',
+          company: doc.data().company,
+          jobTitle: doc.data().jobTitle,
+          profilePic: doc.data().profilePic,
+          location: doc.data().location,
+          skills: doc.data().skills || [],
+          graduationYear: doc.data().graduationYear,
+          industry: doc.data().industry,
+          skill: doc.data().skill
+        } as Alumni));
+        
+        setAllAlumni(alumniData);
+      } catch (error) {
+        console.error('Error fetching alumni:', error);
+      }
+    };
 
-      if (query.trim()) {
-        queryRef = queryRef
-          .where('fullName', '>=', query)
-          .where('fullName', '<=', query + '\uf8ff');
+    fetchAllAlumni();
+  }, []);
+
+  // Perform the search with debouncing
+  const performSearch = useCallback(
+    debounce((searchQuery: string, filters: string[]) => {
+      if (searchQuery.trim() === '' && filters.length === 0) {
+        setIsSearching(false);
+        return;
       }
 
-      if (selectedFilters.length > 0) {
-        const graduationYears = selectedFilters.filter(f => ['2020', '2021', '2022', '2023', '2024'].includes(f));
-        const locations = selectedFilters.filter(f => ['City', 'State', 'Country'].includes(f));
-        const industries = selectedFilters.filter(f => ['Technology', 'Healthcare', 'Education'].includes(f));
-        const skills = selectedFilters.filter(f => ['Java', 'Marketing', 'Data Analysis'].includes(f));
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      const filteredResults = allAlumni.filter(alum => {
+        // Apply text search
+        const textMatch = searchQuery.trim() === '' ? true : [
+          alum.fullName,
+          alum.location,
+          alum.industry,
+          alum.graduationYear,
+          alum.company,
+          alum.jobTitle,
+          ...(alum.skills || [])
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(lowerCaseQuery);
 
-        if (graduationYears.length > 0) {
-          queryRef = queryRef.where('graduationYear', 'in', graduationYears);
-        }
-        if (locations.length > 0) {
-          queryRef = queryRef.where('location', 'in', locations);
-        }
-        if (industries.length > 0) {
-          queryRef = queryRef.where('industry', 'in', industries);
-        }
-        if (skills.length > 0) {
-          queryRef = queryRef.where('skill', 'in', skills);
-        }
-      }
+        // Apply filters
+        const filterMatch = filters.length === 0 ? true : filters.some(filter => {
+          return (
+            alum.graduationYear === filter ||
+            alum.location === filter ||
+            alum.industry === filter ||
+            (alum.skills && alum.skills.includes(filter))
+          );
+        });
 
-      const snapshot = await queryRef.get();
-      const results: Alumni[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Alumni));
-      setAlumniList(results);
-    } catch (error) {
-      console.error('Error searching alumni:', error);
-    }
+        return textMatch && filterMatch;
+      });
+
+      // Navigate to results page with the filtered results
+      navigation.navigate('AlumniSearchResults', { 
+        alumniList: filteredResults 
+      });
+      setIsSearching(false);
+    }, 300),
+    [allAlumni, navigation]
+  );
+
+  // Handle search input changes
+  const handleSearchChange = (text: string) => {
+    setQuery(text);
   };
 
+  // Handle search submission
+  const handleSearchSubmit = () => {
+    if (query.trim() === '' && selectedFilters.length === 0) return;
+    setIsSearching(true);
+    performSearch(query, selectedFilters);
+  };
+
+  // Handle filter changes
   const toggleFilter = (filter: string) => {
-    setSelectedFilters(prev =>
-      prev.includes(filter) ? prev.filter(item => item !== filter) : [...prev, filter]
-    );
+    const newFilters = selectedFilters.includes(filter) 
+      ? selectedFilters.filter(item => item !== filter) 
+      : [...selectedFilters, filter];
+    setSelectedFilters(newFilters);
   };
 
   const toggleFilterVisibility = () => {
@@ -80,13 +132,19 @@ const AlumniSearchScreen = ({ navigation }: NavigationProps) => {
       <View style={styles.searchBar}>
         <TextInput
           style={styles.input}
-          placeholder="Search Alumni by Name, Skills, or Keywords"
+          placeholder="Search by name, skills, company..."
+          placeholderTextColor="#888"
           value={query}
-          onChangeText={setQuery}
-          onSubmitEditing={handleSearch}
+          onChangeText={handleSearchChange}
+          onSubmitEditing={handleSearchSubmit}
+          returnKeyType="search"
         />
-        <TouchableOpacity onPress={handleSearch}>
-          <Icon name="search" size={25} color="black" />
+        <TouchableOpacity onPress={handleSearchSubmit} style={styles.searchIcon}>
+          {isSearching ? (
+            <ActivityIndicator size="small" color="#000" />
+          ) : (
+            <Icon name="search" size={25} color="black" />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -173,53 +231,40 @@ const AlumniSearchScreen = ({ navigation }: NavigationProps) => {
         </View>
       )}
 
-      <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-        <Text style={styles.searchButtonText}>Search</Text>
+      <TouchableOpacity 
+        style={styles.searchButton} 
+        onPress={handleSearchSubmit}
+        disabled={isSearching}
+      >
+        {isSearching ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.searchButtonText}>Search</Text>
+        )}
       </TouchableOpacity>
     </>
   );
 
   return (
-    <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.gradientContainer}>
-      <View style={styles.container}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <>
-            {renderHeader()}
-            {alumniList.length > 0 && (
-              <TouchableOpacity 
-                style={styles.viewResultsButton}
-                onPress={() => {
-                  console.log('Navigating with alumniList:', alumniList);
-                  navigation.navigate('AlumniSearchResults', { alumniList });
-                }}
-              >
-                <Text style={styles.viewResultsButtonText}>View All Results ({alumniList.length})</Text>
-              </TouchableOpacity>
-            )}
-          </>
-        </TouchableWithoutFeedback>
-      </View>
-    </LinearGradient>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.gradientContainer}>
+        <ScrollView 
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          {renderHeader()}
+        </ScrollView>
+      </LinearGradient>
+    </TouchableWithoutFeedback>
   );  
 };
 
 const styles = StyleSheet.create({
-  viewResultsButton: {
-    backgroundColor: '#7B61FF',
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  viewResultsButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
   gradientContainer: {
     flex: 1,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
   },
   header: { 
@@ -232,14 +277,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    padding: 3,
+    borderColor: '#ddd',
     borderRadius: 8,
     marginBottom: 15,
     backgroundColor: 'white',
+    height: 50,
+    paddingHorizontal: 10,
   },
   input: {
     flex: 1,
     fontSize: 16,
+    height: '100%',
+    paddingVertical: 0,
+    includeFontPadding: false,
+  },
+  searchIcon: {
+    marginLeft: 10,
+    padding: 5,
   },
   filterToggleButton: {
     flexDirection: 'row',

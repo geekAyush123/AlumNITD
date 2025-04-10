@@ -24,11 +24,18 @@ import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
 import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
 import AlumniSearchResults from './AlumniSearchResults';
 
-type Alumni = {
+export interface Alumni {
   id: string;
   fullName: string;
   company?: string;
-};
+  jobTitle?: string;
+  profilePic?: string;
+  location?: string;
+  skills?: string[];
+  graduationYear?: string;
+  skill?: string; // Keep this for backward compatibility
+  industry?: string;
+}
 
 // Splash Screen Component
 const SplashScreen = () => {
