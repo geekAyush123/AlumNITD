@@ -1,11 +1,12 @@
 import "react-native-gesture-handler";
 import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Animated, Image, Text } from "react-native";
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { NavigationContainer, useNavigation, RouteProp } from "@react-navigation/native";
 import { createStackNavigator, StackNavigationProp } from "@react-navigation/stack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
-// Screen imports
+import TimeCapsuleListScreen from './TimeCapsuleListScreen';
+import CreateTimeCapsuleScreen from './CreateTimeCapsuleScreen';
+import ViewTimeCapsuleScreen from './ViewTimeCapsuleScreen';
 import LoginScreen from "./LoginScreen";
 import RegisterScreen from "./RegisterScreen";
 import HomePage from "./HomePage";
@@ -21,7 +22,13 @@ import ViewProfileScreen from './ViewProfileScreen';
 import EventsScreen from "./Events_Codes/EventsScreen";
 import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
 import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
-import { RouteProp } from "@react-navigation/native";
+import AlumniSearchResults from './AlumniSearchResults';
+
+type Alumni = {
+  id: string;
+  fullName: string;
+  company?: string;
+};
 
 // Splash Screen Component
 const SplashScreen = () => {
@@ -30,7 +37,6 @@ const SplashScreen = () => {
   const animationRef = useRef<Animated.CompositeAnimation>();
 
   useEffect(() => {
-    // Heartbeat animation
     animationRef.current = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -48,7 +54,6 @@ const SplashScreen = () => {
     );
     animationRef.current.start();
 
-    // Navigate after 3 seconds
     const timer = setTimeout(() => {
       navigation.navigate("Login");
     }, 3000);
@@ -73,32 +78,6 @@ const SplashScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FDD965",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logo: {
-    width: 300,
-    height: 300,
-    resizeMode: "contain",
-    marginBottom: 20,
-  },
-  appName: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#1a365d",
-    marginBottom: 8,
-  },
-  slogan: {
-    fontSize: 16,
-    color: "#4A00E0",
-    fontStyle: "italic",
-  },
-});
-
 // Navigation types
 export type RootStackParamList = {
   Splash: undefined;
@@ -117,13 +96,29 @@ export type RootStackParamList = {
   Events: undefined;
   EventDetails: { eventId: string };
   VirtualEvent: { eventId: string };
+  TimeCapsules: undefined;
+  CreateTimeCapsule: undefined;
+  ViewTimeCapsule: { capsule: TimeCapsule };
+  AlumniSearchResults: { alumniList: Alumni[] };
 };
+
+// Define the TimeCapsule type
+export interface TimeCapsule {
+  id: string;
+  title: string;
+  message: string;
+  creationDate: Date;
+  unlockDate: Date;
+  mediaUrls: string[];
+}
 
 export type EventDetailsScreenRouteProp = RouteProp<RootStackParamList, 'EventDetails'>;
 export type VirtualEventScreenRouteProp = RouteProp<RootStackParamList, 'VirtualEvent'>;
+export type ViewTimeCapsuleRouteProp = RouteProp<RootStackParamList, 'ViewTimeCapsule'>;
 
 export type EventDetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'EventDetails'>;
 export type VirtualEventScreenNavigationProp = StackNavigationProp<RootStackParamList, 'VirtualEvent'>;
+export type ViewTimeCapsuleNavigationProp = StackNavigationProp<RootStackParamList, 'ViewTimeCapsule'>;
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -132,14 +127,11 @@ function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Splash">
-          {/* Splash Screen */}
           <Stack.Screen
             name="Splash"
             component={SplashScreen}
             options={{ headerShown: false }}
           />
-
-          {/* App Screens */}
           <Stack.Screen
             name="Login"
             component={LoginScreen}
@@ -215,10 +207,56 @@ function App() {
             component={VirtualEventScreen}
             options={{ title: "Virtual Event" }}
           />
+          <Stack.Screen 
+            name="TimeCapsules" 
+            component={TimeCapsuleListScreen} 
+            options={{ title: "Time Capsules" }}
+          />
+          <Stack.Screen 
+            name="CreateTimeCapsule" 
+            component={CreateTimeCapsuleScreen} 
+            options={{ title: "Create Time Capsule" }}
+          />
+          <Stack.Screen 
+            name="ViewTimeCapsule" 
+            component={ViewTimeCapsuleScreen} 
+            options={{ title: "Time Capsule" }}
+          />
+          <Stack.Screen 
+            name="AlumniSearchResults" 
+            component={AlumniSearchResults} 
+            options={{ title: 'Search Results' }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logo: {
+    width: 300,
+    height: 300,
+    resizeMode: "contain",
+    marginBottom: 20,
+  },
+  appName: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#1a365d",
+    marginBottom: 8,
+  },
+  slogan: {
+    fontSize: 16,
+    color: "#4A00E0",
+    fontStyle: "italic",
+  },
+});
 
 export default App;
