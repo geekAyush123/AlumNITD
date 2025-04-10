@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, TextInput } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
@@ -26,14 +26,15 @@ const EventsScreen: React.FC<EventsScreenProps> = ({ navigation }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const eventsSnapshot = await firestore().collection('events').get();
-        const eventsData = eventsSnapshot.docs.map(doc => ({ 
-          id: doc.id, 
-          ...doc.data() 
+        const eventsData = eventsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
         })) as Event[];
         setEvents(eventsData);
         setError(null);
@@ -44,13 +45,12 @@ const EventsScreen: React.FC<EventsScreenProps> = ({ navigation }) => {
         setLoading(false);
       }
     };
-    
+
     fetchEvents();
   }, []);
 
   const handleRSVP = (eventId: string) => {
     Alert.alert('RSVP', 'You have successfully RSVPed to this event!');
-    // Here you would typically update the event in Firestore
   };
 
   const handleViewDetails = (eventId: string) => {
@@ -60,6 +60,10 @@ const EventsScreen: React.FC<EventsScreenProps> = ({ navigation }) => {
   const handleJoinEvent = (eventId: string) => {
     navigation.navigate('VirtualEvent', { eventId });
   };
+
+  const filteredEvents = events.filter(event =>
+    event.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -73,12 +77,14 @@ const EventsScreen: React.FC<EventsScreenProps> = ({ navigation }) => {
     return (
       <LinearGradient colors={['#A89CFF', '#A89CFF']} style={[styles.container, styles.center]}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.retryButton}
           onPress={() => {
             setLoading(true);
             setError(null);
-            useEffect(() => {}, []); // This will trigger the fetch again
+            // Not the best way, but triggering fetch again
+            // Ideally should extract fetch logic to its own function
+            useEffect(() => {}, []);
           }}
         >
           <Text style={styles.retryButtonText}>Retry</Text>
@@ -95,11 +101,21 @@ const EventsScreen: React.FC<EventsScreenProps> = ({ navigation }) => {
             <Icon name="arrow-back" size={30} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}>All Events</Text>
-          <View style={{ width: 30 }} /> {/* For alignment */}
+          <View style={{ width: 30 }} />
         </View>
 
-        {events.length > 0 ? (
-          events.map(event => (
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search events..."
+            placeholderTextColor="#ccc"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {filteredEvents.length > 0 ? (
+          filteredEvents.map(event => (
             <EventCard
               key={event.id}
               title={event.title}
@@ -117,7 +133,7 @@ const EventsScreen: React.FC<EventsScreenProps> = ({ navigation }) => {
           ))
         ) : (
           <View style={styles.center}>
-            <Text style={styles.noEventsText}>No events available at the moment.</Text>
+            <Text style={styles.noEventsText}>No matching events found.</Text>
           </View>
         )}
       </ScrollView>
@@ -145,6 +161,18 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: 'white',
+  },
+  searchContainer: {
+    width: '90%',
+    marginBottom: 15,
+  },
+  searchInput: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    color: 'black',
   },
   noEventsText: {
     color: 'white',

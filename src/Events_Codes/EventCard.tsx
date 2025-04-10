@@ -6,7 +6,7 @@ interface EventCardProps {
   title: string;
   dateTime: string;
   description: string;
-  image: any; // Can be require(localImage) or {uri: 'https://...'}
+  image: any; 
   attendees: number;
   engagementRate: string;
   speakers: { name: string; role: string }[];
