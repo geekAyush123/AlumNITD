@@ -23,7 +23,7 @@ import EventsScreen from "./Events_Codes/EventsScreen";
 import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
 import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
 import AlumniSearchResults from './AlumniSearchResults';
-
+import DiscussionScreen from "./DiscussionScreen"
 export interface Alumni {
   id: string;
   fullName: string;
@@ -155,7 +155,7 @@ function App() {
           <Stack.Screen name="VirtualEvent" component={VirtualEventScreen} options={{ title: "Virtual Event" }} />
           <Stack.Screen name="Donation" component={DonationScreen} options={{ title: "Donate" }} />
           <Stack.Screen name="AlumniSearchResults" component={AlumniSearchResults} options={{ title: "Search Results" }} />
-
+          <Stack.Screen name="Discussion" component={DiscussionScreen} options={{ title: 'Discussion Room' }} />
           {/* Job Opportunities Screens */}
           
           {/* Time Capsule Screens */}
