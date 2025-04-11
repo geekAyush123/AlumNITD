@@ -29,6 +29,7 @@ import DonationScreen from "./DonationScreen";
 import ViewTimeCapsuleScreen from "./TimeCapsuleCodes/ViewTimeCapsuleScreen";
 import CreateTimeCapsuleScreen from "./TimeCapsuleCodes/CreateTimeCapsuleScreen";
 import TimeCapsuleListScreen from "./TimeCapsuleCodes/TimeCapsuleListScreen";
+import MyNetworkScreen from "./MyNetworkScreen"; 
 
 export interface Alumni {
   id: string;
@@ -154,6 +155,7 @@ export type RootStackParamList = {
   CreateTimeCapsule: undefined;
   AlumniSearchResults: { alumniList: Alumni[] };
   Discussion: undefined;
+  MyNetwork: undefined; // Add this route
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -205,6 +207,8 @@ function App() {
           <Stack.Screen name="TimeCapsules" component={TimeCapsuleListScreen} options={{ title: "Time Capsules" }} />
           <Stack.Screen name="ViewTimeCapsule" component={ViewTimeCapsuleScreen} options={{ title: "Time Capsule" }} />
           <Stack.Screen name="CreateTimeCapsule" component={CreateTimeCapsuleScreen} options={{ title: "Create Time Capsule" }} />
+          {/* Add the new MyNetwork screen */}
+          <Stack.Screen name="MyNetwork" component={MyNetworkScreen} options={{ title: "My Network" }} />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast />

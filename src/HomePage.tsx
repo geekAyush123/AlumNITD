@@ -118,6 +118,14 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               }} 
             />
             <MenuItem 
+              icon="people-outline" 
+              text="My Network" 
+              onPress={() => {
+                setMenuVisible(false);
+                navigation.navigate('MyNetwork');
+              }} 
+            />
+            <MenuItem 
               icon="mail" 
               text="Messages" 
               onPress={() => {
@@ -130,7 +138,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               text="Donations" 
               onPress={() => {
                 setMenuVisible(false);
-               navigation.navigate('Donation');
+                navigation.navigate('Donation');
               }} 
             />
             <MenuItem 
@@ -146,7 +154,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               text="Discussion" 
               onPress={() => {
                 setMenuVisible(false);
-                // navigation.navigate('Discussion');
+                navigation.navigate('Discussion');
               }} 
             />
             <MenuItem 
@@ -181,6 +189,13 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
           />
 
           <FeatureCard 
+            title="My Network" 
+            image={require('./assets/network.png')} 
+            text="View and manage your alumni connections"
+            onPress={() => navigation.navigate('MyNetwork')}
+          />
+
+          <FeatureCard 
             title="Upcoming Events" 
             image={require('./assets/events.png')} 
             text="Stay updated with events and networking opportunities."
@@ -206,20 +221,19 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
           <Text style={styles.bottomMenuText}>Time Capsules</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-    style={styles.bottomMenuItem} // Last item won't have border
-    onPress={() => navigation.navigate('Discussion')}
-  >
-    <Icon name="chatbubble-ellipses-outline" size={25} color="black" />
-    <Text style={styles.bottomMenuText}>Discussion</Text>
-  </TouchableOpacity>
+          style={styles.bottomMenuItem} 
+          onPress={() => navigation.navigate('MyNetwork')}
+        >
+          <Icon name="people-outline" size={25} color="black" />
+          <Text style={styles.bottomMenuText}>My Network</Text>
+        </TouchableOpacity>
         <TouchableOpacity 
           style={styles.bottomMenuItem} 
-          onPress={() => navigation.navigate('Donation')}
+          onPress={() => navigation.navigate('Discussion')}
         >
-          <Icon name="cash-outline" size={25} color="black" />
-          <Text style={styles.bottomMenuText}>Donations</Text>
+          <Icon name="chatbubble-ellipses-outline" size={25} color="black" />
+          <Text style={styles.bottomMenuText}>Discussion</Text>
         </TouchableOpacity>
-        
         
         
       </View>
@@ -250,17 +264,17 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#5C2D91', // Deep purple
+    color: '#5C2D91',
   },
   userText: {
     fontSize: 18,
     marginTop: 10,
     marginBottom: 5,
-    color: '#4B0082', // Indigo
+    color: '#4B0082',
   },
   bold: {
     fontWeight: 'bold',
-    color: '#6A0DAD', // Purple shade
+    color: '#6A0DAD',
   },
   welcomeText: {
     fontSize: 16,
@@ -274,13 +288,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   card: {
-    backgroundColor: '#EDE7F6', // Soft lavender
+    backgroundColor: '#EDE7F6',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
     marginBottom: 15,
     elevation: 4,
-    shadowColor: '#7B1FA2', // Purple shadow
+    shadowColor: '#7B1FA2',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -334,7 +348,7 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#EDE7F6', // Lavender base
+    backgroundColor: '#EDE7F6',
     paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: '#B39DDB',
