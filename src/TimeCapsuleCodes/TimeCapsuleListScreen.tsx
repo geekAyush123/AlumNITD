@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { getUserTimeCapsules, markCapsuleAsViewed } from './TimeCapsuleService';
 import auth from '@react-native-firebase/auth';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from './App';
+import { RootStackParamList } from '../App';
 
 interface TimeCapsuleItemProps {
   item: any;

@@ -1,13 +1,6 @@
-// TimeCapsuleService.tsx
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { uploadToCloudinary } from './CloudinaryService';
-
-// Cloudinary configuration
-const CLOUDINARY_CONFIG = {
-  uploadPreset: "Profile",
-  cloudName: "dqdhnkdzo"
-};
 
 interface TimeCapsule {
   id?: string;
@@ -24,42 +17,51 @@ interface TimeCapsule {
   status: 'active' | 'deleted';
 }
 
+const CLOUDINARY_CONFIG = {
+  uploadPreset: "timeCapsule",
+  cloudName: "dqdhnkdzo"
+};
+
 export const createTimeCapsule = async (
   capsuleData: Omit<TimeCapsule, 'id' | 'creatorId' | 'creatorEmail' | 'creationDate' | 'viewedBy' | 'status'>
-) => {
-  try {
-    const user = auth().currentUser;
-    if (!user) throw new Error('User not authenticated');
+): Promise<string> => {
+  const user = auth().currentUser;
+  if (!user) throw new Error('Authentication required');
 
-    // Handle media upload to Cloudinary
+  try {
+    // Upload media in batches (2 at a time)
     let mediaUrls: string[] = [];
-    if (capsuleData.mediaUrls?.length > 0) {
-      mediaUrls = await Promise.all(
-        capsuleData.mediaUrls.map(async (uri) => {
-          return await uploadToCloudinary({
+    if (capsuleData.mediaUrls?.length) {
+      for (let i = 0; i < capsuleData.mediaUrls.length; i += 2) {
+        const batch = capsuleData.mediaUrls.slice(i, i + 2);
+        const uploaded = await Promise.all(
+          batch.map(uri => uploadToCloudinary({
             uri,
             uploadPreset: CLOUDINARY_CONFIG.uploadPreset,
-            cloudName: CLOUDINARY_CONFIG.cloudName
-          });
-        })
-      );
+            cloudName: CLOUDINARY_CONFIG.cloudName,
+            folder: 'time_capsules',
+            resourceType: uri.endsWith('.mp4') ? 'video' : 'image'
+          }))
+        );
+        mediaUrls.push(...uploaded);
+      }
     }
 
-    // Prepare recipients
-    let recipientIds: string[] = [];
-    if (capsuleData.recipients?.length > 0) {
-      const recipientPromises = capsuleData.recipients.map(async (email) => {
-        const snapshot = await firestore()
-          .collection('users')
-          .where('email', '==', email.trim())
-          .limit(1)
-          .get();
-        return snapshot.docs[0]?.id;
-      });
-      recipientIds = (await Promise.all(recipientPromises)).filter(Boolean) as string[];
-    }
+    // Resolve recipient IDs
+    const recipientIds = capsuleData.recipients?.length 
+      ? (await Promise.all(
+          capsuleData.recipients.map(async email => {
+            const snapshot = await firestore()
+              .collection('users')
+              .where('email', '==', email.trim())
+              .limit(1)
+              .get();
+            return snapshot.docs[0]?.id;
+          })
+        )).filter(Boolean) as string[]
+      : [];
 
-    // Create time capsule document
+    // Create Firestore document
     const docRef = await firestore().collection('timeCapsules').add({
       creatorId: user.uid,
       creatorEmail: user.email || '',
@@ -69,21 +71,21 @@ export const createTimeCapsule = async (
       creationDate: firestore.FieldValue.serverTimestamp(),
       unlockDate: capsuleData.unlockDate,
       recipients: recipientIds,
-      isPublic: capsuleData.isPublic || false,
+      isPublic: capsuleData.isPublic,
       viewedBy: [],
       status: 'active'
     });
 
     return docRef.id;
   } catch (error) {
-    console.error("Error creating time capsule:", error);
+    console.error("Time capsule creation failed:", error);
     throw error;
   }
 };
 
-export const getUserTimeCapsules = async (userId: string) => {
+export const getUserTimeCapsules = async (userId: string): Promise<TimeCapsule[]> => {
   try {
-    const [creatorSnap, recipientSnap] = await Promise.all([
+    const [created, received] = await Promise.all([
       firestore()
         .collection('timeCapsules')
         .where('creatorId', '==', userId)
@@ -96,22 +98,21 @@ export const getUserTimeCapsules = async (userId: string) => {
         .get()
     ]);
 
-    const capsules = [...creatorSnap.docs, ...recipientSnap.docs]
+    return [...created.docs, ...received.docs]
       .map(doc => ({
         id: doc.id,
         ...doc.data(),
         creationDate: doc.data().creationDate?.toDate() || new Date(),
         unlockDate: doc.data().unlockDate?.toDate() || new Date()
-      } as TimeCapsule));
-
-    return capsules.sort((a, b) => a.unlockDate.getTime() - b.unlockDate.getTime());
+      } as TimeCapsule))
+      .sort((a, b) => a.unlockDate.getTime() - b.unlockDate.getTime());
   } catch (error) {
-    console.error("Error getting time capsules:", error);
+    console.error("Failed to fetch capsules:", error);
     return [];
   }
 };
 
-export const markCapsuleAsViewed = async (capsuleId: string, userId: string) => {
+export const markCapsuleAsViewed = async (capsuleId: string, userId: string): Promise<boolean> => {
   try {
     await firestore()
       .collection('timeCapsules')
@@ -121,12 +122,12 @@ export const markCapsuleAsViewed = async (capsuleId: string, userId: string) => 
       });
     return true;
   } catch (error) {
-    console.error("Error marking capsule as viewed:", error);
+    console.error("Failed to mark as viewed:", error);
     return false;
   }
 };
 
-export const deleteTimeCapsule = async (capsuleId: string) => {
+export const deleteTimeCapsule = async (capsuleId: string): Promise<boolean> => {
   try {
     await firestore()
       .collection('timeCapsules')
@@ -134,7 +135,7 @@ export const deleteTimeCapsule = async (capsuleId: string) => {
       .update({ status: 'deleted' });
     return true;
   } catch (error) {
-    console.error("Error deleting time capsule:", error);
+    console.error("Failed to delete:", error);
     return false;
   }
 };

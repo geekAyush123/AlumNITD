@@ -11,6 +11,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { uploadToCloudinary } from './TimeCapsuleCodes/CloudinaryService';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 const DonationScreen = () => {
   const [transactionId, setTransactionId] = useState('');
@@ -48,35 +51,37 @@ const DonationScreen = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('transactionId', transactionId);
-    formData.append('screenshot', {
-      uri: screenshotUri,
-      name: 'receipt.jpg',
-      type: 'image/jpeg',
-    } as any);
+    const user = auth().currentUser;
+    if (!user) {
+      Alert.alert('Not Logged In', 'You must be logged in to donate.');
+      return;
+    }
 
     try {
-      const response = await fetch('http://10.10.51.100:3000/api/donations', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      // Upload screenshot to Cloudinary
+      const screenshotUrl = await uploadToCloudinary({
+        uri: screenshotUri,
+        uploadPreset: 'timeCapsule', // change if needed
+        cloudName: 'dqdhnkdzo',
+        folder: 'donations',
+        resourceType: 'image',
+        fileName: `donation_${Date.now()}.jpg`,
       });
 
-      const data = await response.json();
+      // Save donation to Firestore
+      await firestore().collection('user_donations').add({
+        userId: user.uid,
+        transactionId: transactionId.trim(),
+        screenshotUrl,
+        timestamp: firestore.FieldValue.serverTimestamp(),
+      });
 
-      if (response.ok) {
-        Alert.alert('Success', 'Donation submitted successfully!');
-        setTransactionId('');
-        setScreenshotUri(null);
-      } else {
-        Alert.alert('Error', data.message || 'Something went wrong');
-      }
+      Alert.alert('Success', 'Donation recorded successfully!');
+      setTransactionId('');
+      setScreenshotUri(null);
     } catch (error) {
-      Alert.alert('Network Error', 'Unable to connect to server.');
-      console.error(error);
+      console.error('Donation submission failed:', error);
+      Alert.alert('Error', 'Something went wrong while submitting your donation.');
     }
   };
 
@@ -86,7 +91,7 @@ const DonationScreen = () => {
       <Text style={styles.subtitle}>Scan the QR code below to donate!</Text>
 
       <Image
-        source={require('./assets/qr-code.png')} // Place your actual image in assets
+        source={require('./assets/qr-code.png')} // Replace with your actual QR image
         style={styles.qrImage}
       />
 
@@ -106,7 +111,9 @@ const DonationScreen = () => {
         <Text style={styles.imageUploadText}>Upload Payment Screenshot</Text>
       </TouchableOpacity>
 
-      {screenshotUri && <Image source={{ uri: screenshotUri }} style={styles.uploadedImage} />}
+      {screenshotUri && (
+        <Image source={{ uri: screenshotUri }} style={styles.uploadedImage} />
+      )}
 
       <Button title="Submit" onPress={handleSubmit} />
     </ScrollView>

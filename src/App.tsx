@@ -37,9 +37,9 @@ export interface Alumni {
   industry?: string;
 }
 import DonationScreen from "./DonationScreen";
-import ViewTimeCapsuleScreen from "./ViewTimeCapsuleScreen";
-import CreateTimeCapsuleScreen from "./CreateTimeCapsuleScreen";
-import TimeCapsuleListScreen from "./TimeCapsuleListScreen";
+import ViewTimeCapsuleScreen from "./TimeCapsuleCodes/ViewTimeCapsuleScreen";
+import CreateTimeCapsuleScreen from "./TimeCapsuleCodes/CreateTimeCapsuleScreen";
+import TimeCapsuleListScreen from "./TimeCapsuleCodes/TimeCapsuleListScreen";
 
 // Splash Screen Component
 const SplashScreen = () => {
