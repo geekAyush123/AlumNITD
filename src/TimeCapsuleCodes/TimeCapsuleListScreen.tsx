@@ -1,58 +1,92 @@
-// TimeCapsuleListScreen.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getUserTimeCapsules, markCapsuleAsViewed } from './TimeCapsuleService';
+import { getUserTimeCapsules, markCapsuleAsViewed, deleteTimeCapsule } from './TimeCapsuleService';
 import auth from '@react-native-firebase/auth';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import notifee, { AndroidImportance } from '@notifee/react-native';
+import firestore from '@react-native-firebase/firestore';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { RectButton } from 'react-native-gesture-handler';
 
 interface TimeCapsuleItemProps {
   item: any;
   onPress: () => void;
+  onDelete: () => void;
 }
 
 interface TimeCapsuleListScreenProps {
   navigation: NativeStackNavigationProp<RootStackParamList, 'TimeCapsules'>;
 }
 
-const TimeCapsuleItem: React.FC<TimeCapsuleItemProps> = ({ item, onPress }) => {
+const NEW_CAPSULE_MESSAGES = [
+  "🎉 Time to time-travel! A new capsule just landed!",
+  "🚀 Houston, we have a new time capsule!",
+  "🕰️ Future you will thank present you for this new capsule!",
+  "💎 You've got a new treasure chest for the future!",
+  "📦 Package from the present, delivery to the future!"
+];
+
+const UNLOCKED_CAPSULE_MESSAGES = [
+  "🔓 Ka-ching! A time capsule just unlocked!",
+  "🎁 Surprise! Your past self has a gift for you!",
+  "⏳ The future is now! Check your unlocked capsule!",
+  "🪄 Abracadabra! Your time capsule has materialized!",
+  "🦉 Owl post! You've got mail from the past!"
+];
+
+const getRandomFunkyMessage = (messages: string[]) => {
+  return messages[Math.floor(Math.random() * messages.length)];
+};
+
+const TimeCapsuleItem: React.FC<TimeCapsuleItemProps> = ({ item, onPress, onDelete }) => {
   const isUnlocked = new Date() >= item.unlockDate;
   const user = auth().currentUser;
   const hasViewed = user && item.viewedBy.includes(user.uid);
 
+  const renderRightActions = () => {
+    return (
+      <RectButton style={styles.deleteButton} onPress={onDelete}>
+        <Icon name="trash-outline" size={24} color="white" />
+      </RectButton>
+    );
+  };
+
   return (
-    <TouchableOpacity 
-      style={[styles.itemContainer, isUnlocked && styles.unlockedContainer]}
-      onPress={onPress}
-      disabled={!isUnlocked}
-    >
-      <View style={styles.itemHeader}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        {isUnlocked ? (
-          <Icon name="lock-open" size={20} color="#4CAF50" />
-        ) : (
-          <Icon name="lock-closed" size={20} color="#FF9800" />
+    <Swipeable renderRightActions={renderRightActions}>
+      <TouchableOpacity 
+        style={[styles.itemContainer, isUnlocked && styles.unlockedContainer]}
+        onPress={onPress}
+        disabled={!isUnlocked}
+      >
+        <View style={styles.itemHeader}>
+          <Text style={styles.itemTitle}>{item.title}</Text>
+          {isUnlocked ? (
+            <Icon name="lock-open" size={20} color="#4CAF50" />
+          ) : (
+            <Icon name="lock-closed" size={20} color="#FF9800" />
+          )}
+        </View>
+        
+        <Text style={styles.itemDate}>
+          {isUnlocked ? 'Unlocked on: ' : 'Will unlock on: '}
+          {item.unlockDate.toLocaleDateString()}
+        </Text>
+        
+        {item.mediaUrls.length > 0 && (
+          <Image 
+            source={{ uri: item.mediaUrls[0] }} 
+            style={styles.itemThumbnail} 
+            resizeMode="cover"
+          />
         )}
-      </View>
-      
-      <Text style={styles.itemDate}>
-        {isUnlocked ? 'Unlocked on: ' : 'Will unlock on: '}
-        {item.unlockDate.toLocaleDateString()}
-      </Text>
-      
-      {item.mediaUrls.length > 0 && (
-        <Image 
-          source={{ uri: item.mediaUrls[0] }} 
-          style={styles.itemThumbnail} 
-          resizeMode="cover"
-        />
-      )}
-      
-      {isUnlocked && hasViewed && (
-        <Text style={styles.viewedText}>Viewed</Text>
-      )}
-    </TouchableOpacity>
+        
+        {isUnlocked && hasViewed && (
+          <Text style={styles.viewedText}>Viewed</Text>
+        )}
+      </TouchableOpacity>
+    </Swipeable>
   );
 };
 
@@ -77,8 +111,86 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
     }
   };
 
+  const displayNotification = async (title: string, body: string) => {
+    try {
+      await notifee.requestPermission();
+
+      const channelId = await notifee.createChannel({
+        id: 'time-capsules',
+        name: 'Time Capsule Notifications',
+        importance: AndroidImportance.HIGH,
+        vibration: true,
+        sound: 'default',
+      });
+      console.log('Notification channel created:', channelId); // Check logs
+      await notifee.displayNotification({
+        title,
+        body,
+        android: {
+          channelId,
+          pressAction: {
+            id: 'default',
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Notification error:', error);
+    }
+  };
+
+  const checkForUnlockedCapsules = (currentCapsules: any[]) => {
+    const now = new Date();
+    currentCapsules.forEach(capsule => {
+      const isUnlocked = now >= capsule.unlockDate;
+      const wasLocked = !capsules.some(c => c.id === capsule.id && new Date(c.unlockDate) <= now);
+      
+      if (isUnlocked && wasLocked) {
+        displayNotification(
+          'Time Capsule Unlocked!', 
+          getRandomFunkyMessage(UNLOCKED_CAPSULE_MESSAGES)
+        );
+      }
+    });
+  };
+
   useEffect(() => {
     loadCapsules();
+
+    if (user) {
+      const unsubscribe = firestore()
+        .collection('timeCapsules')
+        .where('status', '==', 'active')
+        .where('recipients', 'array-contains', user.uid)
+        .orderBy('unlockDate', 'asc')
+        .onSnapshot(snapshot => {
+          const newCapsules = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            creationDate: doc.data().creationDate?.toDate() || new Date(),
+            unlockDate: doc.data().unlockDate?.toDate() || new Date()
+          }));
+
+          if (newCapsules.length > capsules.length) {
+            const newCapsule = newCapsules.find(
+              nc => !capsules.some(c => c.id === nc.id)
+            );
+            
+            if (newCapsule) {
+              displayNotification(
+                'New Time Capsule Received!', 
+                getRandomFunkyMessage(NEW_CAPSULE_MESSAGES)
+              );
+            }
+          }
+          
+          checkForUnlockedCapsules(newCapsules);
+          setCapsules(newCapsules);
+        }, error => {
+          console.error('Snapshot error:', error);
+        });
+
+      return () => unsubscribe();
+    }
   }, [user]);
 
   const handleRefresh = () => {
@@ -91,6 +203,33 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
       await markCapsuleAsViewed(capsule.id, user.uid);
     }
     navigation.navigate('ViewTimeCapsule', { capsuleId: capsule.id });
+  };
+
+  const handleDeleteCapsule = async (capsuleId: string) => {
+    try {
+      Alert.alert(
+        'Delete Time Capsule',
+        'Are you sure you want to delete this time capsule? This action cannot be undone.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              await deleteTimeCapsule(capsuleId);
+              setCapsules(capsules.filter(c => c.id !== capsuleId));
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    } catch (error) {
+      console.error('Error deleting capsule:', error);
+      Alert.alert('Error', 'Failed to delete time capsule');
+    }
   };
 
   if (loading) {
@@ -108,7 +247,8 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
         renderItem={({ item }) => (
           <TimeCapsuleItem 
             item={item} 
-            onPress={() => handleOpenCapsule(item)} 
+            onPress={() => handleOpenCapsule(item)}
+            onDelete={() => handleDeleteCapsule(item.id)}
           />
         )}
         keyExtractor={(item) => item.id}
@@ -214,6 +354,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
+  },
+  deleteButton: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '80%',
+    marginTop: 10,
+    borderRadius: 10,
+    marginRight: 10,
   },
 });
 

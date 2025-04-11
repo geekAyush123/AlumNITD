@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../App';
+import Video from 'react-native-video';
 
-// Define types
+// Types
 interface TimeCapsule {
   title: string;
   message: string;
@@ -58,6 +59,33 @@ const ViewTimeCapsuleScreen: React.FC<ViewTimeCapsuleScreenProps> = ({ route }) 
     return () => unsubscribe();
   }, [capsuleId]);
 
+  const renderMedia = (url: string, index: number) => {
+    const isVideo = url.endsWith('.mp4') || url.endsWith('.mov') || url.includes('video');
+    const isGif = url.endsWith('.gif');
+
+    if (isVideo) {
+      return (
+        <Video
+          key={index}
+          source={{ uri: url }}
+          style={styles.media}
+          resizeMode="cover"
+          controls
+          paused={true}
+        />
+      );
+    }
+
+    return (
+      <Image
+        key={index}
+        source={{ uri: url }}
+        style={styles.media}
+        resizeMode="cover"
+      />
+    );
+  };
+
   if (loading || !capsule) {
     return (
       <View style={styles.loadingContainer}>
@@ -69,7 +97,7 @@ const ViewTimeCapsuleScreen: React.FC<ViewTimeCapsuleScreenProps> = ({ route }) 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>{capsule.title}</Text>
-      
+
       <View style={styles.dateRow}>
         <Icon name="time-outline" size={16} color="#666" />
         <Text style={styles.dateText}>
@@ -77,13 +105,8 @@ const ViewTimeCapsuleScreen: React.FC<ViewTimeCapsuleScreenProps> = ({ route }) 
         </Text>
       </View>
 
-      {capsule.mediaUrls.length > 0 && (
-        <Image 
-          source={{ uri: capsule.mediaUrls[0] }} 
-          style={styles.media} 
-          resizeMode="cover"
-        />
-      )}
+      {capsule.mediaUrls.length > 0 &&
+        capsule.mediaUrls.map((url, index) => renderMedia(url, index))}
 
       <Text style={styles.message}>{capsule.message}</Text>
 
@@ -95,6 +118,8 @@ const ViewTimeCapsuleScreen: React.FC<ViewTimeCapsuleScreenProps> = ({ route }) 
     </ScrollView>
   );
 };
+
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -123,10 +148,11 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   media: {
-    width: '100%',
+    width: width - 40,
     height: 250,
     borderRadius: 8,
     marginBottom: 16,
+    backgroundColor: '#eee',
   },
   message: {
     fontSize: 16,

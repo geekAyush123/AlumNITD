@@ -5,6 +5,7 @@ import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createStackNavigator, StackNavigationProp } from "@react-navigation/stack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from 'react-native-toast-message';
+import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 
 // Screen imports
 import LoginScreen from "./LoginScreen";
@@ -53,6 +54,20 @@ const SplashScreen = () => {
   const animationRef = useRef<Animated.CompositeAnimation>();
 
   useEffect(() => {
+    // Initialize notifications
+    const initializeNotifications = async () => {
+      await notifee.requestPermission();
+      await notifee.createChannel({
+        id: 'time-capsules',
+        name: 'Time Capsule Notifications',
+        importance: AndroidImportance.HIGH,
+        vibration: true,
+        sound: 'default',
+      });
+    };
+
+    initializeNotifications();
+
     animationRef.current = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -144,6 +159,26 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 function App() {
+  // Set up notification foreground handler
+  useEffect(() => {
+    return notifee.onForegroundEvent(({ type, detail }) => {
+      switch (type) {
+        case EventType.DELIVERED:
+          console.log('Notification delivered');
+          break;
+        case EventType.PRESS:
+          console.log('Notification pressed');
+          break;
+        case EventType.ACTION_PRESS:
+          console.log('Notification action pressed');
+          break;
+        case EventType.DISMISSED:
+          console.log('Notification dismissed');
+          break;
+      }
+    });
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
