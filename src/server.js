@@ -20,6 +20,14 @@ cloudinaryV2.config({
 const apiSecret = "jXjyF2Yqa4SACaD7ZsnCgl9JbZg";
 
 // 🧾 Mongoose Schema
+
+// 🌐 MongoDB connection
+mongoose
+  .connect("mongodb://localhost:27017/donation")
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB error:", err));
+
+
 const donationSchema = new mongoose.Schema({
   transactionId: {
     type: String,
@@ -41,7 +49,7 @@ const blogSchema = new mongoose.Schema({
   content: { type: String, required: true },
 }, { timestamps: true });
 
-const Blog = mongoose.model('Blog', blogSchema);
+const Blog = mongoose.model('Blog',blogSchema);
 
 // 🔐 Route to get Cloudinary signature (optional for secure frontend uploads)
 app.get("/get-signature", (req, res) => {
@@ -62,11 +70,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB
 
-// 🌐 MongoDB connection
-mongoose
-  .connect("mongodb://localhost:27017/donation")
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB error:", err));
 
 // 🎯 POST route to accept donations (no router)
 app.post("/api/donations", upload.single("screenshot"), async (req, res) => {
@@ -100,14 +103,16 @@ app.post("/api/donations", upload.single("screenshot"), async (req, res) => {
     res.status(500).json({ error: "Server error", details: err.message });
   }
 });
-
+///addedd discussion
 app.get('/blogs', async (req, res) => {
+  console.log("hello")
   try {
     const blogs = await Blog.find().sort({ createdAt: -1 });
     res.json(blogs);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch blogs' });
   }
+  
 });
 
 // POST create a new blog

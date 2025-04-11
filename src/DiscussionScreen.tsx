@@ -17,7 +17,7 @@ import Toast from 'react-native-toast-message';
 import { Swipeable } from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const BASE_URL = 'http://192.168.0.244:3000';
+const BASE_URL = 'http://10.10.48.40:3000';
 
 interface Blog {
   _id: string;
@@ -130,8 +130,8 @@ export default function DiscussionScreen() {
   };
 
   const renderRightActions = (
-    progress: Animated.AnimatedInterpolation,
-    dragX: Animated.AnimatedInterpolation,
+    progress: Animated.AnimatedInterpolation<number>,
+    dragX: Animated.AnimatedInterpolation<number>,
     id: string
   ) => {
     const scale = dragX.interpolate({
@@ -152,8 +152,8 @@ export default function DiscussionScreen() {
   };
 
   const renderLeftActions = (
-    progress: Animated.AnimatedInterpolation,
-    dragX: Animated.AnimatedInterpolation,
+    progress: Animated.AnimatedInterpolation<number>,
+    dragX: Animated.AnimatedInterpolation<number>,
     blog: Blog
   ) => {
     const scale = dragX.interpolate({
@@ -215,14 +215,14 @@ export default function DiscussionScreen() {
         <TextInput
           style={styles.input}
           placeholder="Title"
-          placeholderTextColor="#ddd"
+          placeholderTextColor="#D1C4E9"
           value={title}
           onChangeText={setTitle}
         />
         <TextInput
           style={[styles.input, { height: 100 }]}
           placeholder="Content"
-          placeholderTextColor="#ddd"
+          placeholderTextColor="#D1C4E9"
           multiline
           value={content}
           onChangeText={setContent}
@@ -241,11 +241,11 @@ export default function DiscussionScreen() {
             }
             onPress={handleSubmit}
             disabled={loading}
-            color="#BB86FC"
+            color="#6A1B9A"
           />
           {editingBlogId && (
             <View style={{ marginLeft: 10 }}>
-              <Button title="Cancel" onPress={resetForm} color="#FF5C5C" />
+              <Button title="Cancel" onPress={resetForm} color="#C2185B" />
             </View>
           )}
         </View>
@@ -253,7 +253,7 @@ export default function DiscussionScreen() {
         <View style={styles.searchHeader}>
           <Text style={styles.header}>Discussion Forum</Text>
           <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
-            <Ionicons name="search-outline" size={24} color="#EDE7F6" />
+            <Ionicons name="search-outline" size={24} color="#F3E5F5" />
           </TouchableOpacity>
         </View>
 
@@ -261,7 +261,7 @@ export default function DiscussionScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search by title..."
-            placeholderTextColor="#ccc"
+            placeholderTextColor="#E1BEE7"
             value={searchTerm}
             onChangeText={setSearchTerm}
           />
@@ -282,57 +282,64 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     paddingBottom: 60,
-    backgroundColor: '#2B1A47',
+    backgroundColor: '#4A148C',
   },
   header: {
     fontSize: 22,
     fontWeight: 'bold',
     marginVertical: 16,
-    color: '#EDE7F6',
+    color: '#F3E5F5',
   },
   searchHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 10,
   },
   input: {
-    borderColor: '#BB86FC',
+    borderColor: '#CE93D8',
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 10,
+    padding: 12,
     marginBottom: 12,
-    color: '#fff',
+    color: '#FFFFFF',
+    backgroundColor: '#6A1B9A',
   },
   searchInput: {
-    borderColor: '#777',
+    borderColor: '#BA68C8',
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 10,
+    padding: 12,
     marginBottom: 16,
-    color: '#fff',
-    backgroundColor: '#3D2A60',
+    color: '#FFFFFF',
+    backgroundColor: '#8E24AA',
   },
   blogCard: {
-    padding: 12,
-    backgroundColor: '#3D2A60',
-    marginBottom: 10,
-    borderRadius: 8,
+    padding: 14,
+    backgroundColor: '#7B1FA2',
+    marginBottom: 12,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   blogTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#EADDFF',
+    color: '#F8BBD0',
   },
   blogContent: {
     fontSize: 14,
-    marginTop: 4,
-    color: '#F3E8FF',
+    marginTop: 6,
+    color: '#E1BEE7',
   },
   editHint: {
-    marginTop: 6,
+    marginTop: 8,
     fontSize: 12,
     fontStyle: 'italic',
-    color: '#A08EC1',
+    color: '#CE93D8',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -340,7 +347,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   deleteButton: {
-    backgroundColor: '#FF4C4C',
+    backgroundColor: '#AD1457',
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
@@ -353,7 +360,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   editButton: {
-    backgroundColor: '#9575CD',
+    backgroundColor: '#6A1B9A',
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,

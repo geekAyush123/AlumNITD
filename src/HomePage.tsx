@@ -228,98 +228,104 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1 
+  container: {
+    flex: 1,
   },
-  scrollContainer: { 
-    alignItems: 'center', 
-    paddingBottom: 80 // Added padding to accommodate bottom menu
+  scrollContainer: {
+    alignItems: 'center',
+    paddingBottom: 80,
   },
-  header: { 
-    flexDirection: 'row', 
-    width: '90%', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginTop: 50,
-    marginBottom: 10 
-  },
-  headerIcons: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
-  },
-  logo: { 
-    fontSize: 22, 
-    fontWeight: 'bold' 
-  },
-  userText: { 
-    fontSize: 18, 
-    marginTop: 10,
-    marginBottom: 5 
-  },
-  bold: { 
-    fontWeight: 'bold' 
-  },
-  welcomeText: { 
-    fontSize: 16, 
-    textAlign: 'center', 
-    marginVertical: 10,
-    paddingHorizontal: 20 
-  },
-  cardContainer: { 
+  header: {
+    flexDirection: 'row',
     width: '90%',
-    marginTop: 10 
-  },
-  card: { 
-    backgroundColor: 'white', 
-    borderRadius: 10, 
-    padding: 15, 
-    alignItems: 'center', 
-    marginBottom: 15,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  cardImage: { 
-    width: 80, 
-    height: 80, 
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 50,
     marginBottom: 10,
-    resizeMode: 'contain' 
   },
-  cardTitle: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#5C2D91', // Deep purple
+  },
+  userText: {
+    fontSize: 18,
+    marginTop: 10,
+    marginBottom: 5,
+    color: '#4B0082', // Indigo
+  },
+  bold: {
+    fontWeight: 'bold',
+    color: '#6A0DAD', // Purple shade
+  },
+  welcomeText: {
+    fontSize: 16,
     textAlign: 'center',
-    marginBottom: 5 
-  },
-  cardDescription: { 
-    fontSize: 14, 
-    textAlign: 'center', 
-    color: 'gray',
-    paddingHorizontal: 10 
-  },
-  menu: { 
-    backgroundColor: 'white', 
-    padding: 10, 
-    borderRadius: 8, 
-    width: '80%', 
     marginVertical: 10,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    paddingHorizontal: 20,
+    color: '#5D3FD3',
+  },
+  cardContainer: {
+    width: '90%',
+    marginTop: 10,
+  },
+  card: {
+    backgroundColor: '#EDE7F6', // Soft lavender
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+    marginBottom: 15,
+    elevation: 4,
+    shadowColor: '#7B1FA2', // Purple shadow
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  cardImage: {
+    width: 80,
+    height: 80,
+    marginBottom: 10,
+    resizeMode: 'contain',
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5,
+    color: '#512DA8',
+  },
+  cardDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    color: '#6C3483',
+    paddingHorizontal: 10,
+  },
+  menu: {
+    backgroundColor: '#F3E5F5',
+    padding: 10,
+    borderRadius: 8,
+    width: '80%',
+    marginVertical: 10,
+    elevation: 6,
+    shadowColor: '#6A0DAD',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  menuItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
-    borderRadius: 5 
+    borderRadius: 5,
   },
-  menuText: { 
-    fontSize: 16, 
-    marginLeft: 10 
+  menuText: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: '#4B0082',
   },
   bottomMenu: {
     position: 'absolute',
@@ -328,10 +334,10 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: 'white',
+    backgroundColor: '#EDE7F6', // Lavender base
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: '#B39DDB',
     elevation: 8,
   },
   bottomMenuItem: {
@@ -341,6 +347,7 @@ const styles = StyleSheet.create({
   bottomMenuText: {
     fontSize: 12,
     marginTop: 5,
+    color: '#5C2D91',
   },
 });
 

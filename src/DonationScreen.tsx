@@ -58,17 +58,15 @@ const DonationScreen = () => {
     }
 
     try {
-      // Upload screenshot to Cloudinary
       const screenshotUrl = await uploadToCloudinary({
         uri: screenshotUri,
-        uploadPreset: 'timeCapsule', // change if needed
+        uploadPreset: 'timeCapsule',
         cloudName: 'dqdhnkdzo',
         folder: 'donations',
         resourceType: 'image',
         fileName: `donation_${Date.now()}.jpg`,
       });
 
-      // Save donation to Firestore
       await firestore().collection('user_donations').add({
         userId: user.uid,
         transactionId: transactionId.trim(),
@@ -91,7 +89,7 @@ const DonationScreen = () => {
       <Text style={styles.subtitle}>Scan the QR code below to donate!</Text>
 
       <Image
-        source={require('./assets/qr-code.png')} // Replace with your actual QR image
+        source={require('./assets/qr-code.png')}
         style={styles.qrImage}
       />
 
@@ -104,6 +102,7 @@ const DonationScreen = () => {
         value={transactionId}
         onChangeText={setTransactionId}
         placeholder="Enter Transaction ID"
+        placeholderTextColor="#888"
         autoCapitalize="characters"
       />
 
@@ -115,7 +114,9 @@ const DonationScreen = () => {
         <Image source={{ uri: screenshotUri }} style={styles.uploadedImage} />
       )}
 
-      <Button title="Submit" onPress={handleSubmit} />
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <Text style={styles.submitButtonText}>Submit</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -125,63 +126,83 @@ export default DonationScreen;
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
-    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#F4F1FB',
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#4B0082',
     marginBottom: 10,
-    color: '#1a365d',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    marginBottom: 20,
+    color: '#7D5FFF',
+    marginBottom: 18,
     textAlign: 'center',
-    color: '#4A00E0',
   },
   qrImage: {
-    width: 220,
-    height: 220,
-    resizeMode: 'contain',
-    marginBottom: 10,
-    borderRadius: 10,
+    width: 230,
+    height: 230,
+    borderRadius: 16,
+    marginBottom: 14,
+    borderWidth: 1.5,
+    borderColor: '#B3A5D7',
   },
   scanText: {
-    fontSize: 16,
-    marginBottom: 20,
-    color: 'gray',
+    fontSize: 15,
+    color: '#6B5E9E',
+    marginBottom: 18,
     textAlign: 'center',
   },
   input: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 20,
-    borderRadius: 8,
-    fontSize: 16,
     width: '100%',
+    padding: 14,
+    fontSize: 16,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderColor: '#A98BD0',
+    borderWidth: 1.2,
+    marginBottom: 18,
+    elevation: 2,
+    color: '#333',
   },
   imageUploadButton: {
-    backgroundColor: '#4A00E0',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
     width: '100%',
+    padding: 14,
+    backgroundColor: '#6C00FF',
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 16,
+    elevation: 3,
   },
   imageUploadText: {
-    color: 'white',
-    textAlign: 'center',
+    color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
   },
   uploadedImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
+    width: 220,
+    height: 220,
+    borderRadius: 14,
     marginBottom: 20,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
+    borderWidth: 1,
+    borderColor: '#A98BD0',
+  },
+  submitButton: {
+    width: '100%',
+    backgroundColor: '#8E2DE2',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    elevation: 3,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: 'bold',
   },
 });

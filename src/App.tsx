@@ -4,7 +4,7 @@ import { View, StyleSheet, Animated, Image, Text } from "react-native";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createStackNavigator, StackNavigationProp } from "@react-navigation/stack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { RouteProp } from "@react-navigation/native";
+import Toast from 'react-native-toast-message';
 
 // Screen imports
 import LoginScreen from "./LoginScreen";
@@ -23,7 +23,12 @@ import EventsScreen from "./Events_Codes/EventsScreen";
 import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
 import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
 import AlumniSearchResults from './AlumniSearchResults';
-import DiscussionScreen from "./DiscussionScreen"
+import DiscussionScreen from "./DiscussionScreen";
+import DonationScreen from "./DonationScreen";
+import ViewTimeCapsuleScreen from "./TimeCapsuleCodes/ViewTimeCapsuleScreen";
+import CreateTimeCapsuleScreen from "./TimeCapsuleCodes/CreateTimeCapsuleScreen";
+import TimeCapsuleListScreen from "./TimeCapsuleCodes/TimeCapsuleListScreen";
+
 export interface Alumni {
   id: string;
   fullName: string;
@@ -40,10 +45,6 @@ export interface Alumni {
   bio?: string;
   jobDescription?: string;
 };
-import DonationScreen from "./DonationScreen";
-import ViewTimeCapsuleScreen from "./TimeCapsuleCodes/ViewTimeCapsuleScreen";
-import CreateTimeCapsuleScreen from "./TimeCapsuleCodes/CreateTimeCapsuleScreen";
-import TimeCapsuleListScreen from "./TimeCapsuleCodes/TimeCapsuleListScreen";
 
 // Splash Screen Component
 const SplashScreen = () => {
@@ -68,6 +69,14 @@ const SplashScreen = () => {
       ])
     );
     animationRef.current.start();
+
+    // Show toast when splash loads
+    Toast.show({
+      type: 'success',
+      text1: 'Welcome to AlumNITD 👋',
+      text2: 'Connecting Futures, Honoring Pasts.',
+      visibilityTime: 2500,
+    });
 
     const timer = setTimeout(() => {
       navigation.navigate("Login");
@@ -129,6 +138,7 @@ export type RootStackParamList = {
   ViewTimeCapsule: { capsuleId: string };
   CreateTimeCapsule: undefined;
   AlumniSearchResults: { alumniList: Alumni[] };
+  Discussion: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -138,10 +148,7 @@ function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Splash">
-          {/* Splash Screen */}
           <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
-
-          {/* App Screens */}
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: true, title: "Back" }} />
           <Stack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
@@ -160,14 +167,12 @@ function App() {
           <Stack.Screen name="Donation" component={DonationScreen} options={{ title: "Donate" }} />
           <Stack.Screen name="AlumniSearchResults" component={AlumniSearchResults} options={{ title: "Search Results" }} />
           <Stack.Screen name="Discussion" component={DiscussionScreen} options={{ title: 'Discussion Room' }} />
-          {/* Job Opportunities Screens */}
-          
-          {/* Time Capsule Screens */}
           <Stack.Screen name="TimeCapsules" component={TimeCapsuleListScreen} options={{ title: "Time Capsules" }} />
           <Stack.Screen name="ViewTimeCapsule" component={ViewTimeCapsuleScreen} options={{ title: "Time Capsule" }} />
           <Stack.Screen name="CreateTimeCapsule" component={CreateTimeCapsuleScreen} options={{ title: "Create Time Capsule" }} />
         </Stack.Navigator>
       </NavigationContainer>
+      <Toast />
     </GestureHandlerRootView>
   );
 }
