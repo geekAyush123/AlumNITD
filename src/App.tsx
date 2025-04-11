@@ -24,7 +24,7 @@ import EventDetailsScreen from "./Events_Codes/EventDetailsScreen";
 import VirtualEventScreen from "./Events_Codes/VirtualEventScreen";
 import AlumniSearchResults from './AlumniSearchResults';
 
-export interface Alumni {
+export type Alumni = {
   id: string;
   fullName: string;
   company?: string;
@@ -33,9 +33,13 @@ export interface Alumni {
   location?: string;
   skills?: string[];
   graduationYear?: string;
-  skill?: string;
   industry?: string;
-}
+  fieldOfStudy?: string;
+  degree?: string;
+  institution?: string;
+  bio?: string;
+  jobDescription?: string;
+};
 import DonationScreen from "./DonationScreen";
 import ViewTimeCapsuleScreen from "./TimeCapsuleCodes/ViewTimeCapsuleScreen";
 import CreateTimeCapsuleScreen from "./TimeCapsuleCodes/CreateTimeCapsuleScreen";
