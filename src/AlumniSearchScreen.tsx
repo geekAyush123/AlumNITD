@@ -8,7 +8,8 @@ import {
   TouchableWithoutFeedback, 
   Keyboard, 
   ScrollView, 
-  ActivityIndicator
+  ActivityIndicator,
+  FlatList
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -27,12 +28,14 @@ const AlumniSearchScreen = () => {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<Alumni[]>([]);
+  const [showResults, setShowResults] = useState(false);
 
   // Fetch all alumni data on component mount
   useEffect(() => {
     const fetchAllAlumni = async () => {
       try {
-        const alumniSnapshot = await firestore().collection('alumni').get();
+        const alumniSnapshot = await firestore().collection('users').get();
         const alumniData = alumniSnapshot.docs.map(doc => ({
           id: doc.id,
           fullName: doc.data().fullName || '',
@@ -43,7 +46,11 @@ const AlumniSearchScreen = () => {
           skills: doc.data().skills || [],
           graduationYear: doc.data().graduationYear,
           industry: doc.data().industry,
-          skill: doc.data().skill
+          fieldOfStudy: doc.data().fieldOfStudy,
+          degree: doc.data().degree,
+          institution: doc.data().institution,
+          bio: doc.data().bio,
+          jobDescription: doc.data().jobDescription
         } as Alumni));
         
         setAllAlumni(alumniData);
@@ -55,63 +62,76 @@ const AlumniSearchScreen = () => {
     fetchAllAlumni();
   }, []);
 
-  // Perform the search with debouncing
-  const performSearch = useCallback(
+  // Debounced search function
+  const debouncedSearch = useCallback(
     debounce((searchQuery: string, filters: string[]) => {
       if (searchQuery.trim() === '' && filters.length === 0) {
+        setSearchResults([]);
         setIsSearching(false);
+        setShowResults(false);
         return;
       }
 
       const lowerCaseQuery = searchQuery.toLowerCase();
-      const filteredResults = allAlumni.filter(alum => {
-        // Apply text search
-        const textMatch = searchQuery.trim() === '' ? true : [
+      const results = allAlumni.filter(alum => {
+        // Apply filters first
+        const filterMatch = filters.length === 0 ? true : 
+          filters.some(filter => {
+            return (
+              alum.graduationYear === filter ||
+              alum.location === filter ||
+              alum.industry === filter ||
+              (alum.skills && alum.skills.includes(filter)) ||
+              alum.fieldOfStudy === filter ||
+              alum.institution === filter
+            );
+          });
+
+        if (!filterMatch) return false;
+        
+        if (searchQuery.trim() === '') return true;
+
+        // Apply text search across multiple fields
+        const searchFields = [
           alum.fullName,
           alum.location,
           alum.industry,
           alum.graduationYear,
           alum.company,
           alum.jobTitle,
+          alum.fieldOfStudy,
+          alum.degree,
+          alum.institution,
+          alum.bio,
+          alum.jobDescription,
           ...(alum.skills || [])
         ]
           .filter(Boolean)
           .join(' ')
-          .toLowerCase()
-          .includes(lowerCaseQuery);
+          .toLowerCase();
 
-        // Apply filters
-        const filterMatch = filters.length === 0 ? true : filters.some(filter => {
-          return (
-            alum.graduationYear === filter ||
-            alum.location === filter ||
-            alum.industry === filter ||
-            (alum.skills && alum.skills.includes(filter))
-          );
-        });
-
-        return textMatch && filterMatch;
+        return searchFields.includes(lowerCaseQuery) || 
+               searchFields.split(' ').some(word => word.startsWith(lowerCaseQuery));
       });
 
-      // Navigate to results page with the filtered results
-      navigation.navigate('AlumniSearchResults', { 
-        alumniList: filteredResults 
-      });
+      setSearchResults(results);
       setIsSearching(false);
+      setShowResults(searchQuery.trim().length > 0 || filters.length > 0);
     }, 300),
-    [allAlumni, navigation]
+    [allAlumni]
   );
 
   // Handle search input changes
   const handleSearchChange = (text: string) => {
     setQuery(text);
-  };
-
-  // Handle search submission
-  const handleSearchSubmit = () => {
-    if (query.trim() === '' && selectedFilters.length === 0) return;
-    setIsSearching(true);
-    performSearch(query, selectedFilters);
+    if (text.trim().length > 0 || selectedFilters.length > 0) {
+      setIsSearching(true);
+      debouncedSearch(text, selectedFilters);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+      setShowResults(false);
+    }
   };
 
   // Handle filter changes
@@ -120,11 +140,41 @@ const AlumniSearchScreen = () => {
       ? selectedFilters.filter(item => item !== filter) 
       : [...selectedFilters, filter];
     setSelectedFilters(newFilters);
+    
+    // Trigger search when filters change
+    if (query.trim().length > 0 || newFilters.length > 0) {
+      setIsSearching(true);
+      debouncedSearch(query, newFilters);
+    }
   };
 
   const toggleFilterVisibility = () => {
     setShowFilters(!showFilters);
   };
+
+  const handleResultSelect = (alum: Alumni) => {
+    navigation.navigate('ViewProfile', { userId: alum.id });
+    setShowResults(false);
+    Keyboard.dismiss();
+  };
+
+  const renderSearchResult = ({ item }: { item: Alumni }) => (
+    <TouchableOpacity
+      style={styles.resultItem}
+      onPress={() => handleResultSelect(item)}
+    >
+      <Text style={styles.resultName}>{item.fullName}</Text>
+      <Text style={styles.resultDetails}>
+        {item.jobTitle ? `${item.jobTitle}` : ''}
+        {item.company ? ` at ${item.company}` : ''}
+        {!item.jobTitle && !item.company && item.institution ? 
+          `${item.institution} (${item.fieldOfStudy || 'Alumni'})` : ''}
+      </Text>
+      {item.location && (
+        <Text style={[styles.resultDetails, { color: '#888' }]}>{item.location}</Text>
+      )}
+    </TouchableOpacity>
+  );
 
   const renderHeader = () => (
     <>
@@ -136,10 +186,11 @@ const AlumniSearchScreen = () => {
           placeholderTextColor="#888"
           value={query}
           onChangeText={handleSearchChange}
-          onSubmitEditing={handleSearchSubmit}
           returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="none"
         />
-        <TouchableOpacity onPress={handleSearchSubmit} style={styles.searchIcon}>
+        <TouchableOpacity style={styles.searchIcon}>
           {isSearching ? (
             <ActivityIndicator size="small" color="#000" />
           ) : (
@@ -147,6 +198,26 @@ const AlumniSearchScreen = () => {
           )}
         </TouchableOpacity>
       </View>
+
+      {showResults && (
+        <View style={styles.resultsContainer}>
+          {isSearching ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#7B61FF" />
+            </View>
+          ) : searchResults.length > 0 ? (
+            <FlatList
+              data={searchResults}
+              renderItem={renderSearchResult}
+              keyExtractor={(item) => item.id}
+              keyboardShouldPersistTaps="always"
+              style={styles.resultsList}
+            />
+          ) : (
+            <Text style={styles.noResultsText}>No results found</Text>
+          )}
+        </View>
+      )}
 
       <TouchableOpacity 
         style={styles.filterToggleButton}
@@ -177,7 +248,7 @@ const AlumniSearchScreen = () => {
 
           <Text style={styles.filterTitle}>Location</Text>
           <View style={styles.filterContainer}>
-            {['City', 'State', 'Country'].map(location => (
+            {['New York', 'California', 'Texas', 'London', 'Paris'].map(location => (
               <TouchableOpacity
                 key={location}
                 style={[styles.filterButton, selectedFilters.includes(location) && styles.selectedFilter]}
@@ -190,7 +261,7 @@ const AlumniSearchScreen = () => {
 
           <Text style={styles.filterTitle}>Industry</Text>
           <View style={styles.filterContainer}>
-            {['Technology', 'Healthcare', 'Education'].map(industry => (
+            {['Technology', 'Healthcare', 'Education', 'Finance', 'Marketing'].map(industry => (
               <TouchableOpacity
                 key={industry}
                 style={[styles.filterButton, selectedFilters.includes(industry) && styles.selectedFilter]}
@@ -203,7 +274,7 @@ const AlumniSearchScreen = () => {
 
           <Text style={styles.filterTitle}>Skills</Text>
           <View style={styles.filterContainer}>
-            {['Java', 'Marketing', 'Data Analysis'].map(skill => (
+            {['JavaScript', 'React', 'Marketing', 'Data Analysis', 'Leadership'].map(skill => (
               <TouchableOpacity
                 key={skill}
                 style={[styles.filterButton, selectedFilters.includes(skill) && styles.selectedFilter]}
@@ -217,7 +288,13 @@ const AlumniSearchScreen = () => {
           <View style={styles.filterActionButtons}>
             <TouchableOpacity 
               style={styles.resetButton} 
-              onPress={() => setSelectedFilters([])}
+              onPress={() => {
+                setSelectedFilters([]);
+                if (query.trim().length > 0) {
+                  setIsSearching(true);
+                  debouncedSearch(query, []);
+                }
+              }}
             >
               <Text style={styles.buttonText}>Reset</Text>
             </TouchableOpacity>
@@ -230,23 +307,14 @@ const AlumniSearchScreen = () => {
           </View>
         </View>
       )}
-
-      <TouchableOpacity 
-        style={styles.searchButton} 
-        onPress={handleSearchSubmit}
-        disabled={isSearching}
-      >
-        {isSearching ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.searchButtonText}>Search</Text>
-        )}
-      </TouchableOpacity>
     </>
   );
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <TouchableWithoutFeedback onPress={() => {
+      Keyboard.dismiss();
+      setShowResults(false);
+    }} accessible={false}>
       <LinearGradient colors={['#A89CFF', '#C8A2C8']} style={styles.gradientContainer}>
         <ScrollView 
           contentContainerStyle={styles.container}
@@ -368,16 +436,43 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  searchButton: { 
-    backgroundColor: 'black', 
-    padding: 12, 
-    borderRadius: 10, 
-    alignItems: 'center', 
-    marginVertical: 5,
+  resultsContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    maxHeight: 300,
+    marginBottom: 15,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  searchButtonText: { 
-    color: 'white',
+  resultsList: {
+    paddingHorizontal: 10,
+  },
+  resultItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  resultName: {
     fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 2,
+    color: 'black',
+  },
+  resultDetails: {
+    color: '#666',
+    fontSize: 14,
+  },
+  loadingContainer: {
+    padding: 15,
+    alignItems: 'center',
+  },
+  noResultsText: {
+    padding: 15,
+    textAlign: 'center',
+    color: '#666',
   },
 });
 

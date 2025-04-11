@@ -134,15 +134,13 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               }} 
             />
             <MenuItem 
-  icon="time-outline" 
-  text="Time Capsules" 
-  onPress={() => {
-    setMenuVisible(false);
-    navigation.navigate('TimeCapsules'); // This should match your route name
-  }} 
-/>
-            
-
+              icon="time-outline" 
+              text="Time Capsules" 
+              onPress={() => {
+                setMenuVisible(false);
+                navigation.navigate('TimeCapsules');
+              }} 
+            />
             <MenuItem 
               icon="chatbubble-ellipses-outline" 
               text="Discussion" 
@@ -182,14 +180,49 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
             onPress={() => navigation.navigate('Map')}
           />
 
-<FeatureCard 
-  title="Upcoming Events" 
-  image={require('./assets/events.png')} 
-  text="Stay updated with events and networking opportunities."
-  onPress={() => navigation.navigate('Events')} // Add this line
-/>
+          <FeatureCard 
+            title="Upcoming Events" 
+            image={require('./assets/events.png')} 
+            text="Stay updated with events and networking opportunities."
+            onPress={() => navigation.navigate('Events')}
+          />
         </View>
       </ScrollView>
+
+      {/* Bottom Menu Row */}
+      <View style={styles.bottomMenu}>
+        <TouchableOpacity 
+          style={styles.bottomMenuItem} 
+          onPress={() => navigation.navigate('MessagesList')}
+        >
+          <Icon name="mail" size={25} color="black" />
+          <Text style={styles.bottomMenuText}>Messages</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.bottomMenuItem} 
+          onPress={() => navigation.navigate('TimeCapsules')}
+        >
+          <Icon name="time-outline" size={25} color="black" />
+          <Text style={styles.bottomMenuText}>Time Capsules</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+    style={styles.bottomMenuItem} // Last item won't have border
+    onPress={() => navigation.navigate('Discussion')}
+  >
+    <Icon name="chatbubble-ellipses-outline" size={25} color="black" />
+    <Text style={styles.bottomMenuText}>Discussion</Text>
+  </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.bottomMenuItem} 
+          onPress={() => navigation.navigate('Donation')}
+        >
+          <Icon name="cash-outline" size={25} color="black" />
+          <Text style={styles.bottomMenuText}>Donations</Text>
+        </TouchableOpacity>
+        
+        
+        
+      </View>
     </LinearGradient>
   );
 };
@@ -200,7 +233,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: { 
     alignItems: 'center', 
-    paddingBottom: 20 
+    paddingBottom: 80 // Added padding to accommodate bottom menu
   },
   header: { 
     flexDirection: 'row', 
@@ -287,6 +320,27 @@ const styles = StyleSheet.create({
   menuText: { 
     fontSize: 16, 
     marginLeft: 10 
+  },
+  bottomMenu: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'white',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    elevation: 8,
+  },
+  bottomMenuItem: {
+    alignItems: 'center',
+    paddingHorizontal: 5,
+  },
+  bottomMenuText: {
+    fontSize: 12,
+    marginTop: 5,
   },
 });
 
