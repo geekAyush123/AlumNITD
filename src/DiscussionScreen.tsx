@@ -16,11 +16,10 @@ import {
 import Toast from 'react-native-toast-message';
 import { Swipeable } from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
-const BASE_URL = 'http://10.10.48.40:3000';
+import database from '@react-native-firebase/database';
 
 interface Blog {
-  _id: string;
+  id: string;
   title: string;
   content: string;
 }
@@ -34,18 +33,32 @@ export default function DiscussionScreen() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [searchVisible, setSearchVisible] = useState<boolean>(false);
 
-  const fetchBlogs = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/blogs`);
-      const data = await res.json();
-      setBlogs(data);
-    } catch (err) {
-      console.error('Fetch error:', err);
-    }
+  // Reference to the 'blogs' node in Firebase
+  const blogsRef = database().ref('/blogs');
+
+  // Fetch blogs from Firebase
+  const fetchBlogs = () => {
+    blogsRef.on('value', (snapshot) => {
+      const blogsData = snapshot.val();
+      if (blogsData) {
+        const blogsArray = Object.keys(blogsData).map(key => ({
+          id: key,
+          ...blogsData[key]
+        }));
+        setBlogs(blogsArray);
+      } else {
+        setBlogs([]);
+      }
+    });
   };
 
   useEffect(() => {
     fetchBlogs();
+    
+    // Clean up listener when component unmounts
+    return () => {
+      blogsRef.off('value');
+    };
   }, []);
 
   const handleSubmit = async () => {
@@ -54,28 +67,24 @@ export default function DiscussionScreen() {
 
     try {
       if (editingBlogId) {
-        const res = await fetch(`${BASE_URL}/blogs/${editingBlogId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content }),
+        // Update existing blog
+        await blogsRef.child(editingBlogId).update({
+          title,
+          content,
         });
-        const updated: Blog = await res.json();
-        setBlogs((prev) =>
-          prev.map((b) => (b._id === updated._id ? updated : b))
-        );
+        
         Toast.show({
           type: 'success',
           text1: 'Discussion updated!',
           position: 'bottom',
         });
       } else {
-        const res = await fetch(`${BASE_URL}/blogs`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, content }),
+        // Add new blog
+        await blogsRef.push({
+          title,
+          content,
         });
-        const newBlog: Blog = await res.json();
-        setBlogs([newBlog, ...blogs]);
+        
         Toast.show({
           type: 'success',
           text1: 'Discussion added!',
@@ -104,15 +113,12 @@ export default function DiscussionScreen() {
   const handleEdit = (blog: Blog) => {
     setTitle(blog.title);
     setContent(blog.content);
-    setEditingBlogId(blog._id);
+    setEditingBlogId(blog.id);
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await fetch(`${BASE_URL}/blogs/${id}`, {
-        method: 'DELETE',
-      });
-      setBlogs((prev) => prev.filter((blog) => blog._id !== id));
+      await blogsRef.child(id).remove();
       if (editingBlogId === id) resetForm();
       Toast.show({
         type: 'success',
@@ -183,7 +189,7 @@ export default function DiscussionScreen() {
         renderLeftActions(progress, dragX, item)
       }
       renderRightActions={(progress, dragX) =>
-        renderRightActions(progress, dragX, item._id)
+        renderRightActions(progress, dragX, item.id)
       }
     >
       <TouchableOpacity
@@ -201,16 +207,19 @@ export default function DiscussionScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    style={{ flex: 1, backgroundColor: '#4A148C' }} // Added background color here
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0} // Adjust as needed
+  >
+    <ScrollView
+      contentContainerStyle={[styles.container, { flexGrow: 1 }]}
+      keyboardShouldPersistTaps="handled"
+      style={{ backgroundColor: '#4A148C' }} 
     >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text style={styles.header}>
-          {editingBlogId ? 'Edit Discussion' : 'Discussion Room'}
-        </Text>
+
+      <Text style={styles.header}>
+        {editingBlogId ? 'Edit Discussion' : 'Discussion Room'}
+      </Text>
 
         <TextInput
           style={styles.input}
@@ -269,7 +278,7 @@ export default function DiscussionScreen() {
 
         <FlatList
           data={filteredBlogs}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item) => item.id}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 40 }}
         />
