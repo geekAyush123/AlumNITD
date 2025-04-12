@@ -203,37 +203,62 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
         Alert.alert('Error', 'You need to be logged in to connect');
         return;
       }
-
+  
       if (currentUser.uid === alumniId) {
         Alert.alert('Error', 'You cannot connect with yourself');
         return;
       }
-
-      // Check if connection already exists
-      const existingConnection = await firestore()
+  
+      // 1. Check if connection already exists
+      const connectionsSnapshot = await firestore()
+        .collection('connections')
+        .where('users', 'array-contains', currentUser.uid)
+        .get();
+  
+      const existingConnection = connectionsSnapshot.docs.some(doc => {
+        const users = doc.data().users;
+        return users.includes(alumniId);
+      });
+  
+      if (existingConnection) {
+        Alert.alert('Info', 'You are already connected with this user');
+        return;
+      }
+  
+      // 2. Check if request already exists
+      const existingRequest = await firestore()
         .collection('connectionRequests')
         .where('fromUserId', '==', currentUser.uid)
         .where('toUserId', '==', alumniId)
         .limit(1)
         .get();
-
-      if (!existingConnection.empty) {
+  
+      if (!existingRequest.empty) {
         Alert.alert('Info', 'Connection request already sent');
         return;
       }
-
-      // Add connection request to Firestore
+  
+      // 3. Get current user data with fallbacks
+      const currentUserDoc = await firestore().collection('users').doc(currentUser.uid).get();
+      const currentUserData = currentUserDoc.data() || {};
+      
+      // 4. Prepare request data with guaranteed values
+      const requestData = {
+        fromUserId: currentUser.uid,
+        fromUserName: currentUserData.fullName || 'Alumni User',
+        fromUserProfilePic: currentUserData.profilePic || null, // Use null instead of undefined
+        fromUserJobTitle: currentUserData.jobTitle || null,
+        toUserId: alumniId,
+        status: 'pending',
+        createdAt: firestore.FieldValue.serverTimestamp()
+      };
+  
+      // 5. Add connection request
       await firestore()
         .collection('connectionRequests')
-        .add({
-          fromUserId: currentUser.uid,
-          toUserId: alumniId,
-          status: 'pending',
-          createdAt: firestore.FieldValue.serverTimestamp(),
-          fromUserName: currentUser.displayName || 'Alumni User'
-        });
-
-      // Update the button in the WebView
+        .add(requestData);
+  
+      // 6. Update UI in WebView
       if (webViewRef.current) {
         const js = `
           const button = document.querySelector(\`button[onclick="handleConnect('${alumniId}')"]\`);
@@ -245,14 +270,13 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
         `;
         webViewRef.current.injectJavaScript(js);
       }
-
+  
       Alert.alert('Success', 'Connection request sent successfully');
     } catch (error) {
       console.error('Error sending connection request:', error);
       Alert.alert('Error', 'Failed to send connection request');
     }
   };
-
   const debouncedSearch = debounce((query: string) => {
     if (query.trim() === "") {
       setSearchResults([]);

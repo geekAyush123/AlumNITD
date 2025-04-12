@@ -15,6 +15,7 @@ interface FeatureCardProps {
   image: any;
   text: string;
   onPress?: () => void;
+  showDot?: boolean;
 }
 
 interface MenuItemProps {
@@ -23,11 +24,40 @@ interface MenuItemProps {
   onPress: () => void;
   iconColor?: string;
   textColor?: string;
+  showDot?: boolean;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
   const [displayName, setDisplayName] = useState<string>('User');
   const [menuVisible, setMenuVisible] = useState<boolean>(false);
+  const [hasNewRequests, setHasNewRequests] = useState<boolean>(false);
+
+  // Check for new connection requests
+  useEffect(() => {
+    const currentUser = auth().currentUser;
+    if (!currentUser) return;
+  
+    const unsubscribe = firestore()
+      .collection('connectionRequests')
+      .where('toUserId', '==', currentUser.uid)
+      .where('status', '==', 'pending')
+      .onSnapshot(
+        snapshot => {
+          // Add null check here
+          if (snapshot) {
+            setHasNewRequests(!snapshot.empty);
+          } else {
+            setHasNewRequests(false);
+          }
+        },
+        error => {
+          console.error('Error fetching connection requests:', error);
+          setHasNewRequests(false);
+        }
+      );
+  
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -75,19 +105,25 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
     ]);
   };
 
-  const FeatureCard: React.FC<FeatureCardProps> = ({ title, image, text, onPress }) => (
+  const FeatureCard: React.FC<FeatureCardProps> = ({ title, image, text, onPress, showDot = false }) => (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
       <View style={styles.card}>
-        <Image source={image} style={styles.cardImage} />
+        <View style={styles.cardImageContainer}>
+          <Image source={image} style={styles.cardImage} />
+          {showDot && <View style={styles.notificationDotLarge} />}
+        </View>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardDescription}>{text}</Text>
       </View>
     </TouchableOpacity>
   );
 
-  const MenuItem: React.FC<MenuItemProps> = ({ icon, text, onPress, iconColor = 'black', textColor = 'black' }) => (
+  const MenuItem: React.FC<MenuItemProps> = ({ icon, text, onPress, iconColor = 'black', textColor = 'black', showDot = false }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.6}>
-      <Icon name={icon} size={25} color={iconColor} />
+      <View style={styles.iconContainer}>
+        <Icon name={icon} size={25} color={iconColor} />
+        {showDot && <View style={styles.notificationDot} />}
+      </View>
       <Text style={[styles.menuText, { color: textColor }]}>{text}</Text>
     </TouchableOpacity>
   );
@@ -123,7 +159,9 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
               onPress={() => {
                 setMenuVisible(false);
                 navigation.navigate('MyNetwork');
-              }} 
+                setHasNewRequests(false);
+              }}
+              showDot={hasNewRequests}
             />
             <MenuItem 
               icon="mail" 
@@ -192,7 +230,11 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
             title="My Network" 
             image={require('./assets/network.png')} 
             text="View and manage your alumni connections"
-            onPress={() => navigation.navigate('MyNetwork')}
+            onPress={() => {
+              navigation.navigate('MyNetwork');
+              setHasNewRequests(false);
+            }}
+            showDot={hasNewRequests}
           />
 
           <FeatureCard 
@@ -222,9 +264,15 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.bottomMenuItem} 
-          onPress={() => navigation.navigate('MyNetwork')}
+          onPress={() => {
+            navigation.navigate('MyNetwork');
+            setHasNewRequests(false);
+          }}
         >
-          <Icon name="people-outline" size={25} color="black" />
+          <View style={styles.iconContainer}>
+            <Icon name="people-outline" size={25} color="black" />
+            {hasNewRequests && <View style={styles.notificationDot} />}
+          </View>
           <Text style={styles.bottomMenuText}>My Network</Text>
         </TouchableOpacity>
         <TouchableOpacity 
@@ -234,8 +282,6 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
           <Icon name="chatbubble-ellipses-outline" size={25} color="black" />
           <Text style={styles.bottomMenuText}>Discussion</Text>
         </TouchableOpacity>
-        
-        
       </View>
     </LinearGradient>
   );
@@ -298,6 +344,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
+  },
+  cardImageContainer: {
+    position: 'relative',
   },
   cardImage: {
     width: 80,
@@ -362,6 +411,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 5,
     color: '#5C2D91',
+  },
+  iconContainer: {
+    position: 'relative',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: -3,
+    right: -3,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'red',
+  },
+  notificationDotLarge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: 'red',
   },
 });
 
