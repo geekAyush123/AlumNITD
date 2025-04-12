@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert, BackHandler } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert, BackHandler, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import { NavigationProp, useFocusEffect } from '@react-navigation/native';
+
+const { width } = Dimensions.get('window');
 
 interface HomePageProps {
   navigation: NavigationProp<any>;
@@ -43,7 +45,6 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
       .where('status', '==', 'pending')
       .onSnapshot(
         snapshot => {
-          // Add null check here
           if (snapshot) {
             setHasNewRequests(!snapshot.empty);
           } else {
@@ -79,6 +80,10 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
+        if (menuVisible) {
+          setMenuVisible(false);
+          return true;
+        }
         Alert.alert('Exit App', 'Do you want to exit?', [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Exit', onPress: () => BackHandler.exitApp() },
@@ -89,7 +94,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
       const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
       return () => backHandler.remove();
-    }, [])
+    }, [menuVisible])
   );
 
   const handleSignOut = () => {
@@ -119,7 +124,14 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
   );
 
   const MenuItem: React.FC<MenuItemProps> = ({ icon, text, onPress, iconColor = 'black', textColor = 'black', showDot = false }) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.6}>
+    <TouchableOpacity 
+      style={styles.menuItem} 
+      onPress={() => {
+        onPress();
+        setMenuVisible(false);
+      }} 
+      activeOpacity={0.6}
+    >
       <View style={styles.iconContainer}>
         <Icon name={icon} size={25} color={iconColor} />
         {showDot && <View style={styles.notificationDot} />}
@@ -129,166 +141,227 @@ const HomePage: React.FC<HomePageProps> = ({ navigation }) => {
   );
 
   return (
-    <LinearGradient colors={['#A89CFF', '#A89CFF']} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)} activeOpacity={0.7}>
-            <Icon name="menu" size={30} color="black" />
-          </TouchableOpacity>
-          <Text style={styles.logo}>AlumNITD</Text>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity onPress={() => navigation.navigate('AlumniSearch')} activeOpacity={0.7}>
-              <Icon name="search" size={30} color="black" />
+    <View style={styles.container}>
+      {/* Overlay for when menu is visible */}
+      {menuVisible && (
+        <TouchableOpacity 
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={() => setMenuVisible(false)}
+        />
+      )}
+      
+      {/* Side Menu */}
+      {menuVisible && (
+        <View style={styles.sideMenu}>
+          <View style={styles.menuHeader}>
+            <Text style={styles.menuHeaderText}>Menu</Text>
+            <TouchableOpacity onPress={() => setMenuVisible(false)}>
+              <Icon name="close" size={25} color="#FFF" />
             </TouchableOpacity>
           </View>
-        </View>
-
-        {menuVisible && (
-          <View style={styles.menu}>
+          <ScrollView style={styles.menuItemsContainer}>
             <MenuItem 
               icon="person-circle" 
               text="Profile" 
-              onPress={() => {
-                setMenuVisible(false);
-                navigation.navigate('Profile');
-              }} 
+              onPress={() => navigation.navigate('Profile')} 
+              iconColor="#FFF"
+              textColor="#FFF"
             />
             <MenuItem 
               icon="people-outline" 
               text="My Network" 
               onPress={() => {
-                setMenuVisible(false);
+                navigation.navigate('MyNetwork');
+                setHasNewRequests(false);
+              }}
+              showDot={hasNewRequests}
+              iconColor="#FFF"
+              textColor="#FFF"
+            />
+            <MenuItem 
+              icon="mail" 
+              text="Messages" 
+              onPress={() => navigation.navigate('MessagesList')} 
+              iconColor="#FFF"
+              textColor="#FFF"
+            />
+            <MenuItem 
+              icon="time-outline" 
+              text="Time Capsules" 
+              onPress={() => navigation.navigate('TimeCapsules')} 
+              iconColor="#FFF"
+              textColor="#FFF"
+            />
+            <MenuItem 
+              icon="chatbubble-ellipses-outline" 
+              text="Discussion" 
+              onPress={() => navigation.navigate('Discussion')} 
+              iconColor="#FFF"
+              textColor="#FFF"
+            />
+            <MenuItem 
+              icon="gift-outline" 
+              text="Donations" 
+              onPress={() => navigation.navigate('Donation')} 
+              iconColor="#FFF"
+              textColor="#FFF"
+            />
+          </ScrollView>
+          <MenuItem 
+            icon="log-out-outline" 
+            text="Log Out" 
+            onPress={handleSignOut} 
+            iconColor="#FF6B6B" 
+            textColor="#FF6B6B" 
+          />
+        </View>
+      )}
+      
+      <LinearGradient colors={['#A89CFF', '#A89CFF']} style={styles.mainContent}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)} activeOpacity={0.7}>
+              <Icon name="menu" size={30} color="black" />
+            </TouchableOpacity>
+            <Text style={styles.logo}>AlumNITD</Text>
+            <View style={styles.headerIcons}>
+              <TouchableOpacity onPress={() => navigation.navigate('AlumniSearch')} activeOpacity={0.7}>
+                <Icon name="search" size={30} color="black" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Text style={styles.userText}><Text style={styles.bold}>Hi, </Text>{displayName}</Text>
+          <Text style={styles.welcomeText}>Welcome to AlumNITD - Your Alumni Network</Text>
+
+          <View style={styles.cardContainer}>
+            <FeatureCard 
+              title="Explore Job Opportunities" 
+              image={require('./assets/Job.png')} 
+              text="Join our community for exclusive job listings."
+              onPress={() => navigation.navigate('JobOpportunities')}
+            />
+
+            <FeatureCard
+              title="Connect with Nearby Alumni"
+              image={require('./assets/alumni.png')}
+              text="See alumni locations and connect with peers."
+              onPress={() => navigation.navigate('Map')}
+            />
+
+            <FeatureCard 
+              title="My Network" 
+              image={require('./assets/network.png')} 
+              text="View and manage your alumni connections"
+              onPress={() => {
                 navigation.navigate('MyNetwork');
                 setHasNewRequests(false);
               }}
               showDot={hasNewRequests}
             />
-            <MenuItem 
-              icon="mail" 
-              text="Messages" 
-              onPress={() => {
-                setMenuVisible(false);
-                navigation.navigate('MessagesList');
-              }} 
-            />
-            <MenuItem 
-              icon="cash-outline" 
-              text="Donations" 
-              onPress={() => {
-                setMenuVisible(false);
-                navigation.navigate('Donation');
-              }} 
-            />
-            <MenuItem 
-              icon="time-outline" 
-              text="Time Capsules" 
-              onPress={() => {
-                setMenuVisible(false);
-                navigation.navigate('TimeCapsules');
-              }} 
-            />
-            <MenuItem 
-              icon="chatbubble-ellipses-outline" 
-              text="Discussion" 
-              onPress={() => {
-                setMenuVisible(false);
-                navigation.navigate('Discussion');
-              }} 
-            />
-            <MenuItem 
-              icon="log-out-outline" 
-              text="Log Out" 
-              onPress={() => {
-                setMenuVisible(false);
-                handleSignOut();
-              }} 
-              iconColor="#FF0000" 
-              textColor="#FF0000" 
+
+            <FeatureCard 
+              title="Upcoming Events" 
+              image={require('./assets/events.png')} 
+              text="Stay updated with events and networking opportunities."
+              onPress={() => navigation.navigate('Events')}
             />
           </View>
-        )}
+        </ScrollView>
 
-        <Text style={styles.userText}><Text style={styles.bold}>Hi, </Text>{displayName}</Text>
-        <Text style={styles.welcomeText}>Welcome to AlumNITD - Your Alumni Network</Text>
-
-        <View style={styles.cardContainer}>
-          <FeatureCard 
-            title="Explore Job Opportunities" 
-            image={require('./assets/Job.png')} 
-            text="Join our community for exclusive job listings."
-            onPress={() => navigation.navigate('JobOpportunities')}
-          />
-
-          <FeatureCard
-            title="Connect with Nearby Alumni"
-            image={require('./assets/alumni.png')}
-            text="See alumni locations and connect with peers."
-            onPress={() => navigation.navigate('Map')}
-          />
-
-          <FeatureCard 
-            title="My Network" 
-            image={require('./assets/network.png')} 
-            text="View and manage your alumni connections"
+        {/* Bottom Menu Row */}
+        <View style={styles.bottomMenu}>
+          <TouchableOpacity 
+            style={styles.bottomMenuItem} 
+            onPress={() => navigation.navigate('MessagesList')}
+          >
+            <Icon name="mail" size={25} color="black" />
+            <Text style={styles.bottomMenuText}>Messages</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.bottomMenuItem} 
+            onPress={() => navigation.navigate('TimeCapsules')}
+          >
+            <Icon name="time-outline" size={25} color="black" />
+            <Text style={styles.bottomMenuText}>Time Capsules</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.bottomMenuItem} 
             onPress={() => {
               navigation.navigate('MyNetwork');
               setHasNewRequests(false);
             }}
-            showDot={hasNewRequests}
-          />
-
-          <FeatureCard 
-            title="Upcoming Events" 
-            image={require('./assets/events.png')} 
-            text="Stay updated with events and networking opportunities."
-            onPress={() => navigation.navigate('Events')}
-          />
+          >
+            <View style={styles.iconContainer}>
+              <Icon name="people-outline" size={25} color="black" />
+              {hasNewRequests && <View style={styles.notificationDot} />}
+            </View>
+            <Text style={styles.bottomMenuText}>My Network</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.bottomMenuItem} 
+            onPress={() => navigation.navigate('Discussion')}
+          >
+            <Icon name="chatbubble-ellipses-outline" size={25} color="black" />
+            <Text style={styles.bottomMenuText}>Discussion</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-
-      {/* Bottom Menu Row */}
-      <View style={styles.bottomMenu}>
-        <TouchableOpacity 
-          style={styles.bottomMenuItem} 
-          onPress={() => navigation.navigate('MessagesList')}
-        >
-          <Icon name="mail" size={25} color="black" />
-          <Text style={styles.bottomMenuText}>Messages</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.bottomMenuItem} 
-          onPress={() => navigation.navigate('TimeCapsules')}
-        >
-          <Icon name="time-outline" size={25} color="black" />
-          <Text style={styles.bottomMenuText}>Time Capsules</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.bottomMenuItem} 
-          onPress={() => {
-            navigation.navigate('MyNetwork');
-            setHasNewRequests(false);
-          }}
-        >
-          <View style={styles.iconContainer}>
-            <Icon name="people-outline" size={25} color="black" />
-            {hasNewRequests && <View style={styles.notificationDot} />}
-          </View>
-          <Text style={styles.bottomMenuText}>My Network</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.bottomMenuItem} 
-          onPress={() => navigation.navigate('Discussion')}
-        >
-          <Icon name="chatbubble-ellipses-outline" size={25} color="black" />
-          <Text style={styles.bottomMenuText}>Discussion</Text>
-        </TouchableOpacity>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    position: 'relative',
+  },
+  mainContent: {
+    flex: 1,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 1,
+  },
+  sideMenu: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: width * 0.65,
+    backgroundColor: '#5C2D91',
+    zIndex: 2,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    paddingVertical: 20,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 5, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.2)',
+    marginBottom: 10,
+  },
+  menuHeaderText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  menuItemsContainer: {
     flex: 1,
   },
   scrollContainer: {
@@ -367,28 +440,18 @@ const styles = StyleSheet.create({
     color: '#6C3483',
     paddingHorizontal: 10,
   },
-  menu: {
-    backgroundColor: '#F3E5F5',
-    padding: 10,
-    borderRadius: 8,
-    width: '80%',
-    marginVertical: 10,
-    elevation: 6,
-    shadowColor: '#6A0DAD',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 5,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   menuText: {
     fontSize: 16,
-    marginLeft: 10,
-    color: '#4B0082',
+    marginLeft: 15,
+    color: '#FFF',
   },
   bottomMenu: {
     position: 'absolute',

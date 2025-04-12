@@ -8,14 +8,11 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
-  ImageSourcePropType,
-  StyleProp,
-  ViewStyle,
-  TextStyle,
-  ImageStyle,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import firestore from "@react-native-firebase/firestore";
+import auth from "@react-native-firebase/auth";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "./App";
 
@@ -42,25 +39,78 @@ type ProfileData = {
 
 type ViewProfileScreenProps = {
   route: RouteProp<RootStackParamList, "ViewProfile">;
-  navigation: any; // You can further type this if needed
+  navigation: any;
 };
 
 const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation }) => {
   const { userId } = route.params;
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "not-connected" | "connected" | "request-sent" | "request-received"
+  >("not-connected");
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
+        const currentUser = auth().currentUser;
+        if (!currentUser) return;
+
+        // 1. Fetch profile data
         const userDoc = await firestore().collection("users").doc(userId).get();
         if (userDoc.exists) {
           setProfileData(userDoc.data() as ProfileData);
-        } else {
-          console.log("No such document!");
         }
+
+        // 2. Check connection status
+        // Check if already connected
+        const connectionsSnapshot = await firestore()
+          .collection("connections")
+          .where("users", "array-contains", currentUser.uid)
+          .where("status", "==", "accepted")
+          .get();
+
+        const isConnected = connectionsSnapshot.docs.some((doc) => {
+          const users = doc.data().users;
+          return users.includes(userId);
+        });
+
+        if (isConnected) {
+          setConnectionStatus("connected");
+          return;
+        }
+
+        // Check for pending requests
+        const sentRequest = await firestore()
+          .collection("connectionRequests")
+          .where("fromUserId", "==", currentUser.uid)
+          .where("toUserId", "==", userId)
+          .where("status", "==", "pending")
+          .limit(1)
+          .get();
+
+        if (!sentRequest.empty) {
+          setConnectionStatus("request-sent");
+          return;
+        }
+
+        const receivedRequest = await firestore()
+          .collection("connectionRequests")
+          .where("fromUserId", "==", userId)
+          .where("toUserId", "==", currentUser.uid)
+          .where("status", "==", "pending")
+          .limit(1)
+          .get();
+
+        if (!receivedRequest.empty) {
+          setConnectionStatus("request-received");
+          return;
+        }
+
+        setConnectionStatus("not-connected");
       } catch (error) {
         console.error("Error fetching profile data:", error);
+        Alert.alert("Error", "Failed to load profile data");
       } finally {
         setLoading(false);
       }
@@ -68,6 +118,87 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
 
     fetchProfileData();
   }, [userId]);
+
+  const handleConnect = async () => {
+    try {
+      const currentUser = auth().currentUser;
+      if (!currentUser) {
+        Alert.alert("Error", "You need to be logged in to connect");
+        return;
+      }
+
+      if (currentUser.uid === userId) {
+        Alert.alert("Error", "You cannot connect with yourself");
+        return;
+      }
+
+      // Get current user data
+      const currentUserDoc = await firestore()
+        .collection("users")
+        .doc(currentUser.uid)
+        .get();
+      const currentUserData = currentUserDoc.data() || {};
+
+      // Add connection request
+      await firestore().collection("connectionRequests").add({
+        fromUserId: currentUser.uid,
+        fromUserName: currentUserData.fullName || "Alumni User",
+        fromUserProfilePic: currentUserData.profilePic || null,
+        fromUserJobTitle: currentUserData.jobTitle || null,
+        toUserId: userId,
+        status: "pending",
+        createdAt: firestore.FieldValue.serverTimestamp(),
+      });
+
+      setConnectionStatus("request-sent");
+      Alert.alert("Success", "Connection request sent successfully");
+    } catch (error) {
+      console.error("Error sending connection request:", error);
+      Alert.alert("Error", "Failed to send connection request");
+    }
+  };
+
+  const handleAcceptRequest = async () => {
+    try {
+      const currentUser = auth().currentUser;
+      if (!currentUser) return;
+
+      // Find the request
+      const requestQuery = await firestore()
+        .collection("connectionRequests")
+        .where("fromUserId", "==", userId)
+        .where("toUserId", "==", currentUser.uid)
+        .where("status", "==", "pending")
+        .limit(1)
+        .get();
+
+      if (requestQuery.empty) {
+        Alert.alert("Error", "Request not found");
+        return;
+      }
+
+      const request = requestQuery.docs[0];
+      const batch = firestore().batch();
+
+      // Update request status
+      batch.update(request.ref, { status: "accepted" });
+
+      // Create new connection
+      const connectionRef = firestore().collection("connections").doc();
+      batch.set(connectionRef, {
+        users: [userId, currentUser.uid],
+        status: "accepted",
+        createdAt: firestore.FieldValue.serverTimestamp(),
+      });
+
+      await batch.commit();
+      setConnectionStatus("connected");
+      Alert.alert("Success", "Connection request accepted");
+    } catch (error) {
+      console.error("Error accepting request:", error);
+      Alert.alert("Error", "Failed to accept connection request");
+    }
+  };
 
   const formatDate = (dateString?: string): string => {
     if (!dateString) return "Present";
@@ -80,11 +211,15 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
 
   const openUrl = (url?: string): void => {
     if (!url) return;
-    
+
     if (url.startsWith("http://") || url.startsWith("https://")) {
-      Linking.openURL(url).catch(err => console.error("Failed to open URL:", err));
+      Linking.openURL(url).catch((err) =>
+        console.error("Failed to open URL:", err)
+      );
     } else {
-      Linking.openURL(`https://${url}`).catch(err => console.error("Failed to open URL:", err));
+      Linking.openURL(`https://${url}`).catch((err) =>
+        console.error("Failed to open URL:", err)
+      );
     }
   };
 
@@ -104,8 +239,7 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
     );
   }
 
-  // Default image source
-  const imageSource: ImageSourcePropType = profileData.profilePic
+  const imageSource = profileData.profilePic
     ? { uri: profileData.profilePic }
     : require("./assets/default_pic.png");
 
@@ -129,10 +263,45 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
         )}
       </View>
 
-      {/* Connect Button */}
-      <TouchableOpacity style={styles.connectButton}>
-        <Text style={styles.connectButtonText}>Connect</Text>
-      </TouchableOpacity>
+      {/* Connection Button Section */}
+      {connectionStatus === "not-connected" && (
+        <TouchableOpacity
+          style={styles.connectButton}
+          onPress={handleConnect}
+        >
+          <Text style={styles.connectButtonText}>Connect</Text>
+        </TouchableOpacity>
+      )}
+
+      {connectionStatus === "request-sent" && (
+        <View style={styles.requestSentButton}>
+          <Text style={styles.requestSentText}>Request Sent</Text>
+        </View>
+      )}
+
+      {connectionStatus === "request-received" && (
+        <View style={styles.requestButtons}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.acceptButton]}
+            onPress={handleAcceptRequest}
+          >
+            <Text style={styles.buttonText}>Accept</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.declineButton]}
+            onPress={() => setConnectionStatus("not-connected")}
+          >
+            <Text style={styles.buttonText}>Decline</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {connectionStatus === "connected" && (
+        <View style={styles.connectedButton}>
+          <Icon name="check" size={20} color="#4CAF50" />
+          <Text style={styles.connectedText}>Connected</Text>
+        </View>
+      )}
 
       {/* About Section */}
       {profileData.bio && (
@@ -190,7 +359,7 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Skills</Text>
           <View style={styles.skillsContainer}>
-            {profileData.skills.split(',').map((skill, index) => (
+            {profileData.skills.split(",").map((skill, index) => (
               <View key={index} style={styles.skillTag}>
                 <Text style={styles.skillText}>{skill.trim()}</Text>
               </View>
@@ -227,7 +396,7 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
           >
             <Icon name="linkedin" size={20} color="#6200ea" />
             <Text style={styles.contactText}>
-              {profileData.linkedinUrl.replace(/(^\w+:|^)\/\//, '')}
+              {profileData.linkedinUrl.replace(/(^\w+:|^)\/\//, "")}
             </Text>
           </TouchableOpacity>
         )}
@@ -238,7 +407,7 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
           >
             <Icon name="code" size={20} color="#6200ea" />
             <Text style={styles.contactText}>
-              {profileData.githubUrl.replace(/(^\w+:|^)\/\//, '')}
+              {profileData.githubUrl.replace(/(^\w+:|^)\/\//, "")}
             </Text>
           </TouchableOpacity>
         )}
@@ -247,7 +416,6 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
   );
 };
 
-// Define your styles with TypeScript
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -299,6 +467,56 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   connectButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  requestSentButton: {
+    backgroundColor: "#888",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  requestSentText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  connectedButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E8F5E9",
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 16,
+  },
+  connectedText: {
+    color: "#4CAF50",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  requestButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 16,
+  },
+  actionButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 8,
+  },
+  acceptButton: {
+    backgroundColor: "#4CAF50",
+  },
+  declineButton: {
+    backgroundColor: "#f44336",
+  },
+  buttonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",

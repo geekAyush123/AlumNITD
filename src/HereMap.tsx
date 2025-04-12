@@ -346,10 +346,38 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
-  const handleSearchResultSelect = (alum: any) => {
+  const handleSearchResultSelect = async (alum: any) => {
     setSearchQuery(alum.name);
     setSearchResults([]);
     
+    const currentUser = auth().currentUser;
+    let isConnected = false;
+    let requestSent = false;
+  
+    if (currentUser) {
+      // Check if already connected
+      const connectionsSnapshot = await firestore()
+        .collection('connections')
+        .where('users', 'array-contains', currentUser.uid)
+        .where('status', '==', 'accepted')
+        .get();
+  
+      isConnected = connectionsSnapshot.docs.some(doc => {
+        const users = doc.data().users;
+        return users.includes(alum.id);
+      });
+  
+      // Check if request already sent
+      const requestSnapshot = await firestore()
+        .collection('connectionRequests')
+        .where('fromUserId', '==', currentUser.uid)
+        .where('toUserId', '==', alum.id)
+        .limit(1)
+        .get();
+  
+      requestSent = !requestSnapshot.empty;
+    }
+  
     if (webViewRef.current) {
       const html = `
         window.map.flyTo({
@@ -365,7 +393,14 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
               <h4>${alum.name}</h4>
               <p>${alum.jobTitle || ''} ${alum.company ? `at ${alum.company}` : ''}</p>
               <div class="popup-buttons">
-                <button class="connect-button" onclick="handleConnect('${alum.id}')">Connect</button>
+                ${currentUser && currentUser.uid !== alum.id 
+                  ? isConnected 
+                    ? '<div class="connection-status">Connected</div>'
+                    : requestSent
+                      ? '<button class="request-sent-button" disabled>Request Sent</button>'
+                      : '<button class="connect-button" onclick="handleConnect(\'' + alum.id + '\')">Connect</button>'
+                  : ''
+                }
                 <button class="view-profile-button" onclick="handleViewProfile('${alum.id}')">View Profile</button>
               </div>
             </div>
