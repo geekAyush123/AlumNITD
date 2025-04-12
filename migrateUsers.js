@@ -1,89 +1,108 @@
 const admin = require('firebase-admin');
 const serviceAccount = require('./alumnitd-5d90f-firebase-adminsdk-fbsvc-51dc4d2d8c.json');
 
-// Initialize Firebase
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
+  credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
-const BATCH_SIZE = 500; // Firestore batch limit
 
-async function migrateSkills() {
-  console.log('Starting skills standardization...');
-  
+async function normalizeUserSchemas() {
   try {
-    let processedCount = 0;
-    let updatedCount = 0;
-    let batchCount = 0;
+    const usersCollection = db.collection('users');
+    const snapshot = await usersCollection.get();
+    
     let batch = db.batch();
+    let batchCount = 0;
+    const BATCH_LIMIT = 500; // Firestore batch limit
     
-    // Get all users
-    const usersSnapshot = await db.collection('users').get();
-    const totalUsers = usersSnapshot.size;
-    console.log(`Found ${totalUsers} users to process`);
-    
-    for (const doc of usersSnapshot.docs) {
+    for (const doc of snapshot.docs) {
       const userData = doc.data();
+      const normalizedData = {};
       
-      // Skip if already in correct string format
-      if (typeof userData.skills === 'string') {
-        processedCount++;
-        continue;
-      }
+      // Normalize bio field
+      normalizedData.bio = userData.bio || "";
       
-      // Prepare the update
-      const update = {};
+      // Normalize company field (if exists at root)
+      normalizedData.company = userData.company || "";
       
-      // Convert array to comma-separated string
-      if (Array.isArray(userData.skills)) {
-        update.skills = userData.skills
-          .filter(skill => skill && typeof skill === 'string') // Remove empty/non-string items
-          .map(skill => skill.trim()) // Trim whitespace
-          .filter(skill => skill.length > 0) // Remove empty strings
-          .join(', '); // Join with commas
+      // Normalize degree field (if exists at root)
+      normalizedData.degree = userData.degree || "";
+      
+      // Normalize education field
+      if (userData.education) {
+        normalizedData.education = {
+          degree: userData.education.degree || "",
+          fieldOfStudy: userData.education.fieldOfStudy || "",
+          graduationYear: userData.education.graduationYear 
+            ? String(userData.education.graduationYear) 
+            : "",
+          institution: userData.education.institution || "",
+          endDate: userData.education.endDate || ""
+        };
       } else {
-        // Handle cases where skills is not an array (set to empty string)
-        update.skills = '';
+        normalizedData.education = {
+          degree: "",
+          fieldOfStudy: "",
+          graduationYear: "",
+          institution: "",
+          endDate: ""
+        };
       }
       
-      // Only update if we have changes
-      if (Object.keys(update).length > 0) {
-        batch.update(doc.ref, update);
-        updatedCount++;
-        batchCount++;
-        
-        // Commit batch when we reach the limit
-        if (batchCount >= BATCH_SIZE) {
-          await batch.commit();
-          console.log(`Committed batch of ${batchCount} updates (${processedCount}/${totalUsers} processed, ${updatedCount} updated)`);
-          batch = db.batch();
-          batchCount = 0;
-        }
-      }
+      // Normalize email field
+      normalizedData.email = userData.email || "";
       
-      processedCount++;
+      // Normalize experience field (handle both 'experience' and 'workExperience')
+      const experienceData = userData.experience || userData.workExperience || {};
+      normalizedData.experience = {
+        company: experienceData.company || "",
+        description: experienceData.jobDescription || experienceData.description || "",
+        endDate: experienceData.endDate || "",
+        jobTitle: experienceData.jobTitle || "",
+        startDate: experienceData.startDate || ""
+      };
+      
+      // Normalize other fields
+      normalizedData.fieldOfStudy = userData.fieldOfStudy || "";
+      normalizedData.fullName = userData.fullName || "";
+      normalizedData.githubUrl = userData.githubUrl || "";
+      normalizedData.graduationYear = userData.graduationYear 
+        ? String(userData.graduationYear) 
+        : "";
+      normalizedData.institution = userData.institution || "";
+      normalizedData.jobDescription = userData.jobDescription || "";
+      normalizedData.jobTitle = userData.jobTitle || "";
+      normalizedData.linkedinUrl = userData.linkedinUrl || "";
+      normalizedData.location = userData.location || "";
+      normalizedData.phone = userData.phone || "";
+      normalizedData.profilePic = userData.profilePic || "";
+      normalizedData.role = userData.role || "";
+      normalizedData.skills = userData.skills || "";
+      normalizedData.startDate = userData.startDate || "";
+      normalizedData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+      
+      // Update the document with normalized data
+      batch.update(doc.ref, normalizedData);
+      batchCount++;
+      
+      // Commit batch if we reach the limit
+      if (batchCount >= BATCH_LIMIT) {
+        await batch.commit();
+        batch = db.batch();
+        batchCount = 0;
+      }
     }
     
     // Commit any remaining documents in the batch
     if (batchCount > 0) {
       await batch.commit();
-      console.log(`Committed final batch of ${batchCount} updates`);
     }
     
-    console.log(`\nMigration complete!
-    Total users: ${totalUsers}
-    Processed: ${processedCount}
-    Updated: ${updatedCount}
-    Unchanged: ${processedCount - updatedCount}`);
-    
-    process.exit(0);
-    
+    console.log('All user schemas have been normalized successfully!');
   } catch (error) {
-    console.error('Migration failed:', error);
-    process.exit(1);
+    console.error('Error normalizing user schemas:', error);
   }
 }
 
-migrateSkills();
+normalizeUserSchemas();

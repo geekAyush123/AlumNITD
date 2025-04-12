@@ -305,7 +305,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         ) : (
           <TouchableOpacity onPress={handleChooseImage}>
             <Image
-              source={profilePic ? { uri: profilePic } : require("./assets/default_pic.png")}
+              source={profilePic ? { uri: profilePic } : require("./assets/default-profile.jpg")}
               style={styles.profilePicture}
             />
             <Text style={styles.uploadText}>Change Profile Picture</Text>

@@ -52,18 +52,22 @@ const AlumniSearchScreen = () => {
   const [showResults, setShowResults] = useState(false);
   const [filterInput, setFilterInput] = useState('');
 
-  // Fetch all alumni data
+  // Fetch all alumni data with skills conversion
   useEffect(() => {
     const fetchAllAlumni = async () => {
       try {
         const alumniSnapshot = await firestore().collection('users').get();
-        const alumniData = alumniSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          fullName: doc.data().fullName || '',
-          skills: Array.isArray(doc.data().skills) ? doc.data().skills : [],
-        } as Alumni));
-        
+        const alumniData = alumniSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            fullName: data.fullName || '',
+            skills: data.skills ? 
+              data.skills.split(',').map((skill: string) => skill.trim()) 
+              : [],
+          } as Alumni;
+        });
         setAllAlumni(alumniData);
       } catch (error) {
         console.error('Error fetching alumni:', error);
@@ -73,7 +77,7 @@ const AlumniSearchScreen = () => {
     fetchAllAlumni();
   }, []);
 
-  // Extract filter options for the active category
+  // Extract filter options for active category
   const filterOptions = useMemo(() => {
     const activeFields = FILTER_CATEGORIES.find(c => c.name === activeCategory)?.fields || [];
     const options = new Set<string>();
@@ -288,10 +292,13 @@ const AlumniSearchScreen = () => {
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.container}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
         >
           <ScrollView 
             contentContainerStyle={styles.contentContainer}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            nestedScrollEnabled={true}
           >
             <View style={styles.headerContainer}>
               <Text style={styles.headerTitle} accessibilityRole="header">
@@ -396,6 +403,10 @@ const AlumniSearchScreen = () => {
                     keyExtractor={(item) => item.id}
                     scrollEnabled={false}
                     nestedScrollEnabled={true}
+                    initialNumToRender={10}
+                    maxToRenderPerBatch={10}
+                    windowSize={5}
+                    ListFooterComponent={<View style={{ height: 20 }} />}
                   />
                 ) : (
                   <View style={styles.noResultsContainer}>
@@ -563,7 +574,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
-    maxHeight: 400,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
