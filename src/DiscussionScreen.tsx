@@ -113,6 +113,26 @@ export default function DiscussionScreen() {
                 authorProfilePic = authorData.profilePic;
               }
             }
+  
+            // Properly type the comments array
+            const comments: Comment[] = blog.comments 
+              ? Object.entries(blog.comments).map(([commentId, commentData]) => {
+                  // Type assertion for commentData
+                  const typedCommentData = commentData as {
+                    text: string;
+                    author: string;
+                    authorId: string;
+                    timestamp: number;
+                  };
+                  return {
+                    id: commentId,
+                    text: typedCommentData.text || '',
+                    author: typedCommentData.author || 'Anonymous',
+                    authorId: typedCommentData.authorId || 'anonymous',
+                    timestamp: typedCommentData.timestamp || 0,
+                  };
+                })
+              : [];
             
             return {
               id: key,
@@ -120,7 +140,7 @@ export default function DiscussionScreen() {
               content: blog.content || '',
               likes: blog.likes || 0,
               likedBy: blog.likedBy || {},
-              comments: blog.comments ? Object.values(blog.comments) : [],
+              comments,
               timestamp: blog.timestamp || 0,
               authorId: blog.authorId || 'anonymous',
               authorName,
@@ -488,30 +508,26 @@ export default function DiscussionScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#4A148C' }}
+      style={{ flex: 1, backgroundColor: '#1A1A2E' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
       <ScrollView
         contentContainerStyle={[styles.container, { flexGrow: 1 }]}
         keyboardShouldPersistTaps="handled"
-        style={{ backgroundColor: '#4A148C' }} 
+        style={{ backgroundColor: '#1A1A2E' }} 
       >
-        <Text style={styles.header}>
-          {editingBlogId ? 'Edit Discussion' : 'Discussion Room'}
-        </Text>
-
         <TextInput
           style={styles.input}
           placeholder="Title"
-          placeholderTextColor="#D1C4E9"
+          placeholderTextColor="#A89CFF"
           value={title}
           onChangeText={setTitle}
         />
         <TextInput
           style={[styles.input, { height: 100 }]}
           placeholder="Content"
-          placeholderTextColor="#D1C4E9"
+          placeholderTextColor="#A89CFF"
           multiline
           value={content}
           onChangeText={setContent}
@@ -530,11 +546,11 @@ export default function DiscussionScreen() {
             }
             onPress={handleSubmit}
             disabled={loading}
-            color="#6A1B9A"
+            color="#7E6BFF"
           />
           {editingBlogId && (
             <View style={{ marginLeft: 10 }}>
-              <Button title="Cancel" onPress={resetForm} color="#C2185B" />
+              <Button title="Cancel" onPress={resetForm} color="#FF4D4D" />
             </View>
           )}
         </View>
@@ -542,7 +558,7 @@ export default function DiscussionScreen() {
         <View style={styles.searchHeader}>
           <Text style={styles.header}>Discussion Forum</Text>
           <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
-            <Ionicons name="search-outline" size={24} color="#F3E5F5" />
+            <Ionicons name="search-outline" size={24} color="#E2E2FF" />
           </TouchableOpacity>
         </View>
 
@@ -550,7 +566,7 @@ export default function DiscussionScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search discussions..."
-            placeholderTextColor="#E1BEE7"
+            placeholderTextColor="#A89CFF"
             value={searchTerm}
             onChangeText={setSearchTerm}
           />
@@ -572,53 +588,62 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     paddingBottom: 60,
-    backgroundColor: '#4A148C',
+    backgroundColor: '#1A1A2E',
   },
   header: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     marginVertical: 16,
-    color: '#F3E5F5',
+    color: '#E2E2FF',
+    fontFamily: 'Roboto-Medium',
   },
   searchHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 10,
   },
   input: {
-    borderColor: '#CE93D8',
+    borderColor: '#7E6BFF',
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 12,
-    color: '#FFFFFF',
-    backgroundColor: '#6A1B9A',
-  },
-  searchInput: {
-    borderColor: '#BA68C8',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: 12,
+    padding: 14,
     marginBottom: 16,
     color: '#FFFFFF',
-    backgroundColor: '#8E24AA',
+    backgroundColor: '#16213E',
+    fontSize: 16,
+    fontFamily: 'Roboto-Regular',
+  },
+  searchInput: {
+    borderColor: '#7E6BFF',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    color: '#FFFFFF',
+    backgroundColor: '#16213E',
+    fontSize: 16,
+    fontFamily: 'Roboto-Regular',
   },
   blogCard: {
-    padding: 14,
-    backgroundColor: '#7B1FA2',
-    marginBottom: 12,
-    borderRadius: 12,
+    padding: 18,
+    backgroundColor: '#16213E',
+    marginBottom: 16,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowRadius: 6,
+    elevation: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#7E6BFF',
   },
   postHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 12,
+    alignItems: 'flex-start',
   },
   authorContainer: {
     flexDirection: 'row',
@@ -626,135 +651,171 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profilePic: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: '#7E6BFF',
   },
   authorName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#F8BBD0',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#E2E2FF',
+    fontFamily: 'Roboto-Medium',
   },
   authorRole: {
     fontSize: 12,
-    color: '#CE93D8',
+    color: '#A89CFF',
+    fontFamily: 'Roboto-Regular',
   },
   blogTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#F8BBD0',
-    marginBottom: 6,
+    color: '#FFFFFF',
+    marginBottom: 8,
+    fontFamily: 'Roboto-Bold',
   },
   blogContent: {
-    fontSize: 14,
-    color: '#E1BEE7',
-    marginBottom: 10,
+    fontSize: 15,
+    color: '#D1D1FF',
+    marginBottom: 12,
+    lineHeight: 22,
+    fontFamily: 'Roboto-Regular',
   },
   postFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 14,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 20,
+    marginRight: 24,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: 'rgba(126, 107, 255, 0.2)',
   },
   actionText: {
-    marginLeft: 5,
-    color: '#F3E5F5',
+    marginLeft: 8,
+    color: '#E2E2FF',
+    fontFamily: 'Roboto-Medium',
   },
   timestamp: {
     fontSize: 12,
-    color: '#CE93D8',
+    color: '#A89CFF',
+    fontFamily: 'Roboto-Regular',
   },
   expandedContent: {
-    marginTop: 10,
+    marginTop: 14,
     borderTopWidth: 1,
-    borderTopColor: '#9C27B0',
-    paddingTop: 10,
+    borderTopColor: 'rgba(126, 107, 255, 0.3)',
+    paddingTop: 14,
   },
   commentsSection: {
-    marginBottom: 10,
+    marginBottom: 14,
   },
   commentsHeader: {
     fontWeight: 'bold',
-    color: '#F8BBD0',
-    marginBottom: 5,
+    color: '#E2E2FF',
+    marginBottom: 10,
+    fontSize: 16,
+    fontFamily: 'Roboto-Medium',
   },
   commentContainer: {
-    backgroundColor: '#9C27B0',
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  commentAuthor: {
-    fontWeight: 'bold',
-    color: '#F8BBD0',
-    fontSize: 12,
-  },
-  commentText: {
-    color: '#E1BEE7',
-    fontSize: 14,
-  },
-  noCommentsText: {
-    color: '#CE93D8',
-    fontStyle: 'italic',
+    backgroundColor: 'rgba(126, 107, 255, 0.15)',
+    padding: 12,
+    borderRadius: 12,
     marginBottom: 10,
   },
+  commentAuthor: {
+    fontWeight: '600',
+    color: '#E2E2FF',
+    fontSize: 14,
+    marginBottom: 4,
+    fontFamily: 'Roboto-Medium',
+  },
+  commentText: {
+    color: '#D1D1FF',
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'Roboto-Regular',
+  },
+  noCommentsText: {
+    color: '#A89CFF',
+    fontStyle: 'italic',
+    marginBottom: 14,
+    fontFamily: 'Roboto-Italic',
+  },
   commentForm: {
-    marginTop: 10,
+    marginTop: 14,
   },
   commentInput: {
-    borderColor: '#CE93D8',
+    borderColor: '#7E6BFF',
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
     color: '#FFFFFF',
-    backgroundColor: '#6A1B9A',
-    minHeight: 60,
+    backgroundColor: '#16213E',
+    minHeight: 80,
+    fontSize: 15,
+    fontFamily: 'Roboto-Regular',
+    textAlignVertical: 'top',
   },
   commentButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    gap: 10,
   },
   editHint: {
-    marginTop: 8,
+    marginTop: 12,
     fontSize: 12,
     fontStyle: 'italic',
-    color: '#CE93D8',
+    color: '#A89CFF',
+    textAlign: 'center',
+    fontFamily: 'Roboto-Italic',
   },
   buttonRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    gap: 12,
   },
   deleteButton: {
-    backgroundColor: '#AD1457',
+    backgroundColor: '#FF4D4D',
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
-    borderRadius: 8,
+    height: '80%',
+    borderRadius: 10,
     marginBottom: 10,
   },
   deleteText: {
     color: 'white',
     fontWeight: 'bold',
     marginTop: 4,
+    fontFamily: 'Roboto-Bold',
   },
   editButton: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#7E6BFF',
     justifyContent: 'center',
     alignItems: 'center',
     width: 80,
-    borderRadius: 8,
+    height: '80%',
+    borderRadius: 10,
     marginBottom: 10,
   },
   editText: {
     color: 'white',
     fontWeight: 'bold',
     marginTop: 4,
+    fontFamily: 'Roboto-Bold',
+  },
+  button: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    flex: 1,
   },
 });
