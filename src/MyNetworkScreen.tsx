@@ -342,8 +342,6 @@ const MyNetworkScreen: React.FC<MyNetworkScreenProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>My Network</Text>
-
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#5C2D91" />
@@ -402,12 +400,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 15,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#5C2D91',
   },
   section: {
     marginBottom: 20,

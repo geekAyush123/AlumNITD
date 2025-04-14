@@ -25,6 +25,7 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('jobs');
 
   useEffect(() => {
     const unsubscribe = firestore()
@@ -45,8 +46,8 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
   }, []);
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          job.company.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = job.title.toLowerCase().startsWith(searchQuery.toLowerCase()) || 
+                          job.company.toLowerCase().startsWith(searchQuery.toLowerCase());
     const matchesFilter = filter === 'all' || job.type === filter;
     return matchesSearch && matchesFilter;
   });
@@ -111,94 +112,166 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
 
   const filterTypes = ['all', 'full-time', 'part-time', 'internship', 'remote'];
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search jobs or companies"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-
-        <View style={styles.filtersWrapper}>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterContainer}
-          >
-            {filterTypes.map((type) => {
-              const isActive = filter === type;
-              const details = getFilterDetails(type);
-              
-              return (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.filterChip,
-                    isActive && styles.activeFilterChip,
-                  ]}
-                  onPress={() => setFilter(type)}
-                >
-                  <Icon 
-                    name={details.icon} 
-                    size={16} 
-                    color={isActive ? 'white' : '#666'} 
-                    style={styles.filterIcon}
-                  />
-                  <Text style={[
-                    styles.filterText,
-                    isActive && styles.activeFilterText
-                  ]}>
-                    {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                  </Text>
-                  <Text style={[
-                    styles.filterCount,
-                    isActive && styles.activeFilterCount
-                  ]}>
-                    {details.count}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-      </View>
-
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#A89CFF" />
-        </View>
-      ) : filteredJobs.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Icon name="sad-outline" size={50} color="#666" />
-          <Text style={styles.emptyText}>No jobs found</Text>
-          <Text style={styles.emptySubText}>Try adjusting your filters</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredJobs}
-          renderItem={renderJobItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          ListHeaderComponent={
-            <Text style={styles.resultsCount}>
-              Showing {filteredJobs.length} {filter === 'all' ? 'jobs' : filter + ' jobs'}
-            </Text>
-          }
+  const BottomTabBar = () => (
+    <View style={styles.bottomTabBar}>
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('home');
+          navigation.navigate('Home');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'home' ? 'home' : 'home-outline'} 
+          size={24} 
+          color={activeTab === 'home' ? '#A89CFF' : '#666'} 
         />
-      )}
-    </SafeAreaView>
+        <Text style={[styles.tabText, activeTab === 'home' && styles.activeTabText]}>Home</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('jobs');
+          navigation.navigate('JobOpportunities');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'jobs' ? 'briefcase' : 'briefcase-outline'} 
+          size={24} 
+          color={activeTab === 'jobs' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'jobs' && styles.activeTabText]}>Jobs</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('network');
+          navigation.navigate('MyNetwork');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'network' ? 'people' : 'people-outline'} 
+          size={24} 
+          color={activeTab === 'network' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'network' && styles.activeTabText]}>Network</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('profile');
+          navigation.navigate('Profile');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'profile' ? 'person' : 'person-outline'} 
+          size={24} 
+          color={activeTab === 'profile' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>Profile</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <View style={styles.fullContainer}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.searchContainer}>
+            <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search jobs or companies"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+
+          <View style={styles.filtersWrapper}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterContainer}
+            >
+              {filterTypes.map((type) => {
+                const isActive = filter === type;
+                const details = getFilterDetails(type);
+                
+                return (
+                  <TouchableOpacity
+                    key={type}
+                    style={[
+                      styles.filterChip,
+                      isActive && styles.activeFilterChip,
+                    ]}
+                    onPress={() => setFilter(type)}
+                  >
+                    <Icon 
+                      name={details.icon} 
+                      size={16} 
+                      color={isActive ? 'white' : '#666'} 
+                      style={styles.filterIcon}
+                    />
+                    <Text style={[
+                      styles.filterText,
+                      isActive && styles.activeFilterText
+                    ]}>
+                      {type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    </Text>
+                    <Text style={[
+                      styles.filterCount,
+                      isActive && styles.activeFilterCount
+                    ]}>
+                      {details.count}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#A89CFF" />
+          </View>
+        ) : filteredJobs.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Icon name="sad-outline" size={50} color="#666" />
+            <Text style={styles.emptyText}>No jobs found</Text>
+            <Text style={styles.emptySubText}>Try adjusting your filters</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredJobs}
+            renderItem={renderJobItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            ListHeaderComponent={
+              <Text style={styles.resultsCount}>
+                Showing {filteredJobs.length} {filter === 'all' ? 'jobs' : filter + ' jobs'}
+              </Text>
+            }
+          />
+        )}
+      </SafeAreaView>
+      <BottomTabBar />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  fullContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    marginBottom: 60, // Space for bottom tab bar
   },
   header: {
     backgroundColor: '#f5f5f5',
@@ -211,7 +284,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     margin: 15,
     paddingHorizontal: 15,
-    // Removed elevation: 2
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
@@ -281,7 +353,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
-    // Removed elevation: 2
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
@@ -361,6 +432,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 10,
     marginLeft: 5,
+  },
+  bottomTabBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 5,
+  },
+  tabText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  activeTabText: {
+    color: '#A89CFF',
+    fontWeight: 'bold',
   },
 });
 
