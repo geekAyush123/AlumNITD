@@ -100,7 +100,7 @@ const CreateTimeCapsuleScreen: React.FC<CreateTimeCapsuleScreenProps> = ({ navig
       {/* Header Section */}
       <View style={styles.headerContainer}>
         <Image 
-          source={require('../assets/time-capsule-header.png')} 
+          source={require('../assets/blue-hourglass.gif')} 
           style={styles.headerImage}
           resizeMode="contain"
         />
@@ -256,7 +256,7 @@ const CreateTimeCapsuleScreen: React.FC<CreateTimeCapsuleScreenProps> = ({ navig
         style={styles.input}
         value={recipientEmails}
         onChangeText={setRecipientEmails}
-        placeholder="classmate1@example.com, classmate2@example.com"
+        placeholder="classmate1@nitdelhi.ac.in, classmate2@nitdelhi.ac.in"
         placeholderTextColor="#888"
         keyboardType="email-address"
       />
