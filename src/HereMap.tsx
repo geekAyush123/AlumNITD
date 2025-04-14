@@ -720,21 +720,6 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
       <TouchableOpacity 
         style={styles.tabItem} 
         onPress={() => {
-          setActiveTab('home');
-          navigation.navigate('Home');
-        }}
-      >
-        <Icon 
-          name={activeTab === 'home' ? 'home' : 'home-outline'} 
-          size={24} 
-          color={activeTab === 'home' ? '#A89CFF' : '#666'} 
-        />
-        <Text style={[styles.tabText, activeTab === 'home' && styles.activeTabText]}>Home</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.tabItem} 
-        onPress={() => {
           setActiveTab('jobs');
           navigation.navigate('JobOpportunities');
         }}
@@ -760,6 +745,21 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
           color={activeTab === 'map' ? '#A89CFF' : '#666'} 
         />
         <Text style={[styles.tabText, activeTab === 'map' && styles.activeTabText]}>Map</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('home');
+          navigation.navigate('Home');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'home' ? 'home' : 'home-outline'} 
+          size={24} 
+          color={activeTab === 'home' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'home' && styles.activeTabText]}>Home</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 

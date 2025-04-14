@@ -8,6 +8,7 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import auth from '@react-native-firebase/auth';
@@ -52,6 +53,7 @@ const MyNetworkScreen: React.FC<MyNetworkScreenProps> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
   const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
+  const [activeTab, setActiveTab] = useState('network');
 
   const fetchNetworkData = useCallback(async () => {
     const currentUser = auth().currentUser;
@@ -340,66 +342,179 @@ const MyNetworkScreen: React.FC<MyNetworkScreenProps> = ({ navigation }) => {
     </View>
   );
 
+  const BottomTabBar = () => (
+    <View style={styles.bottomTabBar}>
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('jobs');
+          navigation.navigate('JobOpportunities');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'jobs' ? 'briefcase' : 'briefcase-outline'} 
+          size={24} 
+          color={activeTab === 'jobs' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'jobs' && styles.activeTabText]}>Jobs</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('map');
+          navigation.navigate('Map');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'map' ? 'map' : 'map-outline'} 
+          size={24} 
+          color={activeTab === 'map' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'map' && styles.activeTabText]}>Map</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('home');
+          navigation.navigate('Home');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'home' ? 'home' : 'home-outline'} 
+          size={24} 
+          color={activeTab === 'home' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'home' && styles.activeTabText]}>Home</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('network');
+          navigation.navigate('MyNetwork');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'network' ? 'people' : 'people-outline'} 
+          size={24} 
+          color={activeTab === 'network' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'network' && styles.activeTabText]}>Network</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('profile');
+          navigation.navigate('Profile');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'profile' ? 'person' : 'person-outline'} 
+          size={24} 
+          color={activeTab === 'profile' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>Profile</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <View style={styles.container}>
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#5C2D91" />
-        </View>
-      ) : (
-        <>
-          {connectionRequests.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Connection Requests ({connectionRequests.length})</Text>
-              <FlatList 
-                data={connectionRequests} 
-                renderItem={renderIncomingRequest} 
-                keyExtractor={item => item.id}
-                scrollEnabled={false}
-              />
-            </View>
-          )}
-
-          {sentRequests.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Sent Requests ({sentRequests.length})</Text>
-              <FlatList 
-                data={sentRequests} 
-                renderItem={renderSentRequest} 
-                keyExtractor={item => item.id}
-                scrollEnabled={false}
-              />
-            </View>
-          )}
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Connections ({connections.length})</Text>
-            {connections.length > 0 ? (
-              <FlatList 
-                data={connections} 
-                renderItem={renderConnection} 
-                keyExtractor={item => item.userId}
-                scrollEnabled={false}
-              />
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Icon name="people-outline" size={50} color="#888" />
-                <Text style={styles.emptyText}>You don't have any connections yet</Text>
-                <Text style={styles.emptySubtext}>Connect with alumni to build your network</Text>
+    <View style={styles.fullContainer}>
+      <SafeAreaView style={styles.container}>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#5C2D91" />
+          </View>
+        ) : (
+          <>
+            {connectionRequests.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Connection Requests ({connectionRequests.length})</Text>
+                <FlatList 
+                  data={connectionRequests} 
+                  renderItem={renderIncomingRequest} 
+                  keyExtractor={item => item.id}
+                  scrollEnabled={false}
+                />
               </View>
             )}
-          </View>
-        </>
-      )}
+
+            {sentRequests.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Sent Requests ({sentRequests.length})</Text>
+                <FlatList 
+                  data={sentRequests} 
+                  renderItem={renderSentRequest} 
+                  keyExtractor={item => item.id}
+                  scrollEnabled={false}
+                />
+              </View>
+            )}
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Your Connections ({connections.length})</Text>
+              {connections.length > 0 ? (
+                <FlatList 
+                  data={connections} 
+                  renderItem={renderConnection} 
+                  keyExtractor={item => item.userId}
+                  scrollEnabled={false}
+                />
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Icon name="people-outline" size={50} color="#888" />
+                  <Text style={styles.emptyText}>You don't have any connections yet</Text>
+                  <Text style={styles.emptySubtext}>Connect with alumni to build your network</Text>
+                </View>
+              )}
+            </View>
+          </>
+        )}
+      </SafeAreaView>
+      <BottomTabBar />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  fullContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     padding: 15,
+  },
+  bottomTabBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 5,
+  },
+  tabText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  activeTabText: {
+    color: '#A89CFF',
+    fontWeight: 'bold',
   },
   section: {
     marginBottom: 20,

@@ -117,21 +117,6 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
       <TouchableOpacity 
         style={styles.tabItem} 
         onPress={() => {
-          setActiveTab('home');
-          navigation.navigate('Home');
-        }}
-      >
-        <Icon 
-          name={activeTab === 'home' ? 'home' : 'home-outline'} 
-          size={24} 
-          color={activeTab === 'home' ? '#A89CFF' : '#666'} 
-        />
-        <Text style={[styles.tabText, activeTab === 'home' && styles.activeTabText]}>Home</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.tabItem} 
-        onPress={() => {
           setActiveTab('jobs');
           navigation.navigate('JobOpportunities');
         }}
@@ -142,6 +127,36 @@ const JobOpportunitiesScreen: React.FC<JobOpportunitiesScreenProps> = ({ navigat
           color={activeTab === 'jobs' ? '#A89CFF' : '#666'} 
         />
         <Text style={[styles.tabText, activeTab === 'jobs' && styles.activeTabText]}>Jobs</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('map');
+          navigation.navigate('Map');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'map' ? 'map' : 'map-outline'} 
+          size={24} 
+          color={activeTab === 'map' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'map' && styles.activeTabText]}>Map</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('home');
+          navigation.navigate('Home');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'home' ? 'home' : 'home-outline'} 
+          size={24} 
+          color={activeTab === 'home' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'home' && styles.activeTabText]}>Home</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
