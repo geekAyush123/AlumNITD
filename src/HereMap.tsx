@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Keyboard,
-  Alert
+  Alert,
+  SafeAreaView
 } from "react-native";
 import Geolocation from "@react-native-community/geolocation";
 import { WebView } from "react-native-webview";
@@ -19,71 +20,9 @@ import firestore from "@react-native-firebase/firestore";
 import auth from '@react-native-firebase/auth';
 import axios from "axios";
 import debounce from 'lodash.debounce';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-  searchContainer: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    right: 10,
-    zIndex: 1,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    padding: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  searchInput: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    fontSize: 16,
-  },
-  resultsContainer: {
-    marginTop: 5,
-    maxHeight: 200,
-    backgroundColor: 'white',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  resultItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  resultName: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  resultDetails: {
-    color: '#666',
-    fontSize: 14,
-  },
-  loadingContainer: {
-    padding: 10,
-    alignItems: 'center',
-  },
-  noResultsText: {
-    padding: 10,
-    textAlign: 'center',
-    color: '#666',
-  },
-});
 
 const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [currentLongitude, setCurrentLongitude] = useState<number | null>(null);
@@ -94,6 +33,7 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [allAlumniData, setAllAlumniData] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [activeTab, setActiveTab] = useState('map');
   const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
@@ -246,7 +186,7 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
       const requestData = {
         fromUserId: currentUser.uid,
         fromUserName: currentUserData.fullName || 'Alumni User',
-        fromUserProfilePic: currentUserData.profilePic || null, // Use null instead of undefined
+        fromUserProfilePic: currentUserData.profilePic || null,
         fromUserJobTitle: currentUserData.jobTitle || null,
         toUserId: alumniId,
         status: 'pending',
@@ -277,6 +217,7 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
       Alert.alert('Error', 'Failed to send connection request');
     }
   };
+
   const debouncedSearch = debounce((query: string) => {
     if (query.trim() === "") {
       setSearchResults([]);
@@ -774,70 +715,250 @@ const HereMap: React.FC<{ navigation: any }> = ({ navigation }) => {
     </html>
   `;
 
+  const BottomTabBar = () => (
+    <View style={styles.bottomTabBar}>
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('home');
+          navigation.navigate('Home');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'home' ? 'home' : 'home-outline'} 
+          size={24} 
+          color={activeTab === 'home' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'home' && styles.activeTabText]}>Home</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('jobs');
+          navigation.navigate('JobOpportunities');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'jobs' ? 'briefcase' : 'briefcase-outline'} 
+          size={24} 
+          color={activeTab === 'jobs' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'jobs' && styles.activeTabText]}>Jobs</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('map');
+          navigation.navigate('Map');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'map' ? 'map' : 'map-outline'} 
+          size={24} 
+          color={activeTab === 'map' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'map' && styles.activeTabText]}>Map</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('network');
+          navigation.navigate('MyNetwork');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'network' ? 'people' : 'people-outline'} 
+          size={24} 
+          color={activeTab === 'network' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'network' && styles.activeTabText]}>Network</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.tabItem} 
+        onPress={() => {
+          setActiveTab('profile');
+          navigation.navigate('Profile');
+        }}
+      >
+        <Icon 
+          name={activeTab === 'profile' ? 'person' : 'person-outline'} 
+          size={24} 
+          color={activeTab === 'profile' ? '#A89CFF' : '#666'} 
+        />
+        <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>Profile</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <TouchableWithoutFeedback 
-      onPress={() => {
-        Keyboard.dismiss();
-        setIsInputFocused(false);
-        setSearchResults([]);
-      }} 
-      accessible={false}
-    >
-      <View style={styles.container}>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search alumni by name, location, skills, etc."
-            placeholderTextColor="#888"
-            value={searchQuery}
-            onChangeText={handleSearchChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-          {(isSearching || (searchResults.length > 0 && isInputFocused)) && (
-            <View style={styles.resultsContainer}>
-              {isSearching ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color="#4A00E0" />
+    <View style={styles.fullContainer}>
+      <SafeAreaView style={styles.container}>
+        <TouchableWithoutFeedback 
+          onPress={() => {
+            Keyboard.dismiss();
+            setIsInputFocused(false);
+            setSearchResults([]);
+          }} 
+          accessible={false}
+        >
+          <View style={styles.container}>
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search alumni by name, location, skills, etc."
+                placeholderTextColor="#888"
+                value={searchQuery}
+                onChangeText={handleSearchChange}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+              {(isSearching || (searchResults.length > 0 && isInputFocused)) && (
+                <View style={styles.resultsContainer}>
+                  {isSearching ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" color="#4A00E0" />
+                    </View>
+                  ) : searchResults.length > 0 ? (
+                    <FlatList
+                      data={searchResults}
+                      renderItem={renderSearchResult}
+                      keyExtractor={(item) => item.id}
+                      keyboardShouldPersistTaps="always"
+                    />
+                  ) : (
+                    <Text style={styles.noResultsText}>No results found</Text>
+                  )}
                 </View>
-              ) : searchResults.length > 0 ? (
-                <FlatList
-                  data={searchResults}
-                  renderItem={renderSearchResult}
-                  keyExtractor={(item) => item.id}
-                  keyboardShouldPersistTaps="always"
-                />
-              ) : (
-                <Text style={styles.noResultsText}>No results found</Text>
               )}
             </View>
-          )}
-        </View>
-        <WebView
-          ref={webViewRef}
-          source={{ html }}
-          style={styles.map}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          originWhitelist={["*"]}
-          allowFileAccessFromFileURLs={true}
-          allowUniversalAccessFromFileURLs={true}
-          mixedContentMode="always"
-          onMessage={handleWebViewMessage}
-          injectedJavaScript={`
-            window.ReactNativeWebView = window.ReactNativeWebView || {
-              postMessage: function(data) {
-                window.postMessage(data);
-              }
-            };
-            true;
-          `}
-        />
-      </View>
-    </TouchableWithoutFeedback>
+            <WebView
+              ref={webViewRef}
+              source={{ html }}
+              style={styles.map}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              originWhitelist={["*"]}
+              allowFileAccessFromFileURLs={true}
+              allowUniversalAccessFromFileURLs={true}
+              mixedContentMode="always"
+              onMessage={handleWebViewMessage}
+              injectedJavaScript={`
+                window.ReactNativeWebView = window.ReactNativeWebView || {
+                  postMessage: function(data) {
+                    window.postMessage(data);
+                  }
+                };
+                true;
+              `}
+            />
+          </View>
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
+      <BottomTabBar />
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fullContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    marginBottom: 30, // Space for bottom tab bar
+  },
+  searchContainer: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    right: 10,
+    zIndex: 1,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    padding: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  searchInput: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    fontSize: 16,
+  },
+  resultsContainer: {
+    marginTop: 5,
+    maxHeight: 200,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  resultItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  resultName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 2,
+  },
+  resultDetails: {
+    color: '#666',
+    fontSize: 14,
+  },
+  loadingContainer: {
+    padding: 10,
+    alignItems: 'center',
+  },
+  noResultsText: {
+    padding: 10,
+    textAlign: 'center',
+    color: '#666',
+  },
+  map: {
+    flex: 1,
+  },
+  bottomTabBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 5,
+  },
+  tabText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  activeTabText: {
+    color: '#A89CFF',
+    fontWeight: 'bold',
+  },
+});
 
 export default HereMap;
