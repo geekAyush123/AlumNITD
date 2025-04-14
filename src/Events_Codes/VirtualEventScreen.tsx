@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import firestore from '@react-native-firebase/firestore';
 import { RouteProp } from '@react-navigation/native';
@@ -44,146 +43,198 @@ const VirtualEventScreen: React.FC<VirtualEventScreenProps> = ({ route, navigati
 
   if (!event) {
     return (
-      <LinearGradient colors={['#A89CFF', '#A89CFF']} style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading event details...</Text>
-        </View>
-      </LinearGradient>
+      <View style={[styles.container, styles.loadingContainer]}>
+        <Icon name="time-outline" size={40} color="#6A5ACD" />
+        <Text style={styles.loadingText}>Loading event details...</Text>
+      </View>
     );
   }
 
   return (
-    <LinearGradient colors={['#A89CFF', '#A89CFF']} style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={30} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Virtual Event</Text>
-        <View style={{ width: 30 }} /> {/* For alignment */}
+    <View style={styles.container}>
+      <Text style={styles.eventTitle}>{event.title}</Text>
+      <View style={styles.timeContainer}>
+        <Icon name="time-outline" size={18} color="#6A5ACD" />
+        <Text style={styles.eventDateTime}>{event.dateTime}</Text>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.eventTitle}>{event.title}</Text>
-        <Text style={styles.eventDateTime}>{event.dateTime}</Text>
-        
-        <View style={styles.meetingInfo}>
-          <Icon name="videocam-outline" size={50} color="#666" />
-          <Text style={styles.meetingText}>Virtual Meeting</Text>
-          {event.meetingPlatform && (
-            <Text style={styles.platformText}>Platform: {event.meetingPlatform}</Text>
-          )}
+      {/* Purple divider line */}
+      <View style={styles.purpleDivider} />
+
+      <View style={styles.meetingInfo}>
+        <View style={styles.videoIconContainer}>
+          <Icon name="videocam" size={32} color="white" />
         </View>
-        
-        <TouchableOpacity style={styles.joinButton} onPress={handleJoinEvent}>
-          <Text style={styles.joinButtonText}>Join Event</Text>
-        </TouchableOpacity>
-        
-        <View style={styles.instructions}>
-          <Text style={styles.instructionsTitle}>Instructions:</Text>
-          <Text style={styles.instructionsText}>
-            • Click the "Join Event" button to open the meeting in your browser
-          </Text>
-          <Text style={styles.instructionsText}>
-            • Make sure you have the required software installed (if any)
-          </Text>
-          <Text style={styles.instructionsText}>
-            • Join a few minutes early to test your audio/video
-          </Text>
-        </View>
+        <Text style={styles.meetingText}>Online Meeting</Text>
+        {event.meetingPlatform && (
+          <Text style={styles.platformText}>{event.meetingPlatform}</Text>
+        )}
       </View>
-    </LinearGradient>
+      
+      <TouchableOpacity 
+        style={styles.joinButton} 
+        onPress={handleJoinEvent}
+        activeOpacity={0.8}
+      >
+        <View style={styles.joinButtonContent}>
+          <Icon name="enter-outline" size={22} color="white" />
+          <Text style={styles.joinButtonText}>Join Event</Text>
+        </View>
+      </TouchableOpacity>
+      
+      <View style={styles.divider} />
+      
+      <View style={styles.instructions}>
+        <Text style={styles.instructionsTitle}>Event Instructions</Text>
+        <View style={styles.instructionItem}>
+          <Icon name="globe-outline" size={18} color="#6A5ACD" />
+          <Text style={styles.instructionsText}>
+            Click "Join Event" to open in your browser
+          </Text>
+        </View>
+        <View style={styles.instructionItem}>
+          <Icon name="download-outline" size={18} color="#6A5ACD" />
+          <Text style={styles.instructionsText}>
+            Install required software beforehand
+          </Text>
+        </View>
+        <View style={styles.instructionItem}>
+          <Icon name="alarm-outline" size={18} color="#6A5ACD" />
+          <Text style={styles.instructionsText}>
+            Join 5 minutes early to test audio/video
+          </Text>
+        </View>
+        {event.additionalInstructions && (
+          <View style={styles.instructionItem}>
+            <Icon name="information-circle-outline" size={18} color="#6A5ACD" />
+            <Text style={styles.instructionsText}>
+              {event.additionalInstructions}
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { 
-    flex: 1 
+    flex: 1,
+    backgroundColor: 'white',
+    paddingHorizontal: 25,
+    paddingTop: 40,
   },
   loadingContainer: {
-    flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 50,
-    marginBottom: 30,
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: 'black',
   },
   loadingText: {
-    color: 'white',
-    textAlign: 'center',
+    color: '#6A5ACD',
     fontSize: 16,
-  },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    marginTop: 15,
+    fontFamily: 'Roboto-Medium',
   },
   eventTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#333',
     textAlign: 'center',
-    marginBottom: 5,
-    color: 'black',
+    fontFamily: 'Roboto-Bold',
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    marginBottom: 20,
   },
   eventDateTime: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 30,
+    color: '#6A5ACD',
+    marginLeft: 8,
+    fontFamily: 'Roboto-Medium',
+  },
+  purpleDivider: {
+    height: 5,
+    backgroundColor: '#6A5ACD',
+    marginBottom: 20,
+    width: '100%',
   },
   meetingInfo: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 35,
+    paddingVertical: 25,
+    backgroundColor: 'rgba(106, 90, 205, 0.1)',
+    borderRadius: 20,
+  },
+  videoIconContainer: {
+    backgroundColor: '#6A5ACD',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
   },
   meetingText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    marginTop: 10,
+    color: '#444',
     marginBottom: 5,
-    color: 'black',
+    fontFamily: 'Roboto-Medium',
   },
   platformText: {
     fontSize: 16,
-    color: '#666',
+    color: '#6A5ACD',
+    fontWeight: '500',
+    fontFamily: 'Roboto-Medium',
   },
   joinButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 8,
-    width: '80%',
-    alignItems: 'center',
+    width: '100%',
+    borderRadius: 15,
+    overflow: 'hidden',
     marginBottom: 30,
+    backgroundColor: '#4CAF50',
+  },
+  joinButtonContent: {
+    paddingVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   joinButtonText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: 18,
+    marginLeft: 10,
+    fontFamily: 'Roboto-Bold',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#EEE',
+    marginVertical: 20,
   },
   instructions: {
-    width: '100%',
-    padding: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 8,
+    marginTop: 10,
   },
   instructionsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: 'black',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 15,
+    fontFamily: 'Roboto-Bold',
+  },
+  instructionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   instructionsText: {
-    fontSize: 14,
-    marginBottom: 5,
-    color: 'black',
+    fontSize: 15,
+    color: '#555',
+    marginLeft: 12,
+    flex: 1,
+    fontFamily: 'Roboto-Regular',
   },
 });
 

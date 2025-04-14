@@ -46,7 +46,7 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
   return (
     <LinearGradient colors={['#6A5ACD', '#9370DB']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
+        {/* <View style={styles.header}>
           <TouchableOpacity 
             onPress={() => navigation.goBack()}
             style={styles.backButton}
@@ -55,7 +55,7 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Event Details</Text>
           <View style={{ width: 24 }} /> 
-        </View>
+        </View> */}
 
         <View style={styles.card}>
           <Image 
@@ -106,18 +106,27 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
             )}
           </View>
           
+          {/* Enhanced Stats Section */}
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <View style={styles.statIconContainer}>
-                <Icon name="people-outline" size={18} color="white" />
+                <Icon name="people-outline" size={20} color="#7F7CFF" />
               </View>
-              <Text style={styles.statText}>{event.attendees || 0}+ attendees</Text>
+              <Text style={styles.statValue}>{event.attendees || 0}+</Text>
+              <Text style={styles.statText}>Attendees</Text>
             </View>
-            <View style={styles.statItem}>
+            
+            <View style={[styles.statItem, { borderLeftWidth: 1, borderLeftColor: '#F0F0FF' }]}>
               <View style={styles.statIconContainer}>
-                <Icon name="trending-up-outline" size={18} color="white" />
+                <Icon name="trending-up-outline" size={20} color="#7F7CFF" />
               </View>
-              <Text style={styles.statText}>{event.engagementRate || "85% (+10%)"} engagement</Text>
+              <Text style={styles.statValue}>{event.engagementRate || "85%"}</Text>
+              <Text style={styles.statText}>Engagement</Text>
+              {event.engagementRate && (
+                <Text style={[styles.statText, { color: '#4CAF50', fontSize: 12 }]}>
+                  (+10% from last year)
+                </Text>
+              )}
             </View>
           </View>
           
@@ -178,6 +187,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: { 
     paddingBottom: 30,
+    paddingTop: 50,
   },
   header: {
     flexDirection: 'row',
@@ -185,6 +195,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 50,
+  },
+  loadingText: {
+    color: 'white',
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
   },
   backButton: {
     padding: 5,
@@ -286,25 +302,41 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#7F7CFF',
-    borderRadius: 12,
-    padding: 15,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 16,
     marginVertical: 15,
+    borderWidth: 1,
+    borderColor: '#F0F0FF',
+    shadowColor: '#7F7CFF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   statItem: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
+    flex: 1,
+    paddingHorizontal: 8,
   },
   statIconContainer: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 8,
-    padding: 5,
-    marginRight: 8,
+    backgroundColor: '#F5F5FF',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginTop: 4,
   },
   statText: {
     fontSize: 14,
-    color: 'white',
-    fontWeight: '500',
+    color: '#555',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   speakerItem: {
     flexDirection: 'row',
@@ -356,11 +388,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   rsvpButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FF6B6B',
     marginRight: 10,
   },
   joinButton: {
-    backgroundColor: '#FF9800',
+    backgroundColor: '#4CAF50',
   },
   buttonText: {
     color: 'white',

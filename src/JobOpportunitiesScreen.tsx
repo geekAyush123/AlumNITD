@@ -211,7 +211,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     margin: 15,
     paddingHorizontal: 15,
-    elevation: 2,
+    // Removed elevation: 2
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   searchIcon: {
     marginRight: 10,
@@ -222,25 +224,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   filtersWrapper: {
-    height: 70,
+    height: 60,
   },
   filterContainer: {
     paddingHorizontal: 15,
     paddingBottom: 10,
   },
   filterChip: {
-    backgroundColor: '#e0e0e0',
-    borderRadius: 24,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginRight: 10,
-    height: 48
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   activeFilterChip: {
     backgroundColor: '#A89CFF',
+    borderColor: '#A89CFF',
   },
   filterIcon: {
     marginRight: 5,
@@ -249,6 +254,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '500',
     flex: 1,
+    fontSize: 12,
   },
   activeFilterText: {
     color: 'white',
@@ -256,11 +262,11 @@ const styles = StyleSheet.create({
   },
   filterCount: {
     backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
     marginLeft: 5,
-    fontSize: 12,
+    fontSize: 10,
     color: '#666',
   },
   activeFilterCount: {
@@ -275,7 +281,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
-    elevation: 2,
+    // Removed elevation: 2
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   jobHeader: {
     flexDirection: 'row',
