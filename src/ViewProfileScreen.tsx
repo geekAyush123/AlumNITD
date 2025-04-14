@@ -15,6 +15,7 @@ import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
 import { RouteProp } from "@react-navigation/native";
 import { RootStackParamList } from "./App";
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 type ProfileData = {
   profilePic?: string;
@@ -394,7 +395,7 @@ const ViewProfileScreen: React.FC<ViewProfileScreenProps> = ({ route, navigation
             style={styles.contactItem}
             onPress={() => openUrl(profileData.linkedinUrl)}
           >
-            <Icon name="linkedin" size={20} color="#6200ea" />
+            <FontAwesomeIcon name="linkedin-square" size={20} color="#6200ea" />
             <Text style={styles.contactText}>
               {profileData.linkedinUrl.replace(/(^\w+:|^)\/\//, "")}
             </Text>
