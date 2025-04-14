@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Alert, SectionList } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getUserTimeCapsules, markCapsuleAsViewed, deleteTimeCapsule } from './TimeCapsuleService';
 import auth from '@react-native-firebase/auth';
@@ -41,9 +41,12 @@ const getRandomFunkyMessage = (messages: string[]) => {
 };
 
 const TimeCapsuleItem: React.FC<TimeCapsuleItemProps> = ({ item, onPress, onDelete }) => {
-  const isUnlocked = new Date() >= item.unlockDate;
+  const isUnlocked = new Date() >= new Date(item.unlockDate.seconds * 1000);
   const user = auth().currentUser;
-  const hasViewed = user && item.viewedBy.includes(user.uid);
+  const hasViewed = user && item.viewedBy?.includes(user.uid);
+  const unlockDate = item.unlockDate?.toDate?.() || new Date(item.unlockDate.seconds * 1000); // fallback for backward compatibility
+  const daysUntilUnlock = isUnlocked ? 0 : Math.ceil((unlockDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const creationDate = new Date(item.creationDate.seconds * 1000).toLocaleDateString();
 
   const renderRightActions = () => {
     return (
@@ -56,12 +59,17 @@ const TimeCapsuleItem: React.FC<TimeCapsuleItemProps> = ({ item, onPress, onDele
   return (
     <Swipeable renderRightActions={renderRightActions}>
       <TouchableOpacity 
-        style={[styles.itemContainer, isUnlocked && styles.unlockedContainer]}
+        style={[
+          styles.itemContainer, 
+          isUnlocked ? styles.unlockedContainer : styles.lockedContainer,
+          hasViewed && isUnlocked && styles.viewedContainer
+        ]}
         onPress={onPress}
-        disabled={!isUnlocked}
       >
         <View style={styles.itemHeader}>
-          <Text style={styles.itemTitle}>{item.title}</Text>
+          <Text style={styles.itemTitle} numberOfLines={1} ellipsizeMode="tail">
+            {item.title}
+          </Text>
           {isUnlocked ? (
             <Icon name="lock-open" size={20} color="#4CAF50" />
           ) : (
@@ -70,20 +78,47 @@ const TimeCapsuleItem: React.FC<TimeCapsuleItemProps> = ({ item, onPress, onDele
         </View>
         
         <Text style={styles.itemDate}>
-          {isUnlocked ? 'Unlocked on: ' : 'Will unlock on: '}
-          {item.unlockDate.toLocaleDateString()}
+          Created on {creationDate}
         </Text>
         
-        {item.mediaUrls.length > 0 && (
+        {!isUnlocked && (
+          <View style={styles.countdownContainer}>
+            <Icon name="time-outline" size={16} color="#6200ea" />
+            <Text style={styles.countdownText}>
+              {daysUntilUnlock} days until unlock
+            </Text>
+          </View>
+        )}
+        
+        {item.mediaUrls?.length > 0 ? (
           <Image 
             source={{ uri: item.mediaUrls[0] }} 
             style={styles.itemThumbnail} 
             resizeMode="cover"
+            blurRadius={isUnlocked ? 0 : 3}
           />
+        ) : (
+          <View style={[styles.itemThumbnail, styles.emptyThumbnail]}>
+            <Icon 
+              name={isUnlocked ? "open-outline" : "lock-closed-outline"} 
+              size={40} 
+              color="#6200ea" 
+            />
+          </View>
         )}
         
-        {isUnlocked && hasViewed && (
-          <Text style={styles.viewedText}>Viewed</Text>
+        {isUnlocked && (
+          <View style={styles.statusContainer}>
+            {hasViewed ? (
+              <Text style={styles.viewedText}>
+                <Icon name="checkmark-done" size={14} color="#4CAF50" /> Viewed
+              </Text>
+            ) : (
+              <Text style={styles.newText}>
+                <Icon name="sparkles" size={14} color="#FFC107" /> New!
+              </Text>
+            )}
+          </View>
         )}
       </TouchableOpacity>
     </Swipeable>
@@ -122,7 +157,7 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
         vibration: true,
         sound: 'default',
       });
-      console.log('Notification channel created:', channelId); // Check logs
+
       await notifee.displayNotification({
         title,
         body,
@@ -141,8 +176,9 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
   const checkForUnlockedCapsules = (currentCapsules: any[]) => {
     const now = new Date();
     currentCapsules.forEach(capsule => {
-      const isUnlocked = now >= capsule.unlockDate;
-      const wasLocked = !capsules.some(c => c.id === capsule.id && new Date(c.unlockDate) <= now);
+      const unlockDate = new Date(capsule.unlockDate.seconds * 1000);
+      const isUnlocked = now >= unlockDate;
+      const wasLocked = !capsules.some(c => c.id === capsule.id && new Date(c.unlockDate.seconds * 1000) <= now);
       
       if (isUnlocked && wasLocked) {
         displayNotification(
@@ -166,8 +202,8 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
           const newCapsules = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
-            creationDate: doc.data().creationDate?.toDate() || new Date(),
-            unlockDate: doc.data().unlockDate?.toDate() || new Date()
+            creationDate: doc.data().creationDate,
+            unlockDate: doc.data().unlockDate
           }));
 
           if (newCapsules.length > capsules.length) {
@@ -209,7 +245,7 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
     try {
       Alert.alert(
         'Delete Time Capsule',
-        'Are you sure you want to delete this time capsule? This action cannot be undone.',
+        'Are you sure you want to delete this memory? This action cannot be undone.',
         [
           {
             text: 'Cancel',
@@ -232,18 +268,31 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
     }
   };
 
+  const groupCapsules = () => {
+    const now = new Date();
+    const unlocked = capsules.filter(c => new Date(c.unlockDate.seconds * 1000) <= now);
+    const locked = capsules.filter(c => new Date(c.unlockDate.seconds * 1000) > now);
+
+    return [
+      { title: 'Unlocked Memories', data: unlocked },
+      { title: 'Future Surprises', data: locked }
+    ];
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#A89CFF" />
+        <ActivityIndicator size="large" color="#6200ea" />
+        <Text style={styles.loadingText}>Loading your memories...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={capsules}
+      <SectionList
+        sections={groupCapsules()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TimeCapsuleItem 
             item={item} 
@@ -251,16 +300,31 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
             onDelete={() => handleDeleteCapsule(item.id)}
           />
         )}
-        keyExtractor={(item) => item.id}
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionHeaderText}>{section.title}</Text>
+            <Text style={styles.sectionCount}>{section.data.length} items</Text>
+          </View>
+        )}
         refreshing={refreshing}
         onRefresh={handleRefresh}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="time-outline" size={50} color="#A89CFF" />
-            <Text style={styles.emptyText}>No time capsules found</Text>
-            <Text style={styles.emptySubText}>Create your first time capsule to get started</Text>
+            <Image 
+              source={require('../assets/empty-capsule.jpg')} 
+              style={styles.emptyImage}
+            />
+            <Text style={styles.emptyTitle}>No Time Capsules Yet</Text>
+            <Text style={styles.emptyText}>Your memories from the past will appear here</Text>
+            <TouchableOpacity
+              style={styles.emptyButton}
+              onPress={() => navigation.navigate('CreateTimeCapsule')}
+            >
+              <Text style={styles.emptyButtonText}>Create Your First Memory</Text>
+            </TouchableOpacity>
           </View>
         }
+        contentContainerStyle={{ flexGrow: 1 }}
       />
       
       <TouchableOpacity
@@ -276,12 +340,17 @@ const TimeCapsuleListScreen: React.FC<TimeCapsuleListScreenProps> = ({ navigatio
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F5F5',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    marginTop: 15,
+    color: '#6200ea',
   },
   emptyContainer: {
     flex: 1,
@@ -289,71 +358,133 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 40,
   },
-  emptyText: {
-    fontSize: 18,
-    marginTop: 10,
-    color: '#555',
+  emptyImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
   },
-  emptySubText: {
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  emptyText: {
     fontSize: 14,
-    color: '#777',
+    color: '#666',
     textAlign: 'center',
-    marginTop: 5,
+    marginBottom: 20,
+  },
+  emptyButton: {
+    backgroundColor: '#6200ea',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  emptyButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  sectionHeader: {
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sectionHeaderText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#6200ea',
+  },
+  sectionCount: {
+    fontSize: 12,
+    color: '#666',
   },
   itemContainer: {
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 15,
-    margin: 10,
-    marginBottom: 5,
+    marginHorizontal: 15,
+    marginVertical: 8,
     elevation: 2,
-    opacity: 0.8,
+  },
+  lockedContainer: {
+    opacity: 0.85,
+    borderLeftWidth: 5,
+    borderLeftColor: '#FF9800',
   },
   unlockedContainer: {
-    opacity: 1,
     borderLeftWidth: 5,
     borderLeftColor: '#4CAF50',
+    backgroundColor: '#F1F8E9',
+  },
+  viewedContainer: {
+    backgroundColor: '#E8F5E9',
   },
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   itemTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
     flex: 1,
+    marginRight: 10,
   },
   itemDate: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
+    marginBottom: 8,
+  },
+  countdownContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
+  },
+  countdownText: {
+    fontSize: 12,
+    color: '#6200ea',
+    marginLeft: 5,
   },
   itemThumbnail: {
     width: '100%',
     height: 150,
-    borderRadius: 6,
+    borderRadius: 8,
     marginTop: 5,
+  },
+  emptyThumbnail: {
+    backgroundColor: '#EDE7F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusContainer: {
+    marginTop: 8,
+    alignItems: 'flex-end',
   },
   viewedText: {
     color: '#4CAF50',
     fontSize: 12,
-    marginTop: 5,
-    textAlign: 'right',
+  },
+  newText: {
+    color: '#FF9800',
+    fontSize: 12,
   },
   addButton: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#8F85E6',
+    bottom: 25,
+    right: 25,
+    backgroundColor: '#6200ea',
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    //elevation: 5,
+    elevation: 5,
   },
   deleteButton: {
     backgroundColor: '#FF3B30',

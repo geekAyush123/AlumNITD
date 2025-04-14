@@ -15,6 +15,8 @@ interface TimeCapsule {
   isPublic: boolean;
   viewedBy: string[];
   status: 'active' | 'deleted';
+  emotionalTone?: string;
+  coverStyle?: string;
 }
 
 const CLOUDINARY_CONFIG = {
@@ -73,7 +75,9 @@ export const createTimeCapsule = async (
       recipients: recipientIds,
       isPublic: capsuleData.isPublic,
       viewedBy: [],
-      status: 'active'
+      status: 'active',
+      emotionalTone: capsuleData.emotionalTone,
+      coverStyle: capsuleData.coverStyle
     });
 
     return docRef.id;
@@ -99,13 +103,16 @@ export const getUserTimeCapsules = async (userId: string): Promise<TimeCapsule[]
     ]);
 
     return [...created.docs, ...received.docs]
-      .map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        creationDate: doc.data().creationDate?.toDate() || new Date(),
-        unlockDate: doc.data().unlockDate?.toDate() || new Date()
-      } as TimeCapsule))
-      .sort((a, b) => a.unlockDate.getTime() - b.unlockDate.getTime());
+      .map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          creationDate: data.creationDate?.toDate?.() || new Date(),
+          unlockDate: data.unlockDate?.toDate?.() || new Date()
+        } as TimeCapsule;
+      })
+      .sort((a, b) => a.unlockDate.getTime() - b.unlockDate.getTime());    
   } catch (error) {
     console.error("Failed to fetch capsules:", error);
     return [];
