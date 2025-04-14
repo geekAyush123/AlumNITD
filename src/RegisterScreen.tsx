@@ -10,8 +10,12 @@ import {
   TouchableWithoutFeedback,
   FlatList,
   ScrollView,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import Geolocation from "@react-native-community/geolocation";
@@ -28,37 +32,45 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [location, setLocation] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const MAPTILER_API_KEY = "BqTvnw9XEB3yLtGALyZG";
-  const years = Array.from({ length: 87 }, (_, i) => (2100 - i).toString());
+  const years = Array.from({ length: 87 }, (_, i) => (2014 + i).toString());
 
-  const pickerSelectStyles = StyleSheet.create({
+  const pickerSelectStyles = {
     inputIOS: {
       fontSize: 16,
-      paddingVertical: 12,
-      paddingHorizontal: 10,
+      paddingVertical: 16,
+      paddingHorizontal: 16,
       borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 8,
-      color: 'black',
+      borderColor: '#E5E7EB',
+      borderRadius: 12,
+      color: '#1F2937',
       paddingRight: 30,
-      marginBottom: 15,
+      marginBottom: 16,
+      backgroundColor: '#F9FAFB',
     },
     inputAndroid: {
       fontSize: 16,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
       borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 8,
-      color: 'black',
+      borderColor: '#E5E7EB',
+      borderRadius: 12,
+      color: '#1F2937',
       paddingRight: 30,
-      marginBottom: 15,
+      marginBottom: 16,
+      backgroundColor: '#F9FAFB',
     },
     placeholder: {
-      color: '#9EA0A4',
+      color: '#9CA3AF',
     },
-  });
+    iconContainer: {
+      top: 18,
+      right: 15,
+    },
+  };
 
   const handleRegister = async () => {
     if (!fullName || !email || !password || !confirmPassword || !role || !location) {
@@ -150,191 +162,320 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>Register</Text>
-
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your full name"
-          value={fullName}
-          onChangeText={setFullName}
-        />
-
-        <Text style={styles.label}>College Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email (@nitdelhi.ac.in)"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
-
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Create a password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <Text style={styles.label}>Confirm Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm your password"
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
-
-        <Text style={styles.label}>Role Selection</Text>
-        <RNPickerSelect
-          onValueChange={setRole}
-          items={[
-            { label: "Student", value: "Student" },
-            { label: "Alumni", value: "Alumni" },
-            { label: "TNP Member", value: "TNP Member" },
-          ]}
-          placeholder={{
-            label: "Select role",
-            value: "",
-            color: '#9EA0A4',
-          }}
-          style={pickerSelectStyles}
-        />
-
-        <Text style={styles.label}>Graduation Year</Text>
-        <RNPickerSelect
-          onValueChange={setGraduationYear}
-          items={years.map((year) => ({ label: year, value: year }))}
-          placeholder={{
-            label: "Select Year",
-            value: "",
-            color: '#9EA0A4',
-          }}
-          style={pickerSelectStyles}
-        />
-
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your location"
-          value={searchQuery}
-          onChangeText={(text) => {
-            setSearchQuery(text);
-            fetchSuggestions(text);
-          }}
-        />
-
-        {suggestions.length > 0 && (
-          <FlatList
-            data={suggestions}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.suggestionItem}
-                onPress={() => handleLocationSelect(item)}
-              >
-                <Text>{item.place_name}</Text>
-              </TouchableOpacity>
-            )}
-            style={styles.suggestionsList}
-          />
-        )}
-
-        <TouchableOpacity style={styles.gpsButton} onPress={useGPSLocation}>
-          <Text style={styles.gpsButtonText}>📍 Use My Current Location</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.registerButton} 
-          onPress={handleRegister} 
-          disabled={loading}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView 
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.registerText}>
-            {loading ? "Registering..." : "Register"}
-          </Text>
-        </TouchableOpacity>
+          <View style={styles.headerContainer}>
+            <Text style={styles.header}>Create Account</Text>
+            <Text style={styles.subheader}>Join our community today</Text>
+          </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.loginText}>Already have an account? Login Here</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </TouchableWithoutFeedback>
+          <View style={styles.formContainer}>
+            <Text style={styles.label}>Full Name</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="person-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your full name"
+                placeholderTextColor="#9CA3AF"
+                value={fullName}
+                onChangeText={setFullName}
+              />
+            </View>
+
+            <Text style={styles.label}>College Email</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="mail-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="yourname@nitdelhi.ac.in"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+              />
+            </View>
+
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="Create a password"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity 
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons 
+                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={20} 
+                  color="#6B7280" 
+                />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.label}>Confirm Password</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="Confirm your password"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
+              <TouchableOpacity 
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons 
+                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={20} 
+                  color="#6B7280" 
+                />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.label}>Role Selection</Text>
+            <View style={styles.pickerContainer}>
+              <RNPickerSelect
+                onValueChange={setRole}
+                items={[
+                  { label: "Student", value: "Student" },
+                  { label: "Alumni", value: "Alumni" },
+                  { label: "TNP Member", value: "TNP Member" },
+                ]}
+                placeholder={{
+                  label: "Select your role",
+                  value: "",
+                  color: '#9CA3AF',
+                }}
+                style={pickerSelectStyles}
+                Icon={() => (
+                  <Ionicons name="chevron-down" size={20} color="#6B7280" />
+                )}
+              />
+            </View>
+
+            <Text style={styles.label}>Graduation Year</Text>
+            <View style={styles.pickerContainer}>
+              <RNPickerSelect
+                onValueChange={setGraduationYear}
+                items={years.map((year) => ({ label: year, value: year }))}
+                placeholder={{
+                  label: "Select graduation year",
+                  value: "",
+                  color: '#9CA3AF',
+                }}
+                style={pickerSelectStyles}
+                Icon={() => (
+                  <Ionicons name="chevron-down" size={20} color="#6B7280" />
+                )}
+              />
+            </View>
+
+            <Text style={styles.label}>Location</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="location-outline" size={20} color="#6B7280" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your location"
+                placeholderTextColor="#9CA3AF"
+                value={searchQuery}
+                onChangeText={(text) => {
+                  setSearchQuery(text);
+                  fetchSuggestions(text);
+                }}
+              />
+            </View>
+
+            {suggestions.length > 0 && (
+              <View style={styles.suggestionsContainer}>
+                <FlatList
+                  data={suggestions}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.suggestionItem}
+                      onPress={() => handleLocationSelect(item)}
+                    >
+                      <Text style={styles.suggestionText}>{item.place_name}</Text>
+                    </TouchableOpacity>
+                  )}
+                  style={styles.suggestionsList}
+                  nestedScrollEnabled
+                />
+              </View>
+            )}
+
+            <TouchableOpacity style={styles.gpsButton} onPress={useGPSLocation}>
+              <Ionicons name="locate-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.gpsButtonText}> Use My Current Location</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.registerButton, loading && styles.registerButtonDisabled]} 
+              onPress={handleRegister} 
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.registerText}>Register</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Already have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                <Text style={styles.loginLink}>Login Here</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { 
     flexGrow: 1, 
-    padding: 20, 
-    backgroundColor: "#fff" 
+    padding: 24, 
+    backgroundColor: "#FFFFFF",
+    paddingBottom: 40,
+  },
+  headerContainer: {
+    marginBottom: 32,
+    alignItems: 'center',
   },
   header: { 
-    fontSize: 24, 
+    fontSize: 28, 
     fontWeight: "bold", 
-    textAlign: "center", 
-    marginBottom: 20 
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  subheader: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  formContainer: {
+    width: '100%',
   },
   label: { 
-    fontSize: 16, 
-    marginBottom: 5, 
-    fontWeight: "600" 
+    fontSize: 14, 
+    marginBottom: 8, 
+    fontWeight: "600",
+    color: '#374151',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: '#F9FAFB',
   },
   input: { 
-    borderWidth: 1, 
-    borderColor: "#ccc", 
-    borderRadius: 8, 
-    padding: 12, 
+    flex: 1,
+    paddingVertical: 16,
     fontSize: 16, 
-    marginBottom: 15, 
-    color: "#000" 
+    color: '#1F2937',
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  eyeIcon: {
+    padding: 8,
+  },
+  pickerContainer: {
+    marginBottom: 16,
   },
   registerButton: { 
-    backgroundColor: "#4A00E0", 
-    padding: 15, 
-    borderRadius: 8, 
-    alignItems: "center" 
+    backgroundColor: "#4F46E5", 
+    padding: 18, 
+    borderRadius: 12, 
+    alignItems: "center",
+    marginTop: 16,
+    shadowColor: "#4F46E5",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+  registerButtonDisabled: {
+    backgroundColor: "#A5B4FC",
   },
   registerText: { 
-    color: "#fff", 
-    fontSize: 18, 
-    fontWeight: "bold" 
+    color: "#FFFFFF", 
+    fontSize: 16, 
+    fontWeight: "600",
+  },
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
   },
   loginText: { 
     fontSize: 14, 
-    color: "#4A00E0", 
-    textAlign: "center", 
-    marginTop: 10 
+    color: "#6B7280",
   },
-  suggestionsList: { 
-    width: "100%", 
-    maxHeight: 150, 
-    backgroundColor: "#fff", 
-    borderRadius: 8, 
-    borderWidth: 1, 
-    borderColor: "#ccc", 
-    marginTop: 5 
+  loginLink: {
+    fontSize: 14,
+    color: "#4F46E5",
+    fontWeight: "600",
+  },
+  suggestionsContainer: {
+    maxHeight: 150,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  suggestionsList: {
+    width: '100%',
   },
   suggestionItem: { 
-    padding: 10, 
+    padding: 12, 
     borderBottomWidth: 1, 
-    borderBottomColor: "#eee" 
+    borderBottomColor: "#F3F4F6",
+  },
+  suggestionText: {
+    color: '#1F2937',
   },
   gpsButton: { 
-    backgroundColor: "#FF5F1F", 
-    padding: 12, 
-    borderRadius: 8, 
+    backgroundColor: "#10B981", 
+    padding: 14, 
+    borderRadius: 12, 
     width: "100%", 
-    alignItems: "center", 
-    marginBottom: 10 
+    alignItems: "center",
+    justifyContent: 'center',
+    flexDirection: 'row',
+    marginBottom: 16,
   },
   gpsButtonText: { 
-    color: "#fff", 
-    fontSize: 14 
+    color: "#FFFFFF", 
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 
