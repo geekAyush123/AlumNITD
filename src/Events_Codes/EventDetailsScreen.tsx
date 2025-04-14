@@ -12,7 +12,6 @@ interface EventDetailsScreenProps {
   navigation: StackNavigationProp<RootStackParamList, 'EventDetails'>;
 }
 
-
 const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigation }) => {
   const [event, setEvent] = useState<any>(null);
   const { eventId } = route.params;
@@ -30,7 +29,6 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
 
   const handleRSVP = () => {
     Alert.alert('RSVP', 'You have successfully RSVPed to this event!');
-
   };
 
   const handleJoinEvent = () => {
@@ -39,85 +37,123 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
 
   if (!event) {
     return (
-      <LinearGradient colors={['#A89CFF', '#A89CFF']} style={styles.container}>
+      <LinearGradient colors={['#6A5ACD', '#9370DB']} style={styles.container}>
         <Text style={styles.loadingText}>Loading event details...</Text>
       </LinearGradient>
     );
   }
 
   return (
-    <LinearGradient colors={['#A89CFF', '#A89CFF']} style={styles.container}>
+    <LinearGradient colors={['#6A5ACD', '#9370DB']} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Icon name="arrow-back" size={30} color="black" />
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Icon name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text style={styles.title}>Event Details</Text>
-          <View style={{ width: 30 }} /> 
+          <Text style={styles.headerTitle}>Event Details</Text>
+          <View style={{ width: 24 }} /> 
         </View>
 
-        <Image source={require('../assets/event_placeholder.png')} style={styles.eventImage} />
-        
-        <Text style={styles.eventTitle}>{event.title}</Text>
-        <Text style={styles.eventDateTime}>{event.dateTime}</Text>
-        
-        <Text style={styles.sectionTitle}>Description</Text>
-        <Text style={styles.eventDescription}>{event.description}</Text>
-        
-        <Text style={styles.sectionTitle}>Agenda</Text>
-        {event.agenda ? (
-          event.agenda.map((item: string, index: number) => (
-            <View key={index} style={styles.agendaItem}>
-              <Icon name="time-outline" size={16} color="#666" />
-              <Text style={styles.agendaText}>{item}</Text>
+        <View style={styles.card}>
+          <Image 
+            source={require('../assets/event_placeholder.png')} 
+            style={styles.eventImage} 
+          />
+          
+          <View style={styles.eventHeader}>
+            <Text style={styles.eventTitle}>{event.title}</Text>
+            <View style={styles.dateTimeContainer}>
+              <Icon name="calendar-outline" size={16} color="#7F7CFF" />
+              <Text style={styles.eventDateTime}>{event.dateTime}</Text>
             </View>
-          ))
-        ) : (
-          <Text style={styles.noAgendaText}>Agenda to be announced</Text>
-        )}
-        
-        <Text style={styles.sectionTitle}>Highlights</Text>
-        {event.highlights ? (
-          event.highlights.map((highlight: string, index: number) => (
-            <Text key={index} style={styles.highlightText}>• {highlight}</Text>
-          ))
-        ) : (
-          <Text style={styles.noHighlightsText}>Highlights to be announced</Text>
-        )}
-        
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Icon name="people-outline" size={20} color="#666" />
-            <Text style={styles.statText}>{event.attendees || 0}+ attendees</Text>
           </View>
-          <View style={styles.statItem}>
-            <Icon name="trending-up-outline" size={20} color="#666" />
-            <Text style={styles.statText}>{event.engagementRate || "85% (+10%)"} engagement</Text>
+          
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.eventDescription}>{event.description}</Text>
+          </View>
+          
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Agenda</Text>
+            {event.agenda ? (
+              event.agenda.map((item: string, index: number) => (
+                <View key={index} style={styles.agendaItem}>
+                  <View style={styles.agendaBullet}>
+                    <Icon name="time-outline" size={14} color="#7F7CFF" />
+                  </View>
+                  <Text style={styles.agendaText}>{item}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noContentText}>Agenda to be announced</Text>
+            )}
+          </View>
+          
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Highlights</Text>
+            {event.highlights ? (
+              event.highlights.map((highlight: string, index: number) => (
+                <View key={index} style={styles.highlightItem}>
+                  <View style={styles.highlightBullet} />
+                  <Text style={styles.highlightText}>{highlight}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noContentText}>Highlights to be announced</Text>
+            )}
+          </View>
+          
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <View style={styles.statIconContainer}>
+                <Icon name="people-outline" size={18} color="white" />
+              </View>
+              <Text style={styles.statText}>{event.attendees || 0}+ attendees</Text>
+            </View>
+            <View style={styles.statItem}>
+              <View style={styles.statIconContainer}>
+                <Icon name="trending-up-outline" size={18} color="white" />
+              </View>
+              <Text style={styles.statText}>{event.engagementRate || "85% (+10%)"} engagement</Text>
+            </View>
+          </View>
+          
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Speakers</Text>
+            {event.speakers && event.speakers.length > 0 ? (
+              event.speakers.map((speaker: any, index: number) => (
+                <View key={index} style={styles.speakerItem}>
+                  <View style={styles.speakerAvatar}>
+                    <Icon name="person-circle-outline" size={40} color="#7F7CFF" />
+                  </View>
+                  <View style={styles.speakerTextContainer}>
+                    <Text style={styles.speakerName}>{speaker.name}</Text>
+                    <Text style={styles.speakerRole}>{speaker.role}</Text>
+                    {speaker.bio && <Text style={styles.speakerBio}>{speaker.bio}</Text>}
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noContentText}>Speakers to be announced</Text>
+            )}
           </View>
         </View>
         
-        <Text style={styles.sectionTitle}>Speakers</Text>
-        {event.speakers && event.speakers.length > 0 ? (
-          event.speakers.map((speaker: any, index: number) => (
-            <View key={index} style={styles.speakerItem}>
-              <Icon name="person-circle-outline" size={30} color="#666" />
-              <View style={styles.speakerTextContainer}>
-                <Text style={styles.speakerName}>{speaker.name}</Text>
-                <Text style={styles.speakerRole}>{speaker.role}</Text>
-                {speaker.bio && <Text style={styles.speakerBio}>{speaker.bio}</Text>}
-              </View>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.noSpeakersText}>Speakers to be announced</Text>
-        )}
-        
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.rsvpButton} onPress={handleRSVP}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.rsvpButton]} 
+            onPress={handleRSVP}
+          >
             <Text style={styles.buttonText}>RSVP</Text>
           </TouchableOpacity>
           {event.isVirtual && (
-            <TouchableOpacity style={styles.joinButton} onPress={handleJoinEvent}>
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.joinButton]} 
+              onPress={handleJoinEvent}
+            >
               <Text style={styles.buttonText}>Join Event</Text>
             </TouchableOpacity>
           )}
@@ -125,8 +161,9 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
         
         {event.isVirtual && (
           <TouchableOpacity style={styles.locationButton}>
-            <Icon name="map-outline" size={16} color="#666" />
+            <Icon name="map-outline" size={16} color="#7F7CFF" />
             <Text style={styles.locationText}>Virtual Event Location Map</Text>
+            <Icon name="chevron-forward" size={16} color="#7F7CFF" />
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -135,164 +172,219 @@ const EventDetailsScreen: React.FC<EventDetailsScreenProps> = ({ route, navigati
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContainer: { width: '90%', alignSelf: 'center', paddingBottom: 20 },
+  container: { 
+    flex: 1,
+    backgroundColor: '#6A5ACD',
+  },
+  scrollContainer: { 
+    paddingBottom: 30,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 50,
-    marginBottom: 20,
+    padding: 20,
+    paddingTop: 50,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
+  backButton: {
+    padding: 5,
   },
-  loadingText: {
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
     color: 'white',
-    textAlign: 'center',
-    marginTop: 50,
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   eventImage: {
     width: '100%',
     height: 200,
-    borderRadius: 8,
+    borderRadius: 12,
+    marginBottom: 15,
+  },
+  eventHeader: {
     marginBottom: 15,
   },
   eventTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#333',
     marginBottom: 5,
   },
-  eventDateTime: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 15,
+  dateTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  eventDescription: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 15,
-    lineHeight: 22,
+  eventDateTime: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 5,
+  },
+  section: {
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 10,
+    fontWeight: '600',
     color: '#444',
+    marginBottom: 12,
+  },
+  eventDescription: {
+    fontSize: 15,
+    color: '#555',
+    lineHeight: 22,
   },
   agendaItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  agendaBullet: {
+    marginRight: 10,
+    marginTop: 2,
   },
   agendaText: {
-    marginLeft: 8,
-    fontSize: 15,
-    color: '#333',
-  },
-  noAgendaText: {
     fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
+    color: '#555',
+    flex: 1,
+    lineHeight: 20,
+  },
+  highlightItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  highlightBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#7F7CFF',
+    marginRight: 10,
+    marginTop: 7,
   },
   highlightText: {
-    fontSize: 15,
-    color: '#333',
-    marginBottom: 5,
-    marginLeft: 5,
-  },
-  noHighlightsText: {
     fontSize: 14,
-    color: '#666',
+    color: '#555',
+    flex: 1,
+    lineHeight: 20,
+  },
+  noContentText: {
+    fontSize: 14,
+    color: '#999',
     fontStyle: 'italic',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 20,
-    paddingVertical: 15,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#ddd',
+    backgroundColor: '#7F7CFF',
+    borderRadius: 12,
+    padding: 15,
+    marginVertical: 15,
   },
   statItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  statIconContainer: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 8,
+    padding: 5,
+    marginRight: 8,
+  },
   statText: {
-    marginLeft: 8,
-    fontSize: 15,
-    color: '#333',
+    fontSize: 14,
+    color: 'white',
+    fontWeight: '500',
   },
   speakerItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 15,
+    backgroundColor: '#F9F9FF',
+    borderRadius: 12,
+    padding: 12,
+  },
+  speakerAvatar: {
+    marginRight: 12,
   },
   speakerTextContainer: {
-    marginLeft: 15,
     flex: 1,
   },
   speakerName: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#444',
   },
   speakerRole: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: '#7F7CFF',
     marginTop: 2,
+    fontWeight: '500',
   },
   speakerBio: {
-    fontSize: 14,
-    color: '#333',
-    marginTop: 5,
-    lineHeight: 20,
-  },
-  noSpeakersText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
-    fontStyle: 'italic',
+    marginTop: 5,
+    lineHeight: 18,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    paddingHorizontal: 20,
+    marginBottom: 15,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 15,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   rsvpButton: {
     backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 8,
-    flex: 1,
     marginRight: 10,
   },
   joinButton: {
     backgroundColor: '#FF9800',
-    padding: 15,
-    borderRadius: 8,
-    flex: 1,
   },
   buttonText: {
     color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: 16,
   },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 15,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    justifyContent: 'space-between',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 15,
+    marginHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   locationText: {
-    marginLeft: 8,
-    color: '#666',
-    fontSize: 15,
+    color: '#555',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 
