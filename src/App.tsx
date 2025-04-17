@@ -190,7 +190,11 @@ function App() {
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: true, title: "Back" }} />
           <Stack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
           <Stack.Screen name="MessagesList" component={MessagesListScreen} options={{ title: "Messages" }} />
-          <Stack.Screen name="Chat" component={ChatScreen} options={{ title: "Chat" }} />
+         
+          {/* <Stack.Screen name="Home" component={ChatScreen}  />
+          <Stack.Screen name="Friends" component={FriendsScree}  />
+          <Stack.Screen name="Chats" component={ChatsScreen}  />
+          <Stack.Screen name="Messages" component={ChatMessageScreen}  /> */}
           <Stack.Screen name="ProfilePage" component={ProfilePage} options={{ title: "Profile" }} />
           <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Edit Profile" }} />
           <Stack.Screen name="AlumniSearch" component={AlumniSearchScreen} options={{ title: "Search Alumni" }} />
