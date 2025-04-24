@@ -256,7 +256,6 @@ const RegisterScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 items={[
                   { label: "Student", value: "Student" },
                   { label: "Alumni", value: "Alumni" },
-                  { label: "TNP Member", value: "TNP Member" },
                 ]}
                 placeholder={{
                   label: "Select your role",
